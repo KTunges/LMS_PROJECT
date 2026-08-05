@@ -1,0 +1,34 @@
+import api from './api';
+
+// Auth services
+export const authService = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  getProfile: () => api.get('/auth/profile'),
+};
+
+// Material services
+export const materialService = {
+  getAll: (params) => api.get('/materials', { params }),
+  getById: (id) => api.get(`/materials/${id}`),
+  create: (data) => api.post('/materials', data),
+  update: (id, data) => api.put(`/materials/${id}`, data),
+  delete: (id) => api.delete(`/materials/${id}`),
+  download: (id) => api.get(`/materials/${id}/download`, { responseType: 'blob' }),
+};
+
+// Category services
+export const categoryService = {
+  getAll: () => api.get('/categories'),
+  create: (data) => api.post('/categories', data),
+  update: (id, data) => api.put(`/categories/${id}`, data),
+  delete: (id) => api.delete(`/categories/${id}`),
+};
+
+// User services
+export const userService = {
+  getAll: (params) => api.get('/users', { params }),
+  getById: (id) => api.get(`/users/${id}`),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  delete: (id) => api.delete(`/users/${id}`),
+};

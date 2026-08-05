@@ -1,0 +1,119 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: var(--header-height);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-6);
+  z-index: 100;
+  transition: left var(--transition-base);
+}
+
+.header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.header__menu-btn {
+  display: none;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--gray-600);
+  transition: all var(--transition-fast);
+}
+
+.header__menu-btn:hover {
+  background: var(--gray-100);
+  color: var(--gray-800);
+}
+
+.header__title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-600), var(--accent-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.header__user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.header__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--primary-400), var(--accent-500));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.header__user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header__user-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.header__logout-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--gray-500);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+}
+
+.header__logout-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--error);
+}
+
+@media (max-width: 768px) {
+  .header {
+    left: 0;
+  }
+
+  .header__menu-btn {
+    display: flex;
+  }
+
+  .header__title {
+    font-size: var(--font-size-base);
+  }
+
+  .header__user-details {
+    display: none;
+  }
+
+  .header__logout-btn span {
+    display: none;
+  }
+}
