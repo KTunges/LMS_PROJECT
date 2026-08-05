@@ -7,17 +7,17 @@
 
 /* ---- CSS Variables ---- */
 :root {
-  /* Colors - Primary */
-  --primary-50: #eff6ff;
-  --primary-100: #dbeafe;
-  --primary-200: #bfdbfe;
-  --primary-300: #93c5fd;
-  --primary-400: #60a5fa;
-  --primary-500: #3b82f6;
-  --primary-600: #2563eb;
-  --primary-700: #1d4ed8;
-  --primary-800: #1e40af;
-  --primary-900: #1e3a8a;
+  /* Colors - Primary (Gold/Yellow) */
+  --primary-50: #fefce8;
+  --primary-100: #fef08a;
+  --primary-200: #fde047;
+  --primary-300: #facc15;
+  --primary-400: #eab308;
+  --primary-500: #ca8a04;
+  --primary-600: #a16207;
+  --primary-700: #854d0e;
+  --primary-800: #713f12;
+  --primary-900: #422006;
 
   /* Colors - Secondary */
   --secondary-50: #f0fdf4;
@@ -57,6 +57,28 @@
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
   --font-size-4xl: 2.25rem;
+  
+  /* Theme Semantic Variables (Default Dark) */
+  --theme-bg-main: #121212;
+  --theme-bg-grad-1: #2a2a2a;
+  --theme-bg-grad-2: #1f1f1f;
+  --theme-text-main: #ffffff;
+  --theme-text-muted: var(--gray-400);
+  --theme-text-accent: #b45309; /* Gold */
+  
+  --theme-glass-bg: rgba(30, 30, 30, 0.4);
+  --theme-glass-bg-hover: rgba(40, 40, 40, 0.5);
+  --theme-glass-border: rgba(255, 255, 255, 0.15);
+  --theme-glass-border-light: rgba(255, 255, 255, 0.25);
+  --theme-glass-shadow: rgba(0, 0, 0, 0.5);
+  --theme-glass-inset-1: rgba(255, 255, 255, 0.15);
+  --theme-glass-inset-2: rgba(255, 255, 255, 0.02);
+  
+  --theme-card-bg: #242424;
+  --theme-border-color: #333333;
+  
+  --theme-sidebar-link: rgba(234, 179, 8, 0.7);
+  --theme-sidebar-title: rgba(234, 179, 8, 0.5);
 
   /* Spacing */
   --spacing-1: 0.25rem;
@@ -94,6 +116,28 @@
   --header-height: 64px;
 }
 
+body.light-mode {
+  --theme-bg-main: #f8f9fa;
+  --theme-bg-grad-1: #ffffff;
+  --theme-bg-grad-2: #f1f3f5;
+  --theme-text-main: #111827;
+  --theme-text-muted: var(--gray-600);
+  
+  --theme-glass-bg: rgba(255, 255, 255, 0.6);
+  --theme-glass-bg-hover: rgba(255, 255, 255, 0.8);
+  --theme-glass-border: rgba(0, 0, 0, 0.1);
+  --theme-glass-border-light: rgba(255, 255, 255, 0.8);
+  --theme-glass-shadow: rgba(0, 0, 0, 0.08);
+  --theme-glass-inset-1: rgba(255, 255, 255, 0.6);
+  --theme-glass-inset-2: rgba(0, 0, 0, 0.02);
+  
+  --theme-card-bg: #ffffff;
+  --theme-border-color: #e5e7eb;
+  
+  --theme-sidebar-link: var(--gray-600);
+  --theme-sidebar-title: var(--gray-500);
+}
+
 /* ---- Reset & Base ---- */
 *,
 *::before,
@@ -112,10 +156,27 @@ body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   line-height: 1.6;
-  color: var(--gray-800);
-  background-color: var(--gray-50);
+  color: var(--theme-text-accent); /* Gold text */
+  background-color: var(--theme-bg-main);
+  background-image: 
+    radial-gradient(circle at top right, var(--theme-bg-grad-1) 0%, transparent 60%),
+    radial-gradient(circle at bottom left, var(--theme-bg-grad-2) 0%, var(--theme-bg-main) 100%);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--theme-text-main);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+p {
+  color: var(--theme-text-muted);
 }
 
 a {
@@ -194,23 +255,24 @@ input, textarea, select {
 .btn-primary {
   background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
   color: #fff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 2px 8px rgba(202, 138, 4, 0.35); /* Gold shadow */
 }
 
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.45);
+  box-shadow: 0 4px 14px rgba(202, 138, 4, 0.45); /* Gold shadow */
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: var(--gray-100);
-  color: var(--gray-700);
-  border: 1px solid var(--gray-200);
+  background: var(--theme-card-bg);
+  color: var(--theme-text-muted);
+  border: 1px solid var(--theme-border-color);
 }
 
 .btn-secondary:hover {
-  background: var(--gray-200);
+  background: var(--theme-border-color);
+  color: var(--theme-text-main);
 }
 
 .btn-danger {
@@ -233,23 +295,23 @@ input, textarea, select {
   margin-bottom: var(--spacing-2);
   font-weight: 500;
   font-size: var(--font-size-sm);
-  color: var(--gray-700);
+  color: #fef08a; /* Light gold */
 }
 
 .form-input {
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--gray-300);
+  border: 1px solid #333333;
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  color: var(--gray-800);
-  background: #fff;
+  color: #b45309; /* Gold text */
+  background: #242424;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .form-input:focus {
   border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.15); /* Gold shadow */
 }
 
 .form-input::placeholder {
@@ -258,12 +320,18 @@ input, textarea, select {
 
 /* ---- Card ---- */
 .card {
-  background: #fff;
+  background: var(--theme-glass-bg);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--gray-200);
+  box-shadow: 
+    0 10px 40px var(--theme-glass-shadow),
+    inset 0 1px 2px var(--theme-glass-inset-1),
+    inset 0 -1px 1px var(--theme-glass-inset-2);
+  border: 1px solid var(--theme-glass-border);
+  border-top: 1px solid var(--theme-glass-border-light);
   padding: var(--spacing-6);
-  transition: box-shadow var(--transition-base), transform var(--transition-base);
+  transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-base), background var(--transition-base);
 }
 
 .card:hover {
@@ -331,18 +399,18 @@ input, textarea, select {
 
 /* ---- Scrollbar ---- */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--gray-100);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
+  background: rgba(0, 0, 0, 0.6);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
+  background: rgba(0, 0, 0, 0.9);
 }

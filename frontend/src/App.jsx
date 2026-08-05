@@ -4,19 +4,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
+import AuthPage from './pages/auth/AuthPage';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
           {/* Admin routes */}
           <Route
             path="/admin"
@@ -61,11 +56,13 @@ function App() {
             <Route path="downloads" element={<Dashboard />} />
           </Route>
 
-          {/* Default redirect */}
+          {/* Public Login page */}
+          <Route path="/login" element={<AuthPage />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
+
 
       <ToastContainer
         position="top-right"
