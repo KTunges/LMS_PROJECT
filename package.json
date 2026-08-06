@@ -1,0 +1,15 @@
+{
+  "name": "group11-lms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LMS Monorepo Root",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "db:migrate": "npm run migrate --prefix database",
+    "db:migrate:undo": "npm run migrate:undo --prefix database",
+    "db:migrate:status": "npm run migrate:status --prefix database",
+    "db:seed": "npm run seed --prefix database",
+    "install:all": "npm install --prefix backend && npm install --prefix frontend && npm install --prefix database"
+  }
+}
