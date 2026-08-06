@@ -5,9 +5,23 @@
 .main-layout__content {
   margin-left: var(--sidebar-width);
   margin-top: var(--header-height);
-  padding: var(--spacing-8);
+  padding: var(--spacing-5);
   min-height: calc(100vh - var(--header-height));
   animation: fadeIn 0.3s ease;
+  transition: margin-left var(--transition-base);
+}
+
+/* Collapsed state */
+.main-layout--collapsed .sidebar {
+  transform: translateX(-100%);
+}
+
+.main-layout--collapsed .main-layout__content {
+  margin-left: 0;
+}
+
+.main-layout--collapsed .header {
+  left: 0;
 }
 
 @media (max-width: 768px) {

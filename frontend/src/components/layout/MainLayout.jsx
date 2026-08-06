@@ -5,12 +5,12 @@ import Sidebar from './Sidebar';
 import './MainLayout.css';
 
 const MainLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="main-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+    <div className={`main-layout ${sidebarCollapsed ? 'main-layout--collapsed' : ''}`}>
+      <Sidebar isOpen={!sidebarCollapsed} onClose={() => setSidebarCollapsed(true)} />
+      <Header onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <main className="main-layout__content">
         <Outlet />
       </main>

@@ -110,9 +110,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     <>
       <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
         <div className="sidebar__logo">
-          <div className="sidebar__logo-icon">
-            <img src="/logo_lms.png" alt="LMS Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
           <span className="sidebar__logo-text">LMS</span>
         </div>
 
@@ -189,8 +186,8 @@ const Sidebar = ({ isOpen, onClose }) => {
               </div>
               <button className="sidebar__user-logout" onClick={handleLogout} title="Đăng xuất">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="7 15 12 20 17 15"></polyline>
-                  <polyline points="7 9 12 4 17 9"></polyline>
+                  <polyline points="8 9 12 5 16 9"></polyline>
+                  <polyline points="8 15 12 19 16 15"></polyline>
                 </svg>
               </button>
             </>

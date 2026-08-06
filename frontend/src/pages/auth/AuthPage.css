@@ -37,22 +37,24 @@
   position: relative;
   z-index: 2;
   text-align: center;
-  color: var(--theme-text-main);
+  color: #fff; /* Changed to white for better contrast on glass */
   padding: 40px;
   max-width: 600px;
-  background: var(--theme-glass-bg);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid var(--theme-glass-border);
+  
+  /* Liquid Glass Effect */
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 24px;
-  box-shadow: 0 25px 50px -12px var(--theme-glass-shadow);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .auth-split__branding h2 {
   font-size: 3rem;
   font-weight: 800;
   margin-bottom: 16px;
-  background: linear-gradient(to right, var(--theme-text-accent), #fef08a);
+  background: linear-gradient(to right, #2563eb, #60a5fa);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -60,7 +62,7 @@
 
 .auth-split__branding p {
   font-size: 1.2rem;
-  color: var(--theme-text-muted);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
 }
 
@@ -86,8 +88,8 @@
   height: 64px;
   border-radius: 16px;
   background: var(--theme-glass-bg);
-  border: 1px solid var(--theme-text-accent);
-  box-shadow: 0 4px 12px var(--theme-glass-shadow);
+  border: 1px solid #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,13 +156,13 @@
 
 .vip-input:focus {
   background: var(--theme-glass-bg-hover);
-  border-color: var(--theme-text-accent);
-  box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 .vip-input:focus + .vip-input-icon,
 .vip-input-group:focus-within .vip-input-icon {
-  color: var(--theme-text-accent);
+  color: #2563eb;
 }
 
 .vip-select {
@@ -173,25 +175,26 @@
 }
 
 .vip-submit-btn {
-  background: linear-gradient(135deg, #ca8a04, #eab308);
+  background: #2563eb;
   border: none;
   border-radius: 12px;
-  color: #000;
-  font-weight: 700;
+  color: #fff;
+  font-weight: 600;
   font-size: 16px;
   padding: 14px;
   margin-top: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .vip-submit-btn:hover {
+  background: #1d4ed8;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(234, 179, 8, 0.5);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
 }
 
 .vip-submit-btn:active {
@@ -211,7 +214,7 @@
   background: transparent;
   border: none;
   padding: 0;
-  color: var(--theme-text-accent);
+  color: #2563eb;
   font-weight: 600;
   cursor: pointer;
   margin-left: 4px;
@@ -219,7 +222,7 @@
 }
 
 .vip-link-btn:hover {
-  color: #fef08a;
+  color: #1d4ed8;
   text-decoration: underline;
 }
 
