@@ -110,7 +110,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     <>
       <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
         <div className="sidebar__logo">
-          <span className="sidebar__logo-text">LMS</span>
+          <div className="sidebar__logo-content">
+            <span className="sidebar__logo-text">LMS</span>
+            <span className="sidebar__logo-subtitle">Hệ thống Quản lý Học liệu số</span>
+          </div>
         </div>
 
         <div className="sidebar__content">

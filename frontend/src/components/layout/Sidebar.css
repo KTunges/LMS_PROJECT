@@ -37,11 +37,25 @@
   overflow: hidden;
 }
 
+.sidebar__logo-content {
+  display: flex;
+  flex-direction: column;
+}
+
 .sidebar__logo-text {
   font-size: var(--font-size-2xl);
   font-weight: 800;
   color: #2563eb; /* Blue color matching reference */
   letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.sidebar__logo-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Sidebar Scrollable Content */

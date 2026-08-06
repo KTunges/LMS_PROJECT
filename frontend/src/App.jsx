@@ -6,6 +6,8 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/auth/AuthPage';
+import Profile from './pages/student/Profile';
+import Registration from './pages/student/Registration';
 
 function App() {
   return (
@@ -54,6 +56,8 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="materials" element={<Dashboard />} />
             <Route path="downloads" element={<Dashboard />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="registration" element={<Registration />} />
           </Route>
 
           {/* Public Login page */}
