@@ -1,0 +1,262 @@
+.results-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.results-header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--theme-text-main);
+  margin-bottom: 4px;
+}
+
+.results-header p {
+  color: var(--gray-500);
+  font-size: var(--font-size-md);
+}
+
+.btn-download-transcript {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--theme-bg-main);
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  color: var(--theme-text-main);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-download-transcript:hover {
+  background: var(--info);
+  color: #fff;
+  border-color: var(--info);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Overview Cards */
+.overview-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.overview-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--theme-glass-border);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.overview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.05);
+}
+
+.card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin-bottom: 4px;
+}
+
+.card-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--theme-text-main);
+}
+
+/* Card Themes */
+.card-blue { background: rgba(59, 130, 246, 0.03); }
+.card-blue::before { background: #3b82f6; }
+.card-blue .card-icon { background: #eff6ff; color: #3b82f6; }
+
+.card-purple { background: rgba(168, 85, 247, 0.03); }
+.card-purple::before { background: #a855f7; }
+.card-purple .card-icon { background: #faf5ff; color: #a855f7; }
+
+.card-green { background: rgba(16, 185, 129, 0.03); }
+.card-green::before { background: #10b981; }
+.card-green .card-icon { background: #f0fdf4; color: #10b981; }
+
+.card-orange { background: rgba(249, 115, 22, 0.03); }
+.card-orange::before { background: #f97316; }
+.card-orange .card-icon { background: #fff7ed; color: #f97316; }
+
+/* Main Table Section */
+.results-content {
+  padding: var(--spacing-5);
+  border-radius: var(--radius-xl);
+}
+
+.results-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-5);
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--theme-bg-main);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--theme-border-color);
+}
+
+.semester-select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-weight: 600;
+  color: var(--theme-text-main);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Table */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.grades-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.grades-table th {
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--theme-glass-border);
+  white-space: nowrap;
+  text-align: left;
+}
+
+.grades-table th.text-center,
+.grades-table td.text-center {
+  text-align: center;
+}
+
+.grades-table td {
+  padding: 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--theme-glass-border);
+  color: var(--theme-text-main);
+}
+
+.grade-row {
+  transition: background var(--transition-fast);
+}
+
+.grade-row:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.grades-table tr:last-child td {
+  border-bottom: none;
+}
+
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.text-lg { font-size: 18px; }
+.text-info { color: var(--info); }
+.text-gray { color: var(--gray-400); }
+.text-gray-700 { color: var(--gray-700); }
+
+.course-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.course-semester {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.empty-state {
+  padding: 40px !important;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+/* Letter Badges */
+.letter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.badge-a { background: #dcfce7; color: #15803d; }
+.badge-b { background: #dbeafe; color: #1d4ed8; }
+.badge-c { background: #fef9c3; color: #a16207; }
+.badge-d { background: #ffedd5; color: #c2410c; }
+.badge-f { background: #fee2e2; color: #b91c1c; }
+
+@media (max-width: 768px) {
+  .results-header, .results-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

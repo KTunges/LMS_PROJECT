@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/auth/AuthPage';
 import Profile from './pages/student/Profile';
 import Registration from './pages/student/Registration';
+import Schedule from './pages/student/Schedule';
+import Results from './pages/student/Results';
 
 function App() {
   return (
@@ -58,6 +60,8 @@ function App() {
             <Route path="downloads" element={<Dashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="registration" element={<Registration />} />
+            <Route path="schedule" element={<Schedule />} />
+            <Route path="results" element={<Results />} />
           </Route>
 
           {/* Public Login page */}

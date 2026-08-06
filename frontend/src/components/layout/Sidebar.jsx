@@ -20,7 +20,11 @@ import {
   FiCreditCard,
   FiFileText,
   FiTarget,
-  FiLogOut
+  FiLogOut,
+  FiMonitor,
+  FiCheckSquare,
+  FiGlobe,
+  FiMessageCircle
 } from 'react-icons/fi';
 
 // Dummy category data for the tree
@@ -84,16 +88,101 @@ const Sidebar = ({ isOpen, onClose }) => {
   ];
 
   const studentMenu = [
-    { to: '/student', icon: <FiHome />, label: 'Tổng quan' },
-    { to: '/student/profile', icon: <FiUser />, label: 'Hồ sơ sinh viên' },
-    { to: '/student/registration', icon: <FiBookOpen />, label: 'Đăng ký môn học' },
-    { to: '/student/results', icon: <FiAward />, label: 'Kết quả học tập' },
-    { to: '/student/schedule', icon: <FiCalendar />, label: 'Thời khóa biểu' },
-    { to: '/student/tuition', icon: <FiCreditCard />, label: 'Học phí & Thanh toán' },
-    { to: '/student/transcript', icon: <FiFileText />, label: 'Bảng điểm' },
-    { to: '/student/thesis', icon: <FiTarget />, label: 'Đồ án & Khóa luận' },
-    { to: '/student/graduation', icon: <FiAward />, label: 'Dịch vụ Tốt nghiệp' },
+    { to: '/student', icon: <FiHome />, label: 'Bảng Điều Khiển' },
+    {
+      id: 'academic',
+      label: 'HỌC VỤ & ĐÀO TẠO',
+      icon: <FiMonitor />,
+      children: [
+        { to: '/student/registration', label: 'Đăng ký môn học' },
+        { to: '#', label: 'Chương trình khung' },
+        { to: '/student/schedule', label: 'Thời khóa biểu' },
+        { to: '/student/results', label: 'Kết quả học tập' },
+        { to: '#', label: 'Lịch thi dự kiến' },
+        { to: '#', label: 'Tiến độ tốt nghiệp' },
+      ],
+    },
+    {
+      id: 'materials',
+      label: 'TÀI NGUYÊN HỌC TẬP',
+      icon: <FiBook />,
+      children: [
+        { to: '/student/materials', label: 'Kho tài liệu' },
+        { to: '#', label: 'Thư viện số' },
+        { to: '/student/downloads', label: 'Đã tải xuống' },
+        { to: '#', label: 'Khóa học trực tuyến' },
+      ],
+    },
+    {
+      id: 'activities',
+      label: 'HOẠT ĐỘNG LỚP',
+      icon: <FiCheckSquare />,
+      children: [
+        { to: '#', label: 'Điểm danh' },
+        { to: '#', label: 'Bài tập trực tuyến' },
+        { to: '#', label: 'Thảo luận môn học' },
+      ],
+    },
+    {
+      id: 'services',
+      label: 'DỊCH VỤ TRỰC TUYẾN',
+      icon: <FiFileText />,
+      children: [
+        { to: '#', label: 'Cấp giấy chứng nhận' },
+        { to: '#', label: 'Thẻ sinh viên điện tử' },
+        { to: '#', label: 'Nộp chứng chỉ ngoại ngữ' },
+        { to: '#', label: 'Nộp chứng chỉ tin học' },
+      ],
+    },
+    {
+      id: 'community',
+      label: 'CỘNG ĐỒNG & NGOẠI KHÓA',
+      icon: <FiGlobe />,
+      children: [
+        { to: '#', label: 'Câu lạc bộ / Đội nhóm' },
+        { to: '#', label: 'Hoạt động Đoàn - Hội' },
+        { to: '#', label: 'Khen thưởng - Kỷ luật' },
+      ],
+    },
+    {
+      id: 'personal',
+      label: 'CÁ NHÂN',
+      icon: <FiUser />,
+      children: [
+        { to: '/student/profile', label: 'Hồ sơ sinh viên' },
+        { to: '/student/tuition', label: 'Học phí & Thanh toán' },
+        { to: '#', label: 'Tra cứu công nợ' },
+        { to: '#', label: 'Đánh giá rèn luyện' },
+      ],
+    },
+    {
+      id: 'survey',
+      label: 'KHẢO SÁT & ĐÁNH GIÁ',
+      icon: <FiTarget />,
+      children: [
+        { to: '#', label: 'Khảo sát môn học' },
+        { to: '#', label: 'Đánh giá giảng viên' },
+        { to: '#', label: 'Khảo sát dịch vụ' },
+      ],
+    },
+    {
+      id: 'support',
+      label: 'HỖ TRỢ',
+      icon: <FiMessageCircle />,
+      children: [
+        { to: '#', label: 'Cố vấn học tập' },
+        { to: '#', label: 'Giải đáp thắc mắc' },
+        { to: '#', label: 'Quy chế & Sổ tay SV' },
+      ],
+    },
   ];
+
+  const toggleMenuItem = (menuId) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [`menu-${menuId}`]: !prev[`menu-${menuId}`],
+    }));
+  };
 
   const getMenu = () => {
     switch (user?.role) {
@@ -119,20 +208,57 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="sidebar__content">
           {/* Main Navigation */}
           <nav className="sidebar__nav">
-            {menu.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to.split('/').length <= 2}
-                className={({ isActive }) =>
-                  `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
-                }
-                onClick={onClose}
-              >
-                <span className="sidebar__link-icon">{item.icon}</span>
-                <span className="sidebar__link-label">{item.label}</span>
-              </NavLink>
-            ))}
+            {menu.map((item) => {
+              if (item.children) {
+                const isExpanded = expandedCategories[`menu-${item.id}`];
+                return (
+                  <div key={item.id} className="sidebar__menu-group">
+                    <button
+                      className="sidebar__menu-parent"
+                      onClick={() => toggleMenuItem(item.id)}
+                    >
+                      <div className="sidebar__menu-parent-left">
+                        <span className="sidebar__link-icon">{item.icon}</span>
+                        <span className="sidebar__link-label">{item.label}</span>
+                      </div>
+                      <span className="sidebar__menu-arrow">
+                        {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                      </span>
+                    </button>
+                    
+                    <div className={`sidebar__menu-children ${isExpanded ? 'sidebar__menu-children--open' : ''}`}>
+                      {item.children.map((child, index) => (
+                        <NavLink
+                          key={index}
+                          to={child.to}
+                          className={({ isActive }) =>
+                            `sidebar__menu-child ${isActive && child.to !== '#' ? 'sidebar__menu-child--active' : ''} ${child.to === '#' ? 'sidebar__menu-child--disabled' : ''}`
+                          }
+                          onClick={child.to !== '#' ? onClose : (e) => e.preventDefault()}
+                        >
+                          {child.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to.split('/').length <= 2}
+                  className={({ isActive }) =>
+                    `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                  }
+                  onClick={onClose}
+                >
+                  <span className="sidebar__link-icon">{item.icon}</span>
+                  <span className="sidebar__link-label">{item.label}</span>
+                </NavLink>
+              );
+            })}
           </nav>
 
           {/* Category Tree */}
