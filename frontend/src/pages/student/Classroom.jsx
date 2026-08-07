@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiFile, FiVideo, FiUploadCloud, FiDownload, FiCheckCircle, FiClock, FiAlertCircle } from 'react-icons/fi';
+import { SkeletonCard, SkeletonTable } from '../../components/common/SkeletonLoaders';
 import './Classroom.css';
 
 const MOCK_MATERIALS = [
@@ -32,6 +33,7 @@ const Classroom = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('materials'); // materials, assignments
+  const [isLoading, setIsLoading] = useState(true);
 
   // In a real app, fetch class details using classId
   const courseName = classId === '1' ? 'Lập trình Web nâng cao' : 'Không gian môn học';
@@ -40,6 +42,12 @@ const Classroom = () => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -76,7 +84,7 @@ const Classroom = () => {
   };
 
   return (
-    <div className="classroom-page animate-scaleIn">
+    <div className="classroom-page">
       {/* Header Banner */}
       <div className="classroom-banner">
         <div className="classroom-banner__bg"></div>
@@ -112,138 +120,144 @@ const Classroom = () => {
 
       {/* Content Area */}
       <div className="classroom-content">
-        
-        {/* Materials Tab */}
-        {activeTab === 'materials' && (
-          <div className="materials-list glass-card">
-            <div className="list-header">
-              <h3>Tài liệu được chia sẻ</h3>
-              <p>Các tài liệu này chỉ dành cho học viên trong lớp.</p>
-            </div>
-            
-            {MOCK_MATERIALS.map(mat => (
-              <div key={mat.id} className="material-item">
-                <div className="material-icon">
-                  {mat.type === 'pdf' ? <FiFile className="text-danger" /> : <FiVideo className="text-info" />}
-                </div>
-                <div className="material-info">
-                  <h4>{mat.title}</h4>
-                  <span>Đăng ngày: {mat.date} • Kích thước: {mat.size}</span>
-                </div>
-                <button className="btn-download-mat">
-                  <FiDownload /> Tải xuống
-                </button>
-              </div>
-            ))}
+        {isLoading ? (
+          <div style={{ marginTop: '24px' }}>
+            <SkeletonTable rows={4} cols={1} />
           </div>
-        )}
-
-        {/* Assignments Tab */}
-        {activeTab === 'assignments' && !selectedAssignment && (
-          <div className="assignments-list glass-card">
-            <div className="list-header">
-              <h3>Danh sách bài tập</h3>
-            </div>
-
-            {MOCK_ASSIGNMENTS.map(ass => (
-              <div key={ass.id} className="assignment-item" onClick={() => setSelectedAssignment(ass)}>
-                <div className={`assignment-status-icon ${ass.status}`}>
-                  {ass.status === 'submitted' ? <FiCheckCircle /> : <FiClock />}
+        ) : (
+          <>
+            {/* Materials Tab */}
+            {activeTab === 'materials' && (
+              <div className="materials-list glass-card">
+                <div className="list-header">
+                  <h3>Tài liệu được chia sẻ</h3>
+                  <p>Các tài liệu này chỉ dành cho học viên trong lớp.</p>
                 </div>
-                <div className="assignment-info">
-                  <h4>{ass.title}</h4>
-                  <span className={`due-date ${ass.status === 'pending' ? 'text-danger' : ''}`}>
-                    Hạn nộp: {ass.dueDate}
-                  </span>
-                </div>
-                <div className="assignment-state">
-                  {ass.status === 'submitted' ? (
-                    <span className="badge-success">Đã nộp ({ass.score})</span>
-                  ) : (
-                    <span className="badge-warning">Chưa nộp</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Upload Assignment View */}
-        {activeTab === 'assignments' && selectedAssignment && (
-          <div className="upload-view glass-card animate-scaleIn">
-            <div className="upload-header">
-              <button className="btn-back-sm" onClick={() => setSelectedAssignment(null)}>
-                <FiArrowLeft /> Trở về
-              </button>
-              <h3>{selectedAssignment.title}</h3>
-              <p className="due-info"><FiAlertCircle /> Hạn chót: <strong>{selectedAssignment.dueDate}</strong></p>
-            </div>
-
-            {selectedAssignment.status === 'submitted' ? (
-              <div className="submitted-state">
-                <FiCheckCircle className="success-icon-lg" />
-                <h2>Bạn đã nộp bài thành công!</h2>
-                <div className="submitted-file">
-                  <FiFile /> {selectedAssignment.fileSubmitted}
-                </div>
-                {selectedAssignment.score && (
-                  <div className="score-box">
-                    <span>Điểm:</span>
-                    <strong>{selectedAssignment.score}</strong>
-                  </div>
-                )}
-                <button className="btn-outline-danger mt-3">Hủy nộp bài</button>
-              </div>
-            ) : (
-              <div className="upload-area-wrapper">
-                <form 
-                  className={`drop-zone ${dragActive ? 'drag-active' : ''}`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <input 
-                    type="file" 
-                    id="file-upload" 
-                    className="file-input-hidden" 
-                    onChange={handleFileChange} 
-                  />
-                  
-                  {!uploadedFile ? (
-                    <label htmlFor="file-upload" className="drop-zone-content">
-                      <FiUploadCloud className="upload-icon-lg" />
-                      <h4>Kéo thả file vào đây hoặc <span>Tải lên từ máy</span></h4>
-                      <p>Chấp nhận định dạng .pdf, .doc, .zip (Tối đa 50MB)</p>
-                    </label>
-                  ) : (
-                    <div className="uploaded-file-preview">
-                      <FiFile className="file-icon" />
-                      <div className="file-details">
-                        <span className="file-name">{uploadedFile.name}</span>
-                        <span className="file-size">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                      </div>
-                      <button 
-                        type="button" 
-                        className="btn-remove-file" 
-                        onClick={(e) => { e.preventDefault(); setUploadedFile(null); }}
-                      >
-                        Xóa
-                      </button>
+                
+                {MOCK_MATERIALS.map(mat => (
+                  <div key={mat.id} className="material-item">
+                    <div className="material-icon">
+                      {mat.type === 'pdf' ? <FiFile className="text-danger" /> : <FiVideo className="text-info" />}
                     </div>
-                  )}
-                </form>
-
-                <div className="upload-actions">
-                  <button className="btn-submit" disabled={!uploadedFile} onClick={handleSubmitAssignment}>
-                    Nộp bài tập
-                  </button>
-                </div>
+                    <div className="material-info">
+                      <h4>{mat.title}</h4>
+                      <span>Đăng ngày: {mat.date} • Kích thước: {mat.size}</span>
+                    </div>
+                    <button className="btn-download-mat">
+                      <FiDownload /> Tải xuống
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
-          </div>
-        )}
 
+            {/* Assignments Tab */}
+            {activeTab === 'assignments' && !selectedAssignment && (
+              <div className="assignments-list glass-card">
+                <div className="list-header">
+                  <h3>Danh sách bài tập</h3>
+                </div>
+
+                {MOCK_ASSIGNMENTS.map(ass => (
+                  <div key={ass.id} className="assignment-item" onClick={() => setSelectedAssignment(ass)}>
+                    <div className={`assignment-status-icon ${ass.status}`}>
+                      {ass.status === 'submitted' ? <FiCheckCircle /> : <FiClock />}
+                    </div>
+                    <div className="assignment-info">
+                      <h4>{ass.title}</h4>
+                      <span className={`due-date ${ass.status === 'pending' ? 'text-danger' : ''}`}>
+                        Hạn nộp: {ass.dueDate}
+                      </span>
+                    </div>
+                    <div className="assignment-state">
+                      {ass.status === 'submitted' ? (
+                        <span className="badge-success">Đã nộp ({ass.score})</span>
+                      ) : (
+                        <span className="badge-warning">Chưa nộp</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload Assignment View */}
+            {activeTab === 'assignments' && selectedAssignment && (
+              <div className="upload-view glass-card">
+                <div className="upload-header">
+                  <button className="btn-back-sm" onClick={() => setSelectedAssignment(null)}>
+                    <FiArrowLeft /> Trở về
+                  </button>
+                  <h3>{selectedAssignment.title}</h3>
+                  <p className="due-info"><FiAlertCircle /> Hạn chót: <strong>{selectedAssignment.dueDate}</strong></p>
+                </div>
+
+                {selectedAssignment.status === 'submitted' ? (
+                  <div className="submitted-state">
+                    <FiCheckCircle className="success-icon-lg" />
+                    <h2>Bạn đã nộp bài thành công!</h2>
+                    <div className="submitted-file">
+                      <FiFile /> {selectedAssignment.fileSubmitted}
+                    </div>
+                    {selectedAssignment.score && (
+                      <div className="score-box">
+                        <span>Điểm:</span>
+                        <strong>{selectedAssignment.score}</strong>
+                      </div>
+                    )}
+                    <button className="btn-outline-danger mt-3">Hủy nộp bài</button>
+                  </div>
+                ) : (
+                  <div className="upload-area-wrapper">
+                    <form 
+                      className={`drop-zone ${dragActive ? 'drag-active' : ''}`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                    >
+                      <input 
+                        type="file" 
+                        id="file-upload" 
+                        className="file-input-hidden" 
+                        onChange={handleFileChange} 
+                      />
+                      
+                      {!uploadedFile ? (
+                        <label htmlFor="file-upload" className="drop-zone-content">
+                          <FiUploadCloud className="upload-icon-lg" />
+                          <h4>Kéo thả file vào đây hoặc <span>Tải lên từ máy</span></h4>
+                          <p>Chấp nhận định dạng .pdf, .doc, .zip (Tối đa 50MB)</p>
+                        </label>
+                      ) : (
+                        <div className="uploaded-file-preview">
+                          <FiFile className="file-icon" />
+                          <div className="file-details">
+                            <span className="file-name">{uploadedFile.name}</span>
+                            <span className="file-size">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn-remove-file" 
+                            onClick={(e) => { e.preventDefault(); setUploadedFile(null); }}
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      )}
+                    </form>
+
+                    <div className="upload-actions">
+                      <button className="btn-submit" disabled={!uploadedFile} onClick={handleSubmitAssignment}>
+                        Nộp bài tập
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

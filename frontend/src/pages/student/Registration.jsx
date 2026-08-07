@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiPrinter, FiMoreVertical, FiXCircle, FiCheckCircle, FiBookOpen, FiFilter, FiCheck } from 'react-icons/fi';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import './Registration.css';
 
 const waitingCourses = [
@@ -17,12 +18,19 @@ const registeredCourses = [
 const Registration = () => {
   const [studyType, setStudyType] = useState('new');
   const [selectedWaiting, setSelectedWaiting] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const totalCredits = registeredCourses.reduce((sum, c) => sum + c.credits, 0);
   const totalFee = "7.600.000";
 
   return (
-    <div className="reg-page animate-scaleIn">
+    <div className="reg-page">
       <div className="reg-header-wrapper">
         <div className="reg-title-area">
           <h1>Đăng ký học phần</h1>
@@ -55,59 +63,65 @@ const Registration = () => {
 
       {/* Waiting Courses Section */}
       <div className="reg-section glass-card">
-        <div className="reg-section-header">
-          <div className="reg-section-title">
-            <div className="icon-wrapper bg-blue-light">
-              <FiBookOpen className="text-info" />
+        {isLoading ? (
+          <SkeletonTable rows={4} cols={7} />
+        ) : (
+          <>
+            <div className="reg-section-header">
+              <div className="reg-section-title">
+                <div className="icon-wrapper bg-blue-light">
+                  <FiBookOpen className="text-info" />
+                </div>
+                <h2>Môn học/học phần đang chờ đăng ký</h2>
+              </div>
             </div>
-            <h2>Môn học/học phần đang chờ đăng ký</h2>
-          </div>
-        </div>
-        
-        <div className="reg-table-container">
-          <table className="reg-modern-table">
-            <thead>
-              <tr>
-                <th width="50">Chọn</th>
-                <th width="60">STT</th>
-                <th width="150">Mã học phần</th>
-                <th>Tên môn học/học phần</th>
-                <th width="80" className="text-center">Số TC</th>
-                <th width="100" className="text-center">Bắt buộc</th>
-                <th width="250">Điều kiện (Học trước/Tiên quyết)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {waitingCourses.map((course, index) => (
-                <tr key={course.id} className={selectedWaiting === course.id ? 'row-selected' : ''}>
-                  <td className="text-center">
-                    <label className="custom-radio">
-                      <input 
-                        type="radio" 
-                        name="waitingCourse" 
-                        checked={selectedWaiting === course.id}
-                        onChange={() => setSelectedWaiting(course.id)}
-                      />
-                      <span className="radio-mark"></span>
-                    </label>
-                  </td>
-                  <td className="text-center text-gray">{index + 1}</td>
-                  <td className="font-semibold text-info">{course.id}</td>
-                  <td className="font-medium">{course.name}</td>
-                  <td className="text-center">
-                    <span className="tc-badge">{course.credits}</span>
-                  </td>
-                  <td className="text-center">
-                    {course.isRequired 
-                      ? <FiCheckCircle className="icon-required text-success" /> 
-                      : <FiXCircle className="icon-required text-danger-light" />}
-                  </td>
-                  <td className="text-sm text-gray">{course.prerequisites || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            
+            <div className="reg-table-container">
+              <table className="reg-modern-table">
+                <thead>
+                  <tr>
+                    <th width="50">Chọn</th>
+                    <th width="60">STT</th>
+                    <th width="150">Mã học phần</th>
+                    <th>Tên môn học/học phần</th>
+                    <th width="80" className="text-center">Số TC</th>
+                    <th width="100" className="text-center">Bắt buộc</th>
+                    <th width="250">Điều kiện (Học trước/Tiên quyết)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {waitingCourses.map((course, index) => (
+                    <tr key={course.id} className={selectedWaiting === course.id ? 'row-selected' : ''}>
+                      <td className="text-center">
+                        <label className="custom-radio">
+                          <input 
+                            type="radio" 
+                            name="waitingCourse" 
+                            checked={selectedWaiting === course.id}
+                            onChange={() => setSelectedWaiting(course.id)}
+                          />
+                          <span className="radio-mark"></span>
+                        </label>
+                      </td>
+                      <td className="text-center text-gray">{index + 1}</td>
+                      <td className="font-semibold text-info">{course.id}</td>
+                      <td className="font-medium">{course.name}</td>
+                      <td className="text-center">
+                        <span className="tc-badge">{course.credits}</span>
+                      </td>
+                      <td className="text-center">
+                        {course.isRequired 
+                          ? <FiCheckCircle className="icon-required text-success" /> 
+                          : <FiXCircle className="icon-required text-danger-light" />}
+                      </td>
+                      <td className="text-sm text-gray">{course.prerequisites || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Registered Courses Section */}

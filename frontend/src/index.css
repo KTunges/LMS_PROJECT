@@ -368,6 +368,36 @@ input, textarea, select {
   to { transform: rotate(360deg); }
 }
 
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--theme-glass-bg-hover) 25%, var(--theme-glass-border) 50%, var(--theme-glass-bg-hover) 75%);
+  background-size: 400% 100%;
+  animation: shimmer 2.5s infinite ease-in-out;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-title {
+  height: 24px;
+  margin-bottom: 12px;
+  width: 70%;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.4s ease forwards;
 }

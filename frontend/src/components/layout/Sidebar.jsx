@@ -119,9 +119,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'TÀI NGUYÊN HỌC TẬP',
       icon: <FiBook />,
       children: [
-        { to: '/student/materials', label: 'Kho tài liệu' },
-        { to: '/student/digital-library', label: 'Thư viện số' },
-        { to: '/student/downloads', label: 'Đã tải xuống' },
+        { to: '/student/resource-center', label: 'Trung tâm học liệu' },
         { to: '/student/online-courses', label: 'Khóa học trực tuyến' },
       ],
     },
@@ -344,7 +342,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
               {/* User Dropdown Menu */}
               {isUserMenuOpen && (
-                <div className="sidebar__user-dropdown animate-scaleIn">
+                <div className="sidebar__user-dropdown">
                   <div className="dropdown-header">
                     <strong>{user.full_name || 'Người dùng'}</strong>
                     <span>{user.role === 'student' ? 'Học viên' : user.role === 'teacher' ? 'Giảng viên' : 'Quản trị viên'}</span>

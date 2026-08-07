@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { FiPlay, FiClock, FiUsers, FiStar, FiFilter, FiBookOpen, FiAward, FiChevronRight } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiPlay, FiClock, FiUsers, FiStar, FiBookOpen, FiAward, FiChevronRight } from 'react-icons/fi';
+import { SkeletonCard } from '../../components/common/SkeletonLoaders';
 import './OnlineCourses.css';
 
 const mockCourses = [
@@ -15,6 +16,13 @@ const tabs = ['Tất cả', 'Đang học', 'Hoàn thành', 'Chưa bắt đầu']
 
 const OnlineCourses = () => {
   const [activeTab, setActiveTab] = useState('Tất cả');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   const filtered = mockCourses.filter(c => {
     if (activeTab === 'Đang học') return c.progress > 0 && c.progress < 100;
@@ -33,7 +41,7 @@ const OnlineCourses = () => {
   };
 
   return (
-    <div className="courses-page animate-scaleIn">
+    <div className="courses-page">
       <div className="courses-header">
         <div>
           <h1>Khóa học trực tuyến</h1>
@@ -81,8 +89,11 @@ const OnlineCourses = () => {
 
       {/* Course grid */}
       <div className="courses-grid">
-        {filtered.map(course => (
-          <div key={course.id} className="course-card glass-card">
+        {isLoading ? (
+          Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)
+        ) : (
+          filtered.map(course => (
+            <div key={course.id} className="course-card glass-card">
             <div className="course-card__top">
               <div className="course-emoji">{course.emoji}</div>
               <div className="course-card__badges">
@@ -132,7 +143,7 @@ const OnlineCourses = () => {
               )}
             </button>
           </div>
-        ))}
+        )))}
       </div>
     </div>
   );

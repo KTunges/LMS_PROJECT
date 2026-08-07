@@ -1,5 +1,6 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { FiPrinter, FiMaximize2, FiCheckCircle, FiXCircle, FiFileText, FiChevronsDown, FiChevronsUp } from 'react-icons/fi';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import './Curriculum.css';
 
 const curriculumData = [
@@ -35,6 +36,13 @@ const curriculumData = [
 
 const Curriculum = () => {
   const [semesters, setSemesters] = useState(curriculumData);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const toggleSemester = (index) => {
     const newData = [...semesters];
@@ -51,7 +59,7 @@ const Curriculum = () => {
   const isAllOpen = semesters.every(sem => sem.isOpen);
 
   return (
-    <div className="curriculum-page animate-scaleIn">
+    <div className="curriculum-page">
       <div className="curriculum-header">
         <div className="curriculum-title">
           <h1>Chương trình khung</h1>
@@ -76,106 +84,104 @@ const Curriculum = () => {
       </div>
 
       <div className="curriculum-content glass-card">
-        <div className="table-responsive">
-          <table className="curr-table">
-            <thead>
-              <tr>
-                <th width="50">STT</th>
-                <th>Tên môn học/Học phần</th>
-                <th width="120">Mã Học phần</th>
-                <th width="100">Học phần</th>
-                <th width="60">Số TC</th>
-                <th width="80">Số tiết LT</th>
-                <th width="80">Số tiết TH</th>
-                <th width="80">Nhóm tự chọn</th>
-                <th width="120">Số TC bắt buộc của nhóm</th>
-                <th width="60">Đạt</th>
-                <th width="100">Đề cương</th>
-              </tr>
-            </thead>
-            <tbody>
-              {semesters.map((sem, sIndex) => (
-                <Fragment key={`sem-${sem.semester}`}>
-                  {/* Semester Header Row */}
-                  <tr 
-                    className={`curr-semester-row ${sem.isOpen ? 'open' : ''}`}
-                    onClick={() => toggleSemester(sIndex)}
-                  >
-                    <td colSpan="4" className="semester-name">
-                      Học kỳ {sem.semester}
-                    </td>
-                    <td className="text-center font-bold text-info">
-                      <span className="tc-badge-blue">{sem.totalCredits}</span>
-                    </td>
-                    <td colSpan="6"></td>
-                  </tr>
+        {isLoading ? (
+          <SkeletonTable rows={4} cols={3} />
+        ) : (
+          <div className="table-responsive">
+            <table className="curr-table">
+              <thead>
+                <tr>
+                  <th width="50">STT</th>
+                  <th>Tên môn học/Học phần</th>
+                  <th width="120">Mã Học phần</th>
+                  <th width="100">Học phần</th>
+                  <th width="60">Số TC</th>
+                  <th width="80">Số tiết LT</th>
+                  <th width="80">Số tiết TH</th>
+                  <th width="80">Nhóm tự chọn</th>
+                  <th width="120">Số TC bắt buộc của nhóm</th>
+                  <th width="60">Đạt</th>
+                  <th width="100">Đề cương</th>
+                </tr>
+              </thead>
+              <tbody>
+                {semesters.map((sem, sIndex) => (
+                  <Fragment key={`sem-${sem.semester}`}>
+                    <tr 
+                      className={`curr-semester-row ${sem.isOpen ? 'open' : ''}`}
+                      onClick={() => toggleSemester(sIndex)}
+                    >
+                      <td colSpan="4" className="semester-name">
+                        Học kỳ {sem.semester}
+                      </td>
+                      <td className="text-center font-bold text-info">
+                        <span className="tc-badge-blue">{sem.totalCredits}</span>
+                      </td>
+                      <td colSpan="6"></td>
+                    </tr>
 
-                  {/* Groups and Courses */}
-                  {sem.isOpen && sem.groups.map((group, gIndex) => (
-                    <Fragment key={`group-${sem.semester}-${gIndex}`}>
-                      {/* Group Header */}
-                      <tr className="curr-group-row">
-                        <td colSpan="4" className="group-name">
-                          {group.name}
-                        </td>
-                        <td className="text-center font-bold text-info">
-                          <span className="tc-badge-blue">{group.credits}</span>
-                        </td>
-                        <td colSpan="6"></td>
-                      </tr>
-
-                      {/* Course Rows */}
-                      {group.courses.map((course, cIndex) => (
-                        <tr key={course.id} className="curr-course-row learned-course">
-                          <td className="text-center text-gray">{cIndex + 1}</td>
-                          <td className="font-medium">{course.name}</td>
-                          <td className="text-center font-semibold text-gray-dark">{course.id}</td>
-                          <td className="text-center">{course.type}</td>
-                          <td className="text-center font-semibold">{course.tc}</td>
-                          <td className="text-center">{course.lt}</td>
-                          <td className="text-center">{course.th}</td>
-                          <td className="text-center">{course.groupOption}</td>
-                          <td className="text-center">{course.groupReq}</td>
-                          <td className="text-center">
-                            {course.passed ? (
-                              <FiCheckCircle className="icon-passed" />
-                            ) : (
-                              <FiXCircle className="icon-failed" />
-                            )}
+                    {sem.isOpen && sem.groups.map((group, gIndex) => (
+                      <Fragment key={`group-${sem.semester}-${gIndex}`}>
+                        <tr className="curr-group-row">
+                          <td colSpan="4" className="group-name">
+                            {group.name}
                           </td>
-                          <td className="text-center">
-                            <a href="#" className="link-outline">
-                              <FiFileText /> Xem
-                            </a>
+                          <td className="text-center font-bold text-info">
+                            <span className="tc-badge-blue">{group.credits}</span>
                           </td>
+                          <td colSpan="6"></td>
                         </tr>
-                      ))}
-                    </Fragment>
-                  ))}
-                </Fragment>
-              ))}
 
-              {/* Summary Footer */}
-              <tr className="curr-summary-row">
-                <td colSpan="4" className="summary-label">Tổng TC yêu cầu</td>
-                <td className="summary-value">155</td>
-                <td colSpan="6"></td>
-              </tr>
-              <tr className="curr-summary-row">
-                <td colSpan="4" className="summary-label">Tổng TC bắt buộc</td>
-                <td className="summary-value">147</td>
-                <td colSpan="6"></td>
-              </tr>
-              <tr className="curr-summary-row">
-                <td colSpan="4" className="summary-label">Tổng TC tự chọn</td>
-                <td className="summary-value">8</td>
-                <td colSpan="6"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                        {group.courses.map((course, cIndex) => (
+                          <tr key={course.id} className="curr-course-row learned-course">
+                            <td className="text-center text-gray">{cIndex + 1}</td>
+                            <td className="font-medium">{course.name}</td>
+                            <td className="text-center font-semibold text-gray-dark">{course.id}</td>
+                            <td className="text-center">{course.type}</td>
+                            <td className="text-center font-semibold">{course.tc}</td>
+                            <td className="text-center">{course.lt}</td>
+                            <td className="text-center">{course.th}</td>
+                            <td className="text-center">{course.groupOption}</td>
+                            <td className="text-center">{course.groupReq}</td>
+                            <td className="text-center">
+                              {course.passed ? (
+                                <FiCheckCircle className="icon-passed" />
+                              ) : (
+                                <FiXCircle className="icon-failed" />
+                              )}
+                            </td>
+                            <td className="text-center">
+                              <a href="#" className="link-outline">
+                                <FiFileText /> Xem
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </Fragment>
+                    ))}
+                  </Fragment>
+                ))}
 
-        {/* Legend */}
+                <tr className="curr-summary-row">
+                  <td colSpan="4" className="summary-label">Tổng TC yêu cầu</td>
+                  <td className="summary-value">155</td>
+                  <td colSpan="6"></td>
+                </tr>
+                <tr className="curr-summary-row">
+                  <td colSpan="4" className="summary-label">Tổng TC bắt buộc</td>
+                  <td className="summary-value">147</td>
+                  <td colSpan="6"></td>
+                </tr>
+                <tr className="curr-summary-row">
+                  <td colSpan="4" className="summary-label">Tổng TC tự chọn</td>
+                  <td className="summary-value">8</td>
+                  <td colSpan="6"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
         <div className="curr-legend">
           <p className="curr-note">
             <em>Ghi chú: Những môn học/Học phần có dấu <strong>*</strong> không được tính vào Trung bình chung tích lũy</em>

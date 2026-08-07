@@ -1,8 +1,9 @@
-import { useState, forwardRef } from 'react';
-import { FiChevronLeft, FiChevronRight, FiCalendar, FiDownload, FiMapPin, FiUser, FiClock } from 'react-icons/fi';
+import { useState, useEffect, forwardRef } from 'react';
+import { FiChevronLeft, FiChevronRight, FiCalendar, FiDownload, FiMapPin, FiUser } from 'react-icons/fi';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { vi } from 'date-fns/locale/vi';
 import { startOfWeek, addDays, format } from 'date-fns';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import 'react-datepicker/dist/react-datepicker.css';
 import './Schedule.css';
 
@@ -38,6 +39,13 @@ const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
 
 const Schedule = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, [selectedDate]);
 
   const getCourseForSlot = (day, shiftId) => {
     return mockSchedule.find(c => c.day === day && c.shift === shiftId);
@@ -46,7 +54,7 @@ const Schedule = () => {
   const currentMonday = startOfWeek(selectedDate, { weekStartsOn: 1 });
 
   return (
-    <div className="schedule-page animate-scaleIn">
+    <div className="schedule-page">
       <div className="schedule-header-wrapper">
         <div className="schedule-header-content">
           <h1>Thời khóa biểu</h1>
@@ -87,59 +95,61 @@ const Schedule = () => {
         </div>
       </div>
 
-      <div className="schedule-grid-container glass-card">
-        <div className="schedule-grid">
-          {/* Header Row: Days */}
-          <div className="grid-cell header-cell time-col-header">Thời gian</div>
-          {days.map((day, index) => {
-            const dayDate = addDays(currentMonday, index);
-            const formattedDate = format(dayDate, 'dd/MM/yyyy');
-            return (
-              <div key={day} className="grid-cell header-cell day-header">
-                <div>
-                  {day === 'T2' ? 'Thứ 2' : 
-                   day === 'T3' ? 'Thứ 3' : 
-                   day === 'T4' ? 'Thứ 4' : 
-                   day === 'T5' ? 'Thứ 5' : 
-                   day === 'T6' ? 'Thứ 6' : 'Thứ 7'}
-                </div>
-                <div className="day-date">{formattedDate}</div>
-              </div>
-            );
-          })}
-
-          {/* Time Rows */}
-          {shifts.map(shift => (
-            <div key={`row-${shift.id}`} className="grid-row">
-              {/* Time Column */}
-              <div className="grid-cell time-cell">
-                <span className="shift-name">{shift.name.split(' (')[0]}</span>
-                <span className="shift-time">({shift.name.split('(')[1]}</span>
-              </div>
-              
-              {/* Day Columns for this shift */}
-              {days.map(day => {
-                const course = getCourseForSlot(day, shift.id);
+      <div className="schedule-content glass-card">
+        {isLoading ? (
+          <SkeletonTable rows={4} cols={5} />
+        ) : (
+          <div className="schedule-grid-container">
+            <div className="schedule-grid">
+              <div className="grid-cell header-cell time-col-header">Thời gian</div>
+              {days.map((day, index) => {
+                const dayDate = addDays(currentMonday, index);
+                const formattedDate = format(dayDate, 'dd/MM/yyyy');
                 return (
-                  <div key={`${day}-${shift.id}`} className="grid-cell course-cell">
-                    {course ? (
-                      <div className={`course-card color-${course.color}`}>
-                        <div className="course-type-badge">{course.type === 'lab' ? 'Thực hành' : 'Lý thuyết'}</div>
-                        <h4 className="course-name">{course.name}</h4>
-                        <div className="course-details">
-                          <span><FiMapPin /> {course.room}</span>
-                          <span><FiUser /> {course.teacher}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="empty-slot"></div>
-                    )}
+                  <div key={day} className="grid-cell header-cell day-header">
+                    <div>
+                      {day === 'T2' ? 'Thứ 2' : 
+                      day === 'T3' ? 'Thứ 3' : 
+                      day === 'T4' ? 'Thứ 4' : 
+                      day === 'T5' ? 'Thứ 5' : 
+                      day === 'T6' ? 'Thứ 6' : 'Thứ 7'}
+                    </div>
+                    <div className="day-date">{formattedDate}</div>
                   </div>
                 );
               })}
+
+              {shifts.map(shift => (
+                <div key={`row-${shift.id}`} className="grid-row">
+                  <div className="grid-cell time-cell">
+                    <span className="shift-name">{shift.name.split(' (')[0]}</span>
+                    <span className="shift-time">({shift.name.split('(')[1]}</span>
+                  </div>
+                  
+                  {days.map(day => {
+                    const course = getCourseForSlot(day, shift.id);
+                    return (
+                      <div key={`${day}-${shift.id}`} className="grid-cell course-cell">
+                        {course ? (
+                          <div className={`course-card color-${course.color}`}>
+                            <div className="course-type-badge">{course.type === 'lab' ? 'Thực hành' : 'Lý thuyết'}</div>
+                            <h4 className="course-name">{course.name}</h4>
+                            <div className="course-details">
+                              <span><FiMapPin /> {course.room}</span>
+                              <span><FiUser /> {course.teacher}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="empty-slot"></div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="schedule-legend glass-card">

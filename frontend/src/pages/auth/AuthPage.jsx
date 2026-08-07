@@ -54,7 +54,7 @@ const AuthPage = () => {
     <div className="auth-split-layout">
       {/* LEFT SIDE: Form */}
       <div className="auth-split__left">
-        <div className="vip-auth-card animate-scaleIn">
+        <div className="vip-auth-card">
           {/* Glow Effects */}
           <div className="vip-auth-glow vip-auth-glow--1"></div>
           <div className="vip-auth-glow vip-auth-glow--2"></div>
@@ -149,7 +149,7 @@ const AuthPage = () => {
 
       {/* RIGHT SIDE: Background Image */}
       <div className="auth-split__right">
-        <div className="auth-split__branding animate-scaleIn">
+        <div className="auth-split__branding">
           <h2>Hệ thống LMS</h2>
           <p>
             Nền tảng Quản lý Học liệu số hàng đầu, cung cấp kho tài liệu khổng lồ, bài giảng trực tuyến và môi trường học tập tương tác cho hàng ngàn sinh viên và giảng viên.

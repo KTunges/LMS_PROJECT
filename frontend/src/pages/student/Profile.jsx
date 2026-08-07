@@ -1,12 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiBookOpen, FiDownload, FiStar, FiEdit2, FiLock, FiSave } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
+import { SkeletonProfile, SkeletonTable } from '../../components/common/SkeletonLoaders';
 import './Profile.css';
 
 const Profile = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('info');
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Mock data if user context is missing details
   const profileData = {
@@ -23,8 +31,19 @@ const Profile = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="profile-page">
+        <SkeletonProfile />
+        <div style={{ marginTop: '24px' }}>
+          <SkeletonTable rows={3} cols={3} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="profile-page animate-scaleIn">
+    <div className="profile-page">
       {/* Header Profile Card */}
       <div className="profile-header-card glass-card">
         <div className="profile-header__bg"></div>
@@ -90,7 +109,7 @@ const Profile = () => {
         {/* Tab Content */}
         <div className="profile-content glass-card">
           {activeTab === 'info' && (
-            <div className="tab-pane animate-scaleIn">
+            <div className="tab-pane">
               <div className="pane-header">
                 <h2>Thông tin cá nhân</h2>
                 <button 
@@ -135,7 +154,7 @@ const Profile = () => {
           )}
 
           {activeTab === 'security' && (
-            <div className="tab-pane animate-scaleIn">
+            <div className="tab-pane">
               <div className="pane-header">
                 <h2>Đổi mật khẩu</h2>
               </div>

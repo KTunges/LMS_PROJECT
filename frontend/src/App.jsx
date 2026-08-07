@@ -13,9 +13,7 @@ import Results from './pages/student/Results';
 import Curriculum from './pages/student/Curriculum';
 import ExamSchedule from './pages/student/ExamSchedule';
 import GraduationProgress from './pages/student/GraduationProgress';
-import Materials from './pages/student/Materials';
-import DigitalLibrary from './pages/student/DigitalLibrary';
-import Downloads from './pages/student/Downloads';
+import ResourceCenter from './pages/student/ResourceCenter';
 import OnlineCourses from './pages/student/OnlineCourses';
 import MyClasses from './pages/student/MyClasses';
 import Classroom from './pages/student/Classroom';
@@ -65,9 +63,8 @@ function App() {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="materials" element={<Materials />} />
-            <Route path="downloads" element={<Downloads />} />
-            <Route path="digital-library" element={<DigitalLibrary />} />
+            {/* TÀI NGUYÊN HỌC TẬP */}
+            <Route path="resource-center" element={<ResourceCenter />} />
             <Route path="online-courses" element={<OnlineCourses />} />
             <Route path="profile" element={<Profile />} />
             <Route path="registration" element={<Registration />} />

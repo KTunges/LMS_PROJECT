@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiAward, FiBook, FiTrendingUp, FiDownload, FiFilter, FiCheckCircle } from 'react-icons/fi';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import './Results.css';
 
 // Mock data
@@ -16,6 +17,13 @@ const semesters = ['Tất cả học kỳ', 'HK2 - 2025', 'HK1 - 2025'];
 
 const Results = () => {
   const [selectedSemester, setSelectedSemester] = useState('Tất cả học kỳ');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, [selectedSemester]);
 
   const filteredGrades = selectedSemester === 'Tất cả học kỳ' 
     ? mockGrades 
@@ -30,7 +38,7 @@ const Results = () => {
   };
 
   return (
-    <div className="results-page animate-scaleIn">
+    <div className="results-page">
       <div className="results-header">
         <div>
           <h1>Kết quả học tập</h1>
@@ -95,50 +103,54 @@ const Results = () => {
           </div>
         </div>
 
-        <div className="table-responsive">
-          <table className="grades-table">
-            <thead>
-              <tr>
-                <th>Mã môn</th>
-                <th>Tên môn học</th>
-                <th className="text-center">Số TC</th>
-                <th className="text-center">Quá trình (20%)</th>
-                <th className="text-center">Giữa kỳ (30%)</th>
-                <th className="text-center">Cuối kỳ (50%)</th>
-                <th className="text-center font-bold text-info">Tổng kết</th>
-                <th className="text-center">Điểm chữ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredGrades.map(grade => (
-                <tr key={grade.id} className="grade-row">
-                  <td className="font-semibold text-gray-700">{grade.id}</td>
-                  <td>
-                    <div className="course-name">{grade.name}</div>
-                    <div className="course-semester">{grade.semester}</div>
-                  </td>
-                  <td className="text-center">{grade.credits}</td>
-                  <td className="text-center">{grade.process.toFixed(1)}</td>
-                  <td className="text-center">{grade.midterm.toFixed(1)}</td>
-                  <td className="text-center">{grade.final.toFixed(1)}</td>
-                  <td className="text-center font-bold text-lg">{grade.total.toFixed(1)}</td>
-                  <td className="text-center">
-                    <span className={`letter-badge ${getLetterBadgeClass(grade.letter)}`}>
-                      {grade.letter}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {filteredGrades.length === 0 && (
+        {isLoading ? (
+          <SkeletonTable rows={5} cols={5} />
+        ) : (
+          <div className="table-responsive">
+            <table className="grades-table">
+              <thead>
                 <tr>
-                  <td colSpan="8" className="text-center empty-state">
-                    Không có dữ liệu điểm cho học kỳ này.
-                  </td>
+                  <th>Mã môn</th>
+                  <th>Tên môn học</th>
+                  <th className="text-center">Số TC</th>
+                  <th className="text-center">Quá trình (20%)</th>
+                  <th className="text-center">Giữa kỳ (30%)</th>
+                  <th className="text-center">Cuối kỳ (50%)</th>
+                  <th className="text-center font-bold text-info">Tổng kết</th>
+                  <th className="text-center">Điểm chữ</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredGrades.map(grade => (
+                  <tr key={grade.id} className="grade-row">
+                    <td className="font-semibold text-gray-700">{grade.id}</td>
+                    <td>
+                      <div className="course-name">{grade.name}</div>
+                      <div className="course-semester">{grade.semester}</div>
+                    </td>
+                    <td className="text-center">{grade.credits}</td>
+                    <td className="text-center">{grade.process.toFixed(1)}</td>
+                    <td className="text-center">{grade.midterm.toFixed(1)}</td>
+                    <td className="text-center">{grade.final.toFixed(1)}</td>
+                    <td className="text-center font-bold text-lg">{grade.total.toFixed(1)}</td>
+                    <td className="text-center">
+                      <span className={`letter-badge ${getLetterBadgeClass(grade.letter)}`}>
+                        {grade.letter}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {filteredGrades.length === 0 && (
+                  <tr>
+                    <td colSpan="8" className="text-center empty-state">
+                      Không có dữ liệu điểm cho học kỳ này.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

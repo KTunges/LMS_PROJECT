@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiCalendar, FiClock, FiMapPin, FiFilter, FiAlertTriangle, FiFileText, FiMonitor } from 'react-icons/fi';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import './ExamSchedule.css';
 
 const examData = [
@@ -82,6 +83,13 @@ const examTypes = ['Tất cả', 'Giữa kỳ', 'Cuối kỳ'];
 
 const ExamSchedule = () => {
   const [selectedType, setSelectedType] = useState('Tất cả');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, [selectedType]);
 
   const getDaysLeft = (dateStr) => {
     const today = new Date();
@@ -107,7 +115,7 @@ const ExamSchedule = () => {
   const pastCount = examData.filter(e => getDaysLeft(e.date) < 0).length;
 
   return (
-    <div className="exam-page animate-scaleIn">
+    <div className="exam-page">
       <div className="exam-header">
         <div>
           <h1>Lịch thi dự kiến</h1>
@@ -157,60 +165,63 @@ const ExamSchedule = () => {
 
       {/* Exam list */}
       <div className="exam-list">
-        {sortedExams.map(exam => {
-          const daysLeft = getDaysLeft(exam.date);
-          const isPast = daysLeft < 0;
-          const isUrgent = daysLeft >= 0 && daysLeft <= 3;
-          const dateObj = new Date(exam.date);
-          const formattedDate = dateObj.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+        {isLoading ? (
+          <SkeletonTable rows={4} cols={5} />
+        ) : (
+          sortedExams.map(exam => {
+            const daysLeft = getDaysLeft(exam.date);
+            const isPast = daysLeft < 0;
+            const isUrgent = daysLeft >= 0 && daysLeft <= 3;
+            const dateObj = new Date(exam.date);
 
-          return (
-            <div key={exam.id} className={`exam-card glass-card ${isPast ? 'past' : ''} ${isUrgent ? 'urgent' : ''}`}>
-              <div className="exam-card__left">
-                <div className="exam-date-box">
-                  <span className="exam-day">{dateObj.getDate()}</span>
-                  <span className="exam-month">Tháng {dateObj.getMonth() + 1}</span>
-                </div>
-              </div>
-              <div className="exam-card__center">
-                <div className="exam-card__top">
-                  <span className={`exam-type-badge ${exam.type === 'Giữa kỳ' ? 'midterm' : 'final'}`}>
-                    {exam.type}
-                  </span>
-                  <span className="exam-code">{exam.code}</span>
-                </div>
-                <h3 className="exam-name">{exam.name}</h3>
-                <div className="exam-details">
-                  <span className="exam-detail">
-                    {getFormatIcon(exam.format)} {exam.format}
-                  </span>
-                  <span className="exam-detail">
-                    <FiClock /> {exam.time}
-                  </span>
-                  <span className="exam-detail">
-                    <FiMapPin /> {exam.room}
-                  </span>
-                </div>
-                {exam.note && (
-                  <div className="exam-note">
-                    <FiAlertTriangle /> {exam.note}
+            return (
+              <div key={exam.id} className={`exam-card glass-card ${isPast ? 'past' : ''} ${isUrgent ? 'urgent' : ''}`}>
+                <div className="exam-card__left">
+                  <div className="exam-date-box">
+                    <span className="exam-day">{dateObj.getDate()}</span>
+                    <span className="exam-month">Tháng {dateObj.getMonth() + 1}</span>
                   </div>
-                )}
+                </div>
+                <div className="exam-card__center">
+                  <div className="exam-card__top">
+                    <span className={`exam-type-badge ${exam.type === 'Giữa kỳ' ? 'midterm' : 'final'}`}>
+                      {exam.type}
+                    </span>
+                    <span className="exam-code">{exam.code}</span>
+                  </div>
+                  <h3 className="exam-name">{exam.name}</h3>
+                  <div className="exam-details">
+                    <span className="exam-detail">
+                      {getFormatIcon(exam.format)} {exam.format}
+                    </span>
+                    <span className="exam-detail">
+                      <FiClock /> {exam.time}
+                    </span>
+                    <span className="exam-detail">
+                      <FiMapPin /> {exam.room}
+                    </span>
+                  </div>
+                  {exam.note && (
+                    <div className="exam-note">
+                      <FiAlertTriangle /> {exam.note}
+                    </div>
+                  )}
+                </div>
+                <div className="exam-card__right">
+                  {isPast ? (
+                    <span className="countdown past">Đã qua</span>
+                  ) : daysLeft === 0 ? (
+                    <span className="countdown today">Hôm nay</span>
+                  ) : (
+                    <span className={`countdown ${isUrgent ? 'urgent' : ''}`}>
+                      {daysLeft} ngày nữa
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="exam-card__right">
-                {isPast ? (
-                  <span className="countdown past">Đã qua</span>
-                ) : daysLeft === 0 ? (
-                  <span className="countdown today">Hôm nay</span>
-                ) : (
-                  <span className={`countdown ${isUrgent ? 'urgent' : ''}`}>
-                    {daysLeft} ngày nữa
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

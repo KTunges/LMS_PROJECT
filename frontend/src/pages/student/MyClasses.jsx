@@ -68,7 +68,7 @@ const MyClasses = () => {
   const displayClasses = activeTab === 'current' ? currentClasses : completedClasses;
 
   return (
-    <div className="myclasses-page animate-scaleIn">
+    <div className="myclasses-page">
       <div className="myclasses-header">
         <div className="myclasses-title">
           <h1>Không gian học tập</h1>

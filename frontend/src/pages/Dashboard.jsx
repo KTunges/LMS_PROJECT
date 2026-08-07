@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { 
   FiTrendingUp, FiCheckCircle, FiBookOpen, FiAward as FiGrades, 
@@ -5,6 +6,7 @@ import {
   FiMonitor, FiDatabase, FiCpu, FiLock, FiSmartphone,
   FiFileText, FiClock, FiStar, FiBell, FiDownload
 } from 'react-icons/fi';
+import { SkeletonCard, SkeletonProfile } from '../components/common/SkeletonLoaders';
 
 const Dashboard = () => {
   // Dummy user data
@@ -64,8 +66,45 @@ const Dashboard = () => {
   const earnedCredits = 112;
   const progressPercent = Math.round((earnedCredits / totalCredits) * 100);
 
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="dashboard">
+        <div style={{ marginBottom: '32px' }}>
+          <div className="skeleton skeleton-title" style={{ width: '300px', height: '40px' }}></div>
+          <div className="skeleton skeleton-text" style={{ width: '400px' }}></div>
+        </div>
+        <div className="dashboard__stats-row" style={{ marginBottom: '24px' }}>
+          {Array(4).fill(0).map((_, i) => (
+            <div key={i} className="stat-card glass-card">
+              <div className="skeleton skeleton-text" style={{ width: '60%' }}></div>
+              <div className="skeleton skeleton-title" style={{ width: '40%', height: '36px', marginTop: '12px' }}></div>
+            </div>
+          ))}
+        </div>
+        <div className="dashboard__grid">
+          <div className="dashboard__col-left">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+          <div className="dashboard__col-right">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="dashboard animate-fadeIn">
+    <div className="dashboard">
       {/* HEADER */}
       <div className="dashboard__greeting">
         <h1 className="dashboard__greeting-title">
