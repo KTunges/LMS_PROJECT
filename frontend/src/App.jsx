@@ -17,6 +17,8 @@ import Materials from './pages/student/Materials';
 import DigitalLibrary from './pages/student/DigitalLibrary';
 import Downloads from './pages/student/Downloads';
 import OnlineCourses from './pages/student/OnlineCourses';
+import MyClasses from './pages/student/MyClasses';
+import Classroom from './pages/student/Classroom';
 
 function App() {
   return (
@@ -74,6 +76,8 @@ function App() {
             <Route path="curriculum" element={<Curriculum />} />
             <Route path="exam-schedule" element={<ExamSchedule />} />
             <Route path="graduation-progress" element={<GraduationProgress />} />
+            <Route path="my-classes" element={<MyClasses />} />
+            <Route path="classroom/:classId" element={<Classroom />} />
           </Route>
 
           {/* Public Login page */}

@@ -131,7 +131,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: <FiCheckSquare />,
       children: [
         { to: '#', label: 'Điểm danh' },
-        { to: '#', label: 'Bài tập trực tuyến' },
+        { to: '/student/my-classes', label: 'Không gian học tập' },
         { to: '#', label: 'Thảo luận môn học' },
       ],
     },
@@ -246,7 +246,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                           className={({ isActive }) =>
                             `sidebar__menu-child ${isActive && child.to !== '#' ? 'sidebar__menu-child--active' : ''} ${child.to === '#' ? 'sidebar__menu-child--disabled' : ''}`
                           }
-                          onClick={child.to !== '#' ? onClose : (e) => e.preventDefault()}
+                          onClick={child.to === '#' ? (e) => e.preventDefault() : undefined}
                         >
                           {child.label}
                         </NavLink>
@@ -264,7 +264,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                   className={({ isActive }) =>
                     `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
                   }
-                  onClick={onClose}
                 >
                   <span className="sidebar__link-icon">{item.icon}</span>
                   <span className="sidebar__link-label">{item.label}</span>
@@ -300,7 +299,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                           className={({ isActive }) =>
                             `sidebar__tree-child ${isActive ? 'sidebar__tree-child--active' : ''}`
                           }
-                          onClick={onClose}
                         >
                           <FiHash size={12} className="sidebar__tree-child-icon" />
                           <span className="sidebar__tree-child-label">{child.name}</span>
