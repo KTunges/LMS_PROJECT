@@ -1,6 +1,12 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiDownload, FiMapPin, FiUser, FiClock } from 'react-icons/fi';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { vi } from 'date-fns/locale/vi';
+import { startOfWeek, addDays, format } from 'date-fns';
+import 'react-datepicker/dist/react-datepicker.css';
 import './Schedule.css';
+
+registerLocale('vi', vi);
 
 // Mock schedule data
 const mockSchedule = [
@@ -21,36 +27,60 @@ const shifts = [
   { id: 4, name: 'Ca 4 (15:30 - 17:45)', period: 'Chiều' },
 ];
 
+const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
+  <div className="date-input-wrapper glass-card" onClick={onClick} ref={ref} style={{ cursor: 'pointer' }}>
+    <input className="custom-datepicker-input" value={value} readOnly style={{ cursor: 'pointer' }} />
+    <div className="calendar-icon-box">
+      <FiCalendar />
+    </div>
+  </div>
+));
+
 const Schedule = () => {
-  const [currentWeek, setCurrentWeek] = useState(12);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const getCourseForSlot = (day, shiftId) => {
     return mockSchedule.find(c => c.day === day && c.shift === shiftId);
   };
+
+  const currentMonday = startOfWeek(selectedDate, { weekStartsOn: 1 });
 
   return (
     <div className="schedule-page animate-scaleIn">
       <div className="schedule-header-wrapper">
         <div className="schedule-header-content">
           <h1>Thời khóa biểu</h1>
-          <p>Kỳ 1 - Năm học 2026-2027</p>
         </div>
         
         <div className="schedule-controls">
-          <div className="week-selector glass-card">
-            <button onClick={() => setCurrentWeek(w => Math.max(1, w - 1))} className="icon-btn">
-              <FiChevronLeft size={20} />
-            </button>
-            <div className="current-week">
-              <FiCalendar className="text-info" />
-              <span>Tuần {currentWeek}</span>
-            </div>
-            <button onClick={() => setCurrentWeek(w => Math.min(15, w + 1))} className="icon-btn">
-              <FiChevronRight size={20} />
+          <div className="date-picker-group">
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              dateFormat="dd/MM/yyyy"
+              locale="vi"
+              customInput={<CustomDateInput />}
+            />
+            <button className="btn-today-date glass-card" onClick={() => setSelectedDate(new Date())}>
+              <FiCalendar /> Hiện tại
             </button>
           </div>
           
-          <button className="btn-today glass-card">Hôm nay</button>
+          <div className="nav-buttons-group" style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              className="btn-nav-week" 
+              onClick={() => setSelectedDate(prev => addDays(prev, -7))}
+            >
+              <FiChevronLeft /> Trở về
+            </button>
+            <button 
+              className="btn-nav-week" 
+              onClick={() => setSelectedDate(prev => addDays(prev, 7))}
+            >
+              Tiếp <FiChevronRight />
+            </button>
+          </div>
+          
           <button className="btn-download">
             <FiDownload /> Xuất PDF
           </button>
@@ -61,15 +91,22 @@ const Schedule = () => {
         <div className="schedule-grid">
           {/* Header Row: Days */}
           <div className="grid-cell header-cell time-col-header">Thời gian</div>
-          {days.map(day => (
-            <div key={day} className="grid-cell header-cell day-header">
-              {day === 'T2' ? 'Thứ 2' : 
-               day === 'T3' ? 'Thứ 3' : 
-               day === 'T4' ? 'Thứ 4' : 
-               day === 'T5' ? 'Thứ 5' : 
-               day === 'T6' ? 'Thứ 6' : 'Thứ 7'}
-            </div>
-          ))}
+          {days.map((day, index) => {
+            const dayDate = addDays(currentMonday, index);
+            const formattedDate = format(dayDate, 'dd/MM/yyyy');
+            return (
+              <div key={day} className="grid-cell header-cell day-header">
+                <div>
+                  {day === 'T2' ? 'Thứ 2' : 
+                   day === 'T3' ? 'Thứ 3' : 
+                   day === 'T4' ? 'Thứ 4' : 
+                   day === 'T5' ? 'Thứ 5' : 
+                   day === 'T6' ? 'Thứ 6' : 'Thứ 7'}
+                </div>
+                <div className="day-date">{formattedDate}</div>
+              </div>
+            );
+          })}
 
           {/* Time Rows */}
           {shifts.map(shift => (

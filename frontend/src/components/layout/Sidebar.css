@@ -213,18 +213,6 @@
   font-weight: 600;
 }
 
-.sidebar__menu-child--active::before {
-  content: '';
-  position: absolute;
-  left: -14.5px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--info);
-}
-
 .sidebar__menu-child--disabled {
   opacity: 0.5;
   cursor: not-allowed;
