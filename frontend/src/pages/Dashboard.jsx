@@ -104,9 +104,17 @@ const Dashboard = () => {
               <h3 className="card__title">Tiến độ Tốt nghiệp</h3>
               <div className="progress-container">
                 <div className="circular-progress" style={{ '--progress': `${progressPercent}%` }}>
+                  <div className="ring-outer"></div>
+                  <div className="ring-inner"></div>
                   <div className="progress-value">
-                    <span className="percent">{progressPercent}%</span>
-                    <span className="credits">{earnedCredits}/{totalCredits} TC</span>
+                    <div className="value-completed">
+                      <span className="percent">{progressPercent}%</span>
+                      <span className="credits">{earnedCredits}/{totalCredits} TC</span>
+                    </div>
+                    <div className="value-total">
+                      <span className="credits">Tổng: {totalCredits} tín chỉ</span>
+                      <span className="percent text-blue">100%</span>
+                    </div>
                   </div>
                 </div>
                 <div className="progress-info">

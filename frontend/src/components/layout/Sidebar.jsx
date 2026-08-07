@@ -95,11 +95,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: <FiMonitor />,
       children: [
         { to: '/student/registration', label: 'Đăng ký môn học' },
-        { to: '#', label: 'Chương trình khung' },
+        { to: '/student/curriculum', label: 'Chương trình khung' },
         { to: '/student/schedule', label: 'Thời khóa biểu' },
         { to: '/student/results', label: 'Kết quả học tập' },
-        { to: '#', label: 'Lịch thi dự kiến' },
-        { to: '#', label: 'Tiến độ tốt nghiệp' },
+        { to: '/student/exam-schedule', label: 'Lịch thi dự kiến' },
+        { to: '/student/graduation-progress', label: 'Tiến độ tốt nghiệp' },
       ],
     },
     {
@@ -108,9 +108,9 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: <FiBook />,
       children: [
         { to: '/student/materials', label: 'Kho tài liệu' },
-        { to: '#', label: 'Thư viện số' },
+        { to: '/student/digital-library', label: 'Thư viện số' },
         { to: '/student/downloads', label: 'Đã tải xuống' },
-        { to: '#', label: 'Khóa học trực tuyến' },
+        { to: '/student/online-courses', label: 'Khóa học trực tuyến' },
       ],
     },
     {
