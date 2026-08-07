@@ -1,199 +1,206 @@
-import { useState } from 'react';
-import { FiBook, FiCheckCircle, FiClock, FiFilter, FiLayers } from 'react-icons/fi';
+import React, { useState, Fragment } from 'react';
+import { FiPrinter, FiMaximize2, FiCheckCircle, FiXCircle, FiFileText, FiChevronsDown, FiChevronsUp } from 'react-icons/fi';
 import './Curriculum.css';
 
-const curriculumData = {
-  'Năm 1 - HK1': [
-    { id: 'IT101', name: 'Nhập môn Lập trình', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'MATH101', name: 'Toán Cao cấp 1', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'ENG101', name: 'Tiếng Anh 1', credits: 2, type: 'Bắt buộc', status: 'completed' },
-    { id: 'PHY101', name: 'Vật lý Đại cương', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'GEN101', name: 'Triết học Mác-Lênin', credits: 3, type: 'Bắt buộc', status: 'completed' },
-  ],
-  'Năm 1 - HK2': [
-    { id: 'IT102', name: 'Cấu trúc Dữ liệu & Giải thuật', credits: 4, type: 'Bắt buộc', status: 'completed' },
-    { id: 'MATH102', name: 'Toán Cao cấp 2', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'ENG102', name: 'Tiếng Anh 2', credits: 2, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT103', name: 'Kỹ thuật Lập trình', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'GEN102', name: 'Kinh tế Chính trị', credits: 2, type: 'Bắt buộc', status: 'completed' },
-  ],
-  'Năm 2 - HK1': [
-    { id: 'IT201', name: 'Cơ sở Dữ liệu', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT202', name: 'Mạng Máy tính', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT203', name: 'Hệ Điều hành', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'MATH201', name: 'Xác suất Thống kê', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'ENG201', name: 'Tiếng Anh chuyên ngành', credits: 2, type: 'Bắt buộc', status: 'completed' },
-  ],
-  'Năm 2 - HK2': [
-    { id: 'IT204', name: 'Phát triển Ứng dụng Web', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT205', name: 'Kiến trúc Máy tính', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT206', name: 'Công nghệ Phần mềm', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT207', name: 'Trí tuệ Nhân tạo', credits: 3, type: 'Tự chọn', status: 'completed' },
-    { id: 'GEN201', name: 'Tư tưởng Hồ Chí Minh', credits: 2, type: 'Bắt buộc', status: 'completed' },
-  ],
-  'Năm 3 - HK1': [
-    { id: 'IT301', name: 'Phát triển Ứng dụng Di động', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT302', name: 'An toàn Thông tin', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT303', name: 'Phân tích Thiết kế Hệ thống', credits: 3, type: 'Bắt buộc', status: 'completed' },
-    { id: 'IT304', name: 'Học Máy', credits: 3, type: 'Tự chọn', status: 'completed' },
-    { id: 'IT305', name: 'DevOps & CI/CD', credits: 2, type: 'Tự chọn', status: 'completed' },
-  ],
-  'Năm 3 - HK2': [
-    { id: 'IT306', name: 'Lập trình Web Nâng cao', credits: 3, type: 'Bắt buộc', status: 'studying' },
-    { id: 'IT307', name: 'Hệ quản trị CSDL Nâng cao', credits: 3, type: 'Bắt buộc', status: 'studying' },
-    { id: 'IT308', name: 'Điện toán Đám mây', credits: 3, type: 'Tự chọn', status: 'studying' },
-    { id: 'IT309', name: 'Kiểm thử Phần mềm', credits: 3, type: 'Bắt buộc', status: 'studying' },
-    { id: 'GEN301', name: 'Kỹ năng Mềm', credits: 2, type: 'Bắt buộc', status: 'studying' },
-  ],
-  'Năm 4 - HK1': [
-    { id: 'IT401', name: 'Quản lý Dự án CNTT', credits: 3, type: 'Bắt buộc', status: 'pending' },
-    { id: 'IT402', name: 'Blockchain & Ứng dụng', credits: 3, type: 'Tự chọn', status: 'pending' },
-    { id: 'IT403', name: 'Thực tập Doanh nghiệp', credits: 4, type: 'Bắt buộc', status: 'pending' },
-    { id: 'IT404', name: 'Seminar Chuyên đề', credits: 2, type: 'Tự chọn', status: 'pending' },
-  ],
-  'Năm 4 - HK2': [
-    { id: 'IT405', name: 'Đồ án Tốt nghiệp', credits: 10, type: 'Bắt buộc', status: 'pending' },
-  ],
-};
-
-const semesterKeys = Object.keys(curriculumData);
+const curriculumData = [
+  {
+    semester: 1,
+    totalCredits: 14,
+    isOpen: true,
+    groups: [
+      {
+        name: 'Học phần bắt buộc',
+        credits: 14,
+        courses: [
+          { id: '1001070006', name: 'Kỹ năng giao tiếp (HP1)', type: '', tc: 2, lt: 30, th: 0, groupOption: 0, groupReq: '', passed: true },
+          { id: '1001074618', name: 'Dịch vụ Hành chính', type: '', tc: 3, lt: 45, th: 0, groupOption: 0, groupReq: '', passed: true },
+          { id: '1001074673', name: 'Công nghệ thông tin', type: '', tc: 3, lt: 0, th: 90, groupOption: 0, groupReq: '', passed: true },
+          { id: '1001074730', name: 'Tiếng Anh 1', type: '', tc: 6, lt: 60, th: 60, groupOption: 0, groupReq: '', passed: true },
+        ]
+      }
+    ]
+  },
+  { semester: 2, totalCredits: 15, isOpen: false, groups: [] },
+  { semester: 3, totalCredits: 14, isOpen: false, groups: [] },
+  { semester: 4, totalCredits: 16, isOpen: false, groups: [] },
+  { semester: 5, totalCredits: 17, isOpen: false, groups: [] },
+  { semester: 6, totalCredits: 14, isOpen: false, groups: [] },
+  { semester: 7, totalCredits: 13, isOpen: false, groups: [] },
+  { semester: 8, totalCredits: 15, isOpen: false, groups: [] },
+  { semester: 9, totalCredits: 12, isOpen: false, groups: [] },
+  { semester: 10, totalCredits: 9, isOpen: false, groups: [] },
+  { semester: 11, totalCredits: 8, isOpen: false, groups: [] },
+  { semester: 12, totalCredits: 8, isOpen: false, groups: [] },
+];
 
 const Curriculum = () => {
-  const [filterYear, setFilterYear] = useState('Tất cả');
-  const years = ['Tất cả', 'Năm 1', 'Năm 2', 'Năm 3', 'Năm 4'];
+  const [semesters, setSemesters] = useState(curriculumData);
 
-  const filteredSemesters = filterYear === 'Tất cả'
-    ? semesterKeys
-    : semesterKeys.filter(s => s.startsWith(filterYear));
-
-  const totalCredits = semesterKeys.reduce((sum, key) =>
-    sum + curriculumData[key].reduce((s, c) => s + c.credits, 0), 0);
-  const completedCredits = semesterKeys.reduce((sum, key) =>
-    sum + curriculumData[key].filter(c => c.status === 'completed').reduce((s, c) => s + c.credits, 0), 0);
-  const studyingCredits = semesterKeys.reduce((sum, key) =>
-    sum + curriculumData[key].filter(c => c.status === 'studying').reduce((s, c) => s + c.credits, 0), 0);
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed': return <FiCheckCircle className="status-icon completed" />;
-      case 'studying': return <FiClock className="status-icon studying" />;
-      default: return <FiBook className="status-icon pending" />;
-    }
+  const toggleSemester = (index) => {
+    const newData = [...semesters];
+    newData[index].isOpen = !newData[index].isOpen;
+    setSemesters(newData);
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'completed': return 'Đã hoàn thành';
-      case 'studying': return 'Đang học';
-      default: return 'Chưa học';
-    }
+  const toggleAllSemesters = () => {
+    const allOpen = semesters.every(sem => sem.isOpen);
+    const newData = semesters.map(sem => ({ ...sem, isOpen: !allOpen }));
+    setSemesters(newData);
   };
+
+  const isAllOpen = semesters.every(sem => sem.isOpen);
 
   return (
     <div className="curriculum-page animate-scaleIn">
       <div className="curriculum-header">
-        <div>
+        <div className="curriculum-title">
           <h1>Chương trình khung</h1>
-          <p>Chương trình đào tạo ngành Công nghệ Thông tin — Khóa 2023-2027</p>
+          <p>Khung chương trình đào tạo tiêu chuẩn toàn khóa học</p>
         </div>
-      </div>
-
-      {/* Summary cards */}
-      <div className="curriculum-summary">
-        <div className="summary-card glass-card card-total">
-          <FiLayers className="summary-icon" />
-          <div>
-            <span className="summary-label">Tổng tín chỉ</span>
-            <span className="summary-value">{totalCredits}</span>
-          </div>
-        </div>
-        <div className="summary-card glass-card card-done">
-          <FiCheckCircle className="summary-icon" />
-          <div>
-            <span className="summary-label">Đã hoàn thành</span>
-            <span className="summary-value">{completedCredits}</span>
-          </div>
-        </div>
-        <div className="summary-card glass-card card-studying">
-          <FiClock className="summary-icon" />
-          <div>
-            <span className="summary-label">Đang học</span>
-            <span className="summary-value">{studyingCredits}</span>
-          </div>
-        </div>
-        <div className="summary-card glass-card card-remain">
-          <FiBook className="summary-icon" />
-          <div>
-            <span className="summary-label">Còn lại</span>
-            <span className="summary-value">{totalCredits - completedCredits - studyingCredits}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter */}
-      <div className="curriculum-filter glass-card">
-        <FiFilter />
-        <span>Lọc theo:</span>
-        {years.map(y => (
-          <button
-            key={y}
-            className={`filter-btn ${filterYear === y ? 'active' : ''}`}
-            onClick={() => setFilterYear(y)}
-          >
-            {y}
+        
+        <div className="curriculum-actions">
+          <button className="btn-curr-action">
+            <FiPrinter /> In
           </button>
-        ))}
+          <button 
+            className="btn-curr-action btn-icon-only"
+            onClick={toggleAllSemesters}
+            title={isAllOpen ? "Thu gọn tất cả" : "Mở rộng tất cả"}
+          >
+            {isAllOpen ? <FiChevronsUp /> : <FiChevronsDown />}
+          </button>
+          <button className="btn-curr-action btn-icon-only">
+            <FiMaximize2 />
+          </button>
+        </div>
       </div>
 
-      {/* Semester blocks */}
-      {filteredSemesters.map(semester => {
-        const courses = curriculumData[semester];
-        const semCredits = courses.reduce((s, c) => s + c.credits, 0);
-        const semDone = courses.filter(c => c.status === 'completed').length;
-
-        return (
-          <div key={semester} className="semester-block glass-card">
-            <div className="semester-header">
-              <h2 className="semester-title">{semester}</h2>
-              <div className="semester-meta">
-                <span className="semester-credits">{semCredits} tín chỉ</span>
-                <span className="semester-progress">{semDone}/{courses.length} môn hoàn thành</span>
-              </div>
-            </div>
-            <table className="curriculum-table">
-              <thead>
-                <tr>
-                  <th>Mã môn</th>
-                  <th>Tên môn học</th>
-                  <th>Tín chỉ</th>
-                  <th>Loại</th>
-                  <th>Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody>
-                {courses.map(course => (
-                  <tr key={course.id} className={`row-${course.status}`}>
-                    <td className="cell-code">{course.id}</td>
-                    <td className="cell-name">{course.name}</td>
-                    <td className="cell-credits">{course.credits}</td>
-                    <td>
-                      <span className={`type-badge ${course.type === 'Bắt buộc' ? 'required' : 'elective'}`}>
-                        {course.type}
-                      </span>
+      <div className="curriculum-content glass-card">
+        <div className="table-responsive">
+          <table className="curr-table">
+            <thead>
+              <tr>
+                <th width="50">STT</th>
+                <th>Tên môn học/Học phần</th>
+                <th width="120">Mã Học phần</th>
+                <th width="100">Học phần</th>
+                <th width="60">Số TC</th>
+                <th width="80">Số tiết LT</th>
+                <th width="80">Số tiết TH</th>
+                <th width="80">Nhóm tự chọn</th>
+                <th width="120">Số TC bắt buộc của nhóm</th>
+                <th width="60">Đạt</th>
+                <th width="100">Đề cương</th>
+              </tr>
+            </thead>
+            <tbody>
+              {semesters.map((sem, sIndex) => (
+                <Fragment key={`sem-${sem.semester}`}>
+                  {/* Semester Header Row */}
+                  <tr 
+                    className={`curr-semester-row ${sem.isOpen ? 'open' : ''}`}
+                    onClick={() => toggleSemester(sIndex)}
+                  >
+                    <td colSpan="4" className="semester-name">
+                      Học kỳ {sem.semester}
                     </td>
-                    <td>
-                      <span className={`status-badge status-${course.status}`}>
-                        {getStatusIcon(course.status)}
-                        {getStatusLabel(course.status)}
-                      </span>
+                    <td className="text-center font-bold text-info">
+                      <span className="tc-badge-blue">{sem.totalCredits}</span>
                     </td>
+                    <td colSpan="6"></td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+
+                  {/* Groups and Courses */}
+                  {sem.isOpen && sem.groups.map((group, gIndex) => (
+                    <Fragment key={`group-${sem.semester}-${gIndex}`}>
+                      {/* Group Header */}
+                      <tr className="curr-group-row">
+                        <td colSpan="4" className="group-name">
+                          {group.name}
+                        </td>
+                        <td className="text-center font-bold text-info">
+                          <span className="tc-badge-blue">{group.credits}</span>
+                        </td>
+                        <td colSpan="6"></td>
+                      </tr>
+
+                      {/* Course Rows */}
+                      {group.courses.map((course, cIndex) => (
+                        <tr key={course.id} className="curr-course-row learned-course">
+                          <td className="text-center text-gray">{cIndex + 1}</td>
+                          <td className="font-medium">{course.name}</td>
+                          <td className="text-center font-semibold text-gray-dark">{course.id}</td>
+                          <td className="text-center">{course.type}</td>
+                          <td className="text-center font-semibold">{course.tc}</td>
+                          <td className="text-center">{course.lt}</td>
+                          <td className="text-center">{course.th}</td>
+                          <td className="text-center">{course.groupOption}</td>
+                          <td className="text-center">{course.groupReq}</td>
+                          <td className="text-center">
+                            {course.passed ? (
+                              <FiCheckCircle className="icon-passed" />
+                            ) : (
+                              <FiXCircle className="icon-failed" />
+                            )}
+                          </td>
+                          <td className="text-center">
+                            <a href="#" className="link-outline">
+                              <FiFileText /> Xem
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </Fragment>
+                  ))}
+                </Fragment>
+              ))}
+
+              {/* Summary Footer */}
+              <tr className="curr-summary-row">
+                <td colSpan="4" className="summary-label">Tổng TC yêu cầu</td>
+                <td className="summary-value">155</td>
+                <td colSpan="6"></td>
+              </tr>
+              <tr className="curr-summary-row">
+                <td colSpan="4" className="summary-label">Tổng TC bắt buộc</td>
+                <td className="summary-value">147</td>
+                <td colSpan="6"></td>
+              </tr>
+              <tr className="curr-summary-row">
+                <td colSpan="4" className="summary-label">Tổng TC tự chọn</td>
+                <td className="summary-value">8</td>
+                <td colSpan="6"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Legend */}
+        <div className="curr-legend">
+          <p className="curr-note">
+            <em>Ghi chú: Những môn học/Học phần có dấu <strong>*</strong> không được tính vào Trung bình chung tích lũy</em>
+          </p>
+          
+          <div className="legend-items">
+            <div className="legend-item">
+              <div className="legend-box learned"></div>
+              <span>Môn học/Học phần đã (hoặc đang) học</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-box unlearned"></div>
+              <span>Môn học sinh viên chưa đăng ký học tập</span>
+            </div>
+            <div className="legend-item">
+              <FiCheckCircle className="icon-passed" />
+              <span>Đạt</span>
+            </div>
+            <div className="legend-item">
+              <FiXCircle className="icon-failed" />
+              <span>Không đạt</span>
+            </div>
           </div>
-        );
-      })}
+        </div>
+      </div>
     </div>
   );
 };
