@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import { useAuth } from '../../contexts/AuthContext';
@@ -60,6 +60,18 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -302,23 +314,56 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="sidebar__user-profile">
+        <div className="sidebar__user-profile" ref={userMenuRef}>
           {user ? (
             <>
-              <div className="sidebar__user-avatar">
+              <div 
+                className="sidebar__user-avatar" 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
+                style={{ cursor: 'pointer' }}
+              >
                 {/* Fallback avatar image */}
                 <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" />
               </div>
-              <div className="sidebar__user-info">
+              <div 
+                className="sidebar__user-info" 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
+                style={{ cursor: 'pointer' }}
+              >
                 <span className="sidebar__user-name">{user.full_name || 'Người dùng'}</span>
                 <span className="sidebar__user-email">{user.email || 'student@uni.edu.vn'}</span>
               </div>
-              <button className="sidebar__user-logout" onClick={handleLogout} title="Đăng xuất">
+              <button 
+                className="sidebar__user-logout" 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
+                title="Menu"
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="8 9 12 5 16 9"></polyline>
                   <polyline points="8 15 12 19 16 15"></polyline>
                 </svg>
               </button>
+
+              {/* User Dropdown Menu */}
+              {isUserMenuOpen && (
+                <div className="sidebar__user-dropdown animate-scaleIn">
+                  <div className="dropdown-header">
+                    <strong>{user.full_name || 'Người dùng'}</strong>
+                    <span>{user.role === 'student' ? 'Học viên' : user.role === 'teacher' ? 'Giảng viên' : 'Quản trị viên'}</span>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <NavLink to={`/${user.role}/profile`} className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
+                    <FiUser className="dropdown-icon" /> Hồ sơ cá nhân
+                  </NavLink>
+                  <NavLink to={`/${user.role}/settings`} className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
+                    <FiSettings className="dropdown-icon" /> Cài đặt tài khoản
+                  </NavLink>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item text-danger" onClick={handleLogout}>
+                    <FiLogOut className="dropdown-icon" /> Đăng xuất
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="sidebar__version">v1.0.0</div>
