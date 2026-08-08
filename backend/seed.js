@@ -90,6 +90,13 @@ async function seed() {
       role: 'student',
       major_id: majorIT.id,
     });
+    const leminhphan = await User.create({
+      full_name: 'Lê Minh Phan',
+      email: 'leminhphan1@gmail.com',
+      password: '123456',
+      role: 'student',
+      major_id: majorIT.id,
+    });
     console.log('Created mock users.');
 
     // 2. Create Semesters
