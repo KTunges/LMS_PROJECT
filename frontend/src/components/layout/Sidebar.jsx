@@ -100,7 +100,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   ];
 
   const studentMenu = [
-    { to: '/student', icon: <FiHome />, label: 'Bảng Điều Khiển' },
+    { to: '/student', icon: <FiHome />, label: 'TỔNG QUAN' },
     {
       id: 'academic',
       label: 'HỌC VỤ & ĐÀO TẠO',
@@ -110,7 +110,6 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/student/curriculum', label: 'Chương trình khung' },
         { to: '/student/schedule', label: 'Thời khóa biểu' },
         { to: '/student/results', label: 'Kết quả học tập' },
-        { to: '/student/graduation-progress', label: 'Tiến độ tốt nghiệp' },
       ],
     },
     {
@@ -120,16 +119,6 @@ const Sidebar = ({ isOpen, onClose }) => {
       children: [
         { to: '/student/resource-center', label: 'Trung tâm học liệu' },
         { to: '/student/online-courses', label: 'Khóa học trực tuyến' },
-      ],
-    },
-    {
-      id: 'activities',
-      label: 'HOẠT ĐỘNG LỚP',
-      icon: <FiCheckSquare />,
-      children: [
-        { to: '#', label: 'Điểm danh' },
-        { to: '/student/my-classes', label: 'Không gian học tập' },
-        { to: '#', label: 'Thảo luận môn học' },
       ],
     },
     {

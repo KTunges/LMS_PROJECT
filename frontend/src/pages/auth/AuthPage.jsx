@@ -9,6 +9,7 @@ const AuthPage = () => {
   const { login, register, isAuthenticated, user } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isSuccessLoading, setIsSuccessLoading] = useState(false);
   const navigate = useNavigate();
 
   // Form states
@@ -35,20 +36,35 @@ const AuthPage = () => {
       let loggedInUser;
       if (isLogin) {
         loggedInUser = await login(email, password);
-        toast.success('Đăng nhập thành công!');
       } else {
         loggedInUser = await register({ full_name: fullName, email, password, role });
-        toast.success('Đăng ký thành công!');
       }
       
-      const redirectMap = { admin: '/admin', teacher: '/teacher', student: '/student' };
-      navigate(redirectMap[loggedInUser.role] || '/student');
+      // Bật màn hình loading chuyển hướng
+      setIsSuccessLoading(true);
+      
+      setTimeout(() => {
+        if (isLogin) toast.success('Đăng nhập thành công!');
+        else toast.success('Đăng ký thành công!');
+        const redirectMap = { admin: '/admin', teacher: '/teacher', student: '/student' };
+        navigate(redirectMap[loggedInUser.role] || '/student');
+      }, 1500); // Đợi 1.5s rồi mới chuyển trang
+      
     } catch (error) {
       toast.error(error.response?.data?.message || (isLogin ? 'Đăng nhập thất bại!' : 'Đăng ký thất bại!'));
-    } finally {
       setLoading(false);
     }
   };
+
+  if (isSuccessLoading) {
+    return (
+      <div className="auth-success-loading">
+        <div className="auth-success-spinner"></div>
+        <h2>Đang tải dữ liệu hệ thống...</h2>
+        <p>Vui lòng đợi trong giây lát</p>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-split-layout">

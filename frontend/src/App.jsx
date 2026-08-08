@@ -11,7 +11,6 @@ import Registration from './pages/student/Registration';
 import Schedule from './pages/student/Schedule';
 import Results from './pages/student/Results';
 import Curriculum from './pages/student/Curriculum';
-import GraduationProgress from './pages/student/GraduationProgress';
 import ResourceCenter from './pages/student/ResourceCenter';
 import OnlineCourses from './pages/student/OnlineCourses';
 import MyClasses from './pages/student/MyClasses';
@@ -70,7 +69,6 @@ function App() {
             <Route path="schedule" element={<Schedule />} />
             <Route path="results" element={<Results />} />
             <Route path="curriculum" element={<Curriculum />} />
-            <Route path="graduation-progress" element={<GraduationProgress />} />
             <Route path="my-classes" element={<MyClasses />} />
             <Route path="classroom/:classId" element={<Classroom />} />
           </Route>
