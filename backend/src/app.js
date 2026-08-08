@@ -8,6 +8,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const materialRoutes = require('./routes/materialRoutes');
+const courseRoutes = require('./routes/courseRoutes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/materials', materialRoutes);
+app.use('/api/courses', courseRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
