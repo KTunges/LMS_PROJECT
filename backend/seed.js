@@ -25,23 +25,22 @@ async function seed() {
     console.log('Database synced.');
 
     // 1. Create users
-    const hashedPassword = await bcrypt.hash('123456', 10);
     const admin = await User.create({
       full_name: 'Quản trị viên Hệ thống',
       email: 'admin@lms.edu.vn',
-      password: hashedPassword,
+      password: '123456',
       role: 'admin',
     });
     const teacher = await User.create({
       full_name: 'Giảng viên Nguyễn Văn A',
       email: 'teacher@lms.edu.vn',
-      password: hashedPassword,
+      password: '123456',
       role: 'teacher',
     });
     const student = await User.create({
       full_name: 'Sinh viên Trần B',
       email: 'student@lms.edu.vn',
-      password: hashedPassword,
+      password: '123456',
       role: 'student',
     });
     console.log('Created mock users.');
