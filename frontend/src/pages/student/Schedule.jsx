@@ -117,7 +117,7 @@ const Schedule = () => {
               locale="vi"
               customInput={<CustomDateInput />}
             />
-            <button className="btn-today-date glass-card" onClick={() => setSelectedDate(new Date())}>
+            <button className="btn-today-date" onClick={() => setSelectedDate(new Date())}>
               <FiCalendar /> Hiện tại
             </button>
           </div>
