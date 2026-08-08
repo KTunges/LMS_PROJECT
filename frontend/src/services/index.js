@@ -32,3 +32,9 @@ export const userService = {
   update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
 };
+
+// Course & Class services
+export const courseService = {
+  getAllCourses: () => api.get('/courses'),
+  getMyClasses: () => api.get('/courses/my-classes'),
+};

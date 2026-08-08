@@ -1,32 +1,25 @@
 import { useState, useEffect, forwardRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiDownload, FiMapPin, FiUser } from 'react-icons/fi';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { vi } from 'date-fns/locale/vi';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { SkeletonTable } from '../../components/common/SkeletonLoaders';
+import { courseService } from '../../services';
 import 'react-datepicker/dist/react-datepicker.css';
 import './Schedule.css';
 
 registerLocale('vi', vi);
 
-// Mock schedule data
-const mockSchedule = [
-  { id: 1, name: 'Lập trình Căn bản', day: 'T2', shift: 1, room: 'A1-201', teacher: 'Nguyễn Văn A', type: 'lecture', color: 'blue' },
-  { id: 2, name: 'Cơ sở dữ liệu', day: 'T2', shift: 3, room: 'A1-203', teacher: 'Lê Văn C', type: 'lecture', color: 'green' },
-  { id: 3, name: 'Toán Cao cấp', day: 'T3', shift: 1, room: 'B2-105', teacher: 'Hoàng Văn E', type: 'lecture', color: 'purple' },
-  { id: 4, name: 'Phát triển Web', day: 'T4', shift: 2, room: 'Phòng Máy 1', teacher: 'Trần Thị B', type: 'lab', color: 'orange' },
-  { id: 5, name: 'Tiếng Anh Giao tiếp', day: 'T5', shift: 4, room: 'C1-102', teacher: 'Phạm Thị D', type: 'lecture', color: 'pink' },
-  { id: 6, name: 'Vật lý Đại cương', day: 'T6', shift: 1, room: 'A1-301', teacher: 'Ngô Thị F', type: 'lecture', color: 'indigo' },
-  { id: 7, name: 'Lập trình Căn bản (TH)', day: 'T6', shift: 3, room: 'Phòng Máy 3', teacher: 'Nguyễn Văn A', type: 'lab', color: 'blue' },
-];
-
-const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 const shifts = [
-  { id: 1, name: 'Ca 1 (07:00 - 09:15)', period: 'Sáng' },
-  { id: 2, name: 'Ca 2 (09:30 - 11:45)', period: 'Sáng' },
+  { id: 1, name: 'Ca 1 (08:00 - 10:15)', period: 'Sáng' },
+  { id: 2, name: 'Ca 2 (10:30 - 12:45)', period: 'Sáng' },
   { id: 3, name: 'Ca 3 (13:00 - 15:15)', period: 'Chiều' },
   { id: 4, name: 'Ca 4 (15:30 - 17:45)', period: 'Chiều' },
 ];
+
+const COLORS = ['blue', 'green', 'purple', 'orange', 'pink', 'indigo'];
 
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
   <div className="date-input-wrapper glass-card" onClick={onClick} ref={ref} style={{ cursor: 'pointer' }}>
@@ -37,18 +30,73 @@ const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
   </div>
 ));
 
+const parseScheduleTime = (timeStr) => {
+  if (!timeStr) return null;
+  const parts = timeStr.split(', ');
+  if (parts.length !== 2) return null;
+  
+  const dayStr = parts[0].trim();
+  let day = 'T' + dayStr.replace('Thứ ', '').trim();
+  if (dayStr.toLowerCase() === 'chủ nhật') day = 'CN';
+
+  const timeStrPart = parts[1].trim();
+  let shift = 1;
+  if (timeStrPart.startsWith('08') || timeStrPart.startsWith('07')) shift = 1;
+  else if (timeStrPart.startsWith('09') || timeStrPart.startsWith('10')) shift = 2;
+  else if (timeStrPart.startsWith('13') || timeStrPart.startsWith('14')) shift = 3;
+  else if (timeStrPart.startsWith('15') || timeStrPart.startsWith('16')) shift = 4;
+
+  return { day, shift };
+};
+
 const Schedule = () => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [scheduleData, setScheduleData] = useState([]);
 
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
+    const fetchSchedule = async () => {
+      setIsLoading(true);
+      try {
+        const { data } = await courseService.getMyClasses();
+        
+        // Parse API data into schedule events
+        const events = [];
+        data.forEach((enr, index) => {
+          const cls = enr.class;
+          const course = cls.course;
+          const timeInfo = parseScheduleTime(cls.schedule_time);
+          
+          if (timeInfo) {
+            events.push({
+              id: cls.id,
+              name: course.name,
+              day: timeInfo.day,
+              shift: timeInfo.shift,
+              room: cls.room,
+              teacher: cls.teacher?.full_name || 'N/A',
+              type: course.name.toLowerCase().includes('thực hành') ? 'lab' : 'lecture',
+              color: COLORS[index % COLORS.length]
+            });
+          }
+        });
+
+        setScheduleData(events);
+        // Simulate network delay for skeleton loading
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
+      } catch (error) {
+        console.error('Failed to fetch schedule:', error);
+        setIsLoading(false);
+      }
+    };
+    fetchSchedule();
   }, [selectedDate]);
 
   const getCourseForSlot = (day, shiftId) => {
-    return mockSchedule.find(c => c.day === day && c.shift === shiftId);
+    return scheduleData.find(c => c.day === day && c.shift === shiftId);
   };
 
   const currentMonday = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -69,7 +117,7 @@ const Schedule = () => {
               locale="vi"
               customInput={<CustomDateInput />}
             />
-            <button className="btn-today-date glass-card" onClick={() => setSelectedDate(new Date())}>
+            <button className="btn-today-date" onClick={() => setSelectedDate(new Date())}>
               <FiCalendar /> Hiện tại
             </button>
           </div>
@@ -112,7 +160,8 @@ const Schedule = () => {
                       day === 'T3' ? 'Thứ 3' : 
                       day === 'T4' ? 'Thứ 4' : 
                       day === 'T5' ? 'Thứ 5' : 
-                      day === 'T6' ? 'Thứ 6' : 'Thứ 7'}
+                      day === 'T6' ? 'Thứ 6' : 
+                      day === 'T7' ? 'Thứ 7' : 'Chủ nhật'}
                     </div>
                     <div className="day-date">{formattedDate}</div>
                   </div>
@@ -131,7 +180,11 @@ const Schedule = () => {
                     return (
                       <div key={`${day}-${shift.id}`} className="grid-cell course-cell">
                         {course ? (
-                          <div className={`course-card color-${course.color}`}>
+                          <div 
+                            className={`course-card color-${course.color}`}
+                            onClick={() => navigate(`/student/classroom/${course.id}`)}
+                            style={{ cursor: 'pointer' }}
+                          >
                             <div className="course-type-badge">{course.type === 'lab' ? 'Thực hành' : 'Lý thuyết'}</div>
                             <h4 className="course-name">{course.name}</h4>
                             <div className="course-details">
