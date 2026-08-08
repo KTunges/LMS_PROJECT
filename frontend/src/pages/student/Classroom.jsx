@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiFile, FiVideo, FiUploadCloud, FiDownload, FiCheckCircle, FiClock, FiAlertCircle } from 'react-icons/fi';
 import { SkeletonCard, SkeletonTable } from '../../components/common/SkeletonLoaders';
+import { courseService } from '../../services';
 import './Classroom.css';
 
 const MOCK_MATERIALS = [
@@ -13,15 +14,15 @@ const MOCK_MATERIALS = [
 const MOCK_ASSIGNMENTS = [
   { 
     id: 1, 
-    title: 'Bài tập 1: Xây dựng giao diện Login', 
+    title: 'Bài tập 1: Khởi tạo dự án', 
     dueDate: '10/08/2026 23:59', 
     status: 'submitted', 
     score: '9/10',
-    fileSubmitted: 'login_ui_kimtung.zip'
+    fileSubmitted: 'project_setup.zip'
   },
   { 
     id: 2, 
-    title: 'Bài tập 2: Quản lý State với Context API', 
+    title: 'Bài tập 2: Quản lý State', 
     dueDate: '15/08/2026 23:59', 
     status: 'pending', 
     score: null,
@@ -32,22 +33,38 @@ const MOCK_ASSIGNMENTS = [
 const Classroom = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('materials'); // materials, assignments
+  const [activeTab, setActiveTab] = useState('materials');
   const [isLoading, setIsLoading] = useState(true);
-
-  // In a real app, fetch class details using classId
-  const courseName = classId === '1' ? 'Lập trình Web nâng cao' : 'Không gian môn học';
-  const teacher = classId === '1' ? 'TS. Nguyễn Văn A' : 'Giảng viên';
+  const [classData, setClassData] = useState(null);
 
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, [activeTab]);
+    const fetchClassDetails = async () => {
+      setIsLoading(true);
+      try {
+        const { data } = await courseService.getMyClasses();
+        // data is array of enrollments, find the one with matching classId
+        const enrollment = data.find(enr => enr.class_id.toString() === classId);
+        if (enrollment) {
+          setClassData(enrollment.class);
+        } else {
+          // Fallback if not found or not authorized
+          navigate('/student/my-classes');
+        }
+      } catch (error) {
+        console.error('Failed to load class', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchClassDetails();
+  }, [classId, navigate]);
+
+  const courseName = classData ? classData.course.name : 'Đang tải...';
+  const teacher = classData?.teacher ? classData.teacher.full_name : 'Đang tải...';
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -79,18 +96,16 @@ const Classroom = () => {
       alert(`Đã nộp file ${uploadedFile.name} thành công!`);
       setUploadedFile(null);
       setSelectedAssignment(null);
-      // In real app, update state to show submitted
     }
   };
 
   return (
     <div className="classroom-page">
-      {/* Header Banner */}
       <div className="classroom-banner">
         <div className="classroom-banner__bg"></div>
         <div className="classroom-banner__content">
-          <button className="btn-back" onClick={() => navigate('/student/my-classes')}>
-            <FiArrowLeft /> Quay lại danh sách
+          <button className="btn-back" onClick={() => navigate('/student/schedule')}>
+            <FiArrowLeft /> Quay lại thời khóa biểu
           </button>
           <div className="course-info">
             <h1>{courseName}</h1>
@@ -99,7 +114,6 @@ const Classroom = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="classroom-tabs">
         <button 
           className={`ctab-btn ${activeTab === 'materials' ? 'active' : ''}`}
@@ -118,7 +132,6 @@ const Classroom = () => {
         </button>
       </div>
 
-      {/* Content Area */}
       <div className="classroom-content">
         {isLoading ? (
           <div style={{ marginTop: '24px' }}>
@@ -126,7 +139,6 @@ const Classroom = () => {
           </div>
         ) : (
           <>
-            {/* Materials Tab */}
             {activeTab === 'materials' && (
               <div className="materials-list glass-card">
                 <div className="list-header">
@@ -151,7 +163,6 @@ const Classroom = () => {
               </div>
             )}
 
-            {/* Assignments Tab */}
             {activeTab === 'assignments' && !selectedAssignment && (
               <div className="assignments-list glass-card">
                 <div className="list-header">
@@ -181,7 +192,6 @@ const Classroom = () => {
               </div>
             )}
 
-            {/* Upload Assignment View */}
             {activeTab === 'assignments' && selectedAssignment && (
               <div className="upload-view glass-card">
                 <div className="upload-header">
