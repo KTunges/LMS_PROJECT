@@ -1,4 +1,8 @@
-const { sequelize, User, Category, Material, Course, Class, Enrollment, Grade } = require('./src/models');
+const { 
+  sequelize, User, Category, Material, Course, Class, 
+  Enrollment, Grade, Semester, Assignment, Submission, 
+  ExamSchedule, TuitionFee, Notification 
+} = require('./src/models');
 const bcrypt = require('bcryptjs');
 
 const mockMaterials = [
@@ -45,7 +49,15 @@ async function seed() {
     });
     console.log('Created mock users.');
 
-    // 2. Create Categories & Courses
+    // 2. Create Semesters
+    const currentSemester = await Semester.create({
+      name: 'HK1-2026',
+      start_date: '2026-08-15',
+      end_date: '2026-12-30',
+    });
+    console.log('Created semester.');
+
+    // 3. Create Categories & Courses
     const categoryMap = {};
     const courseMap = {};
     for (const c of mockCourses) {
@@ -63,11 +75,11 @@ async function seed() {
     }
     console.log('Created categories & courses.');
 
-    // 3. Create Classes
+    // 4. Create Classes
     const classIt306 = await Class.create({
       course_id: courseMap['IT306'],
       teacher_id: teacher.id,
-      semester: '2025-2026 HK1',
+      semester_id: currentSemester.id,
       room: 'Phòng 203',
       schedule_time: 'Thứ 2, 08:00-10:00',
     });
@@ -75,13 +87,13 @@ async function seed() {
     const classIt307 = await Class.create({
       course_id: courseMap['IT307'],
       teacher_id: teacher.id,
-      semester: '2025-2026 HK1',
+      semester_id: currentSemester.id,
       room: 'Lab B1',
       schedule_time: 'Thứ 4, 13:00-16:00',
     });
     console.log('Created classes.');
 
-    // 4. Create Enrollments and Grades
+    // 5. Create Enrollments and Grades
     const enr1 = await Enrollment.create({ student_id: student.id, class_id: classIt306.id, status: 'enrolled' });
     await Grade.create({ enrollment_id: enr1.id, midterm_score: 8.5, final_score: null, overall_score: null });
 
@@ -89,7 +101,7 @@ async function seed() {
     await Grade.create({ enrollment_id: enr2.id, midterm_score: 7.0, final_score: 8.0, overall_score: 7.6 });
     console.log('Created enrollments & grades.');
 
-    // 5. Create Materials
+    // 6. Create Materials
     for (const mat of mockMaterials) {
       await Material.create({
         title: mat.title,
@@ -102,8 +114,53 @@ async function seed() {
         status: 'active'
       });
     }
-    console.log('Created mock materials successfully!');
+    console.log('Created materials.');
 
+    // 7. Create Assignments & Submissions
+    const assignment1 = await Assignment.create({
+      class_id: classIt306.id,
+      title: 'Bài tập tuần 1: Cấu trúc HTML cơ bản',
+      description: 'Sinh viên nén file .zip và nộp trước thứ 6.',
+      due_date: new Date('2026-08-25T23:59:59'),
+    });
+
+    await Submission.create({
+      assignment_id: assignment1.id,
+      student_id: student.id,
+      file_url: '/uploads/student_b_hw1.zip',
+      score: 9.0,
+      feedback: 'Bài làm tốt, cấu trúc rõ ràng.',
+    });
+    console.log('Created assignments & submissions.');
+
+    // 8. Create Exam Schedules
+    await ExamSchedule.create({
+      class_id: classIt306.id,
+      exam_date: new Date('2026-12-15T08:00:00'),
+      room: 'Hội trường A',
+      type: 'final',
+    });
+    console.log('Created exam schedules.');
+
+    // 9. Create Tuition Fees
+    await TuitionFee.create({
+      student_id: student.id,
+      semester_id: currentSemester.id,
+      total_amount: 8500000,
+      status: 'unpaid',
+    });
+    console.log('Created tuition fees.');
+
+    // 10. Create Notifications
+    await Notification.create({
+      user_id: student.id,
+      title: 'Nhắc nhở đóng học phí',
+      content: 'Bạn vui lòng thanh toán học phí HK1-2026 trước ngày 30/09/2026.',
+      is_read: false,
+    });
+    console.log('Created notifications.');
+
+    console.log('--- SEEDING COMPLETED SUCCESSFULLY ---');
     process.exit(0);
   } catch (error) {
     console.error('Seeding failed:', error);

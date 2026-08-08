@@ -7,6 +7,12 @@ const Course = require('./Course');
 const Class = require('./Class');
 const Enrollment = require('./Enrollment');
 const Grade = require('./Grade');
+const Semester = require('./Semester');
+const Assignment = require('./Assignment');
+const Submission = require('./Submission');
+const ExamSchedule = require('./ExamSchedule');
+const TuitionFee = require('./TuitionFee');
+const Notification = require('./Notification');
 
 // ---- Associations ----
 
@@ -37,6 +43,9 @@ Class.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
 User.hasMany(Class, { foreignKey: 'teacher_id', as: 'teaching_classes' });
 Class.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
 
+Semester.hasMany(Class, { foreignKey: 'semester_id', as: 'classes' });
+Class.belongsTo(Semester, { foreignKey: 'semester_id', as: 'semester' });
+
 // ---- Enrollment & Grade Associations ----
 
 User.hasMany(Enrollment, { foreignKey: 'student_id', as: 'enrollments' });
@@ -48,6 +57,31 @@ Enrollment.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
 Enrollment.hasOne(Grade, { foreignKey: 'enrollment_id', as: 'grade' });
 Grade.belongsTo(Enrollment, { foreignKey: 'enrollment_id', as: 'enrollment' });
 
+// ---- Assignment & Submission ----
+
+Class.hasMany(Assignment, { foreignKey: 'class_id', as: 'assignments' });
+Assignment.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
+
+Assignment.hasMany(Submission, { foreignKey: 'assignment_id', as: 'submissions' });
+Submission.belongsTo(Assignment, { foreignKey: 'assignment_id', as: 'assignment' });
+
+User.hasMany(Submission, { foreignKey: 'student_id', as: 'submissions' });
+Submission.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+
+// ---- Logistics ----
+
+Class.hasMany(ExamSchedule, { foreignKey: 'class_id', as: 'exam_schedules' });
+ExamSchedule.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
+
+User.hasMany(TuitionFee, { foreignKey: 'student_id', as: 'tuition_fees' });
+TuitionFee.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+
+Semester.hasMany(TuitionFee, { foreignKey: 'semester_id', as: 'tuition_fees' });
+TuitionFee.belongsTo(Semester, { foreignKey: 'semester_id', as: 'semester' });
+
+User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications' });
+Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -58,4 +92,10 @@ module.exports = {
   Class,
   Enrollment,
   Grade,
+  Semester,
+  Assignment,
+  Submission,
+  ExamSchedule,
+  TuitionFee,
+  Notification,
 };

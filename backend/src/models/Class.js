@@ -23,8 +23,8 @@ const Class = sequelize.define('Class', {
       key: 'id',
     },
   },
-  semester: {
-    type: DataTypes.STRING(50),
+  semester_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   room: {
