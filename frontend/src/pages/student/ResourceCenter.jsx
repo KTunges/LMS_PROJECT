@@ -164,7 +164,8 @@ const MaterialsTab = ({ isLoading: isTabLoading }) => {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
