@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getAllCourses, getStudentClasses } = require('../controllers/courseController');
+const { 
+  getAllCourses, 
+  getStudentClasses, 
+  getAvailableClasses,
+  enrollInClass,
+  cancelEnrollment
+} = require('../controllers/courseController');
 const { authenticate } = require('../middleware/auth');
 
 /**
@@ -42,5 +48,38 @@ router.get('/', getAllCourses);
  *         description: Chưa đăng nhập
  */
 router.get('/my-classes', authenticate, getStudentClasses);
+
+/**
+ * @swagger
+ * /api/courses/available-classes:
+ *   get:
+ *     summary: Lấy danh sách lớp học phần đang mở cho đăng ký
+ *     tags: [Khóa học]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/available-classes', authenticate, getAvailableClasses);
+
+/**
+ * @swagger
+ * /api/courses/enroll:
+ *   post:
+ *     summary: Đăng ký một lớp học phần
+ *     tags: [Khóa học]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/enroll', authenticate, enrollInClass);
+
+/**
+ * @swagger
+ * /api/courses/enroll/{classId}:
+ *   delete:
+ *     summary: Hủy đăng ký lớp học phần
+ *     tags: [Khóa học]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/enroll/:classId', authenticate, cancelEnrollment);
 
 module.exports = router;

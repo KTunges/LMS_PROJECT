@@ -1,7 +1,7 @@
 const { 
   sequelize, User, Category, Material, Course, Class, 
   Enrollment, Grade, Semester, Assignment, Submission, 
-  ExamSchedule, TuitionFee, Notification 
+  ExamSchedule, TuitionFee, Notification, Major, Curriculum
 } = require('./src/models');
 const bcrypt = require('bcryptjs');
 
@@ -16,17 +16,59 @@ const mockMaterials = [
   { title: 'Lab Guide: AWS Cloud Practitioner', subject: 'IT308', type: 'PDF', size: 8912896 },
 ];
 
-const mockCourses = [
-  { code: 'IT306', name: 'Lập trình Web Nâng cao', credits: 3 },
-  { code: 'IT307', name: 'Cơ sở Dữ liệu', credits: 4 },
-  { code: 'IT308', name: 'Điện toán Đám mây', credits: 3 },
-  { code: 'IT309', name: 'Kiểm thử Phần mềm', credits: 3 },
+const extendedCourses = [
+  // Semester 1
+  { code: 'MA101', name: 'Giải tích 1', credits: 3, semester: 1, req: true },
+  { code: 'PH101', name: 'Vật lý 1', credits: 3, semester: 1, req: true },
+  { code: 'IT101', name: 'Nhập môn lập trình', credits: 3, semester: 1, req: true },
+  { code: 'ML101', name: 'Triết học Mác - Lênin', credits: 3, semester: 1, req: true },
+  { code: 'PE101', name: 'Giáo dục thể chất 1', credits: 1, semester: 1, req: true },
+  // Semester 2
+  { code: 'MA102', name: 'Giải tích 2', credits: 3, semester: 2, req: true },
+  { code: 'PH102', name: 'Vật lý 2', credits: 3, semester: 2, req: true },
+  { code: 'IT102', name: 'Lập trình hướng đối tượng', credits: 3, semester: 2, req: true },
+  { code: 'IT103', name: 'Cấu trúc dữ liệu và giải thuật', credits: 3, semester: 2, req: true },
+  // Semester 3
+  { code: 'MA201', name: 'Xác suất thống kê', credits: 3, semester: 3, req: true },
+  { code: 'IT307', name: 'Cơ sở Dữ liệu', credits: 4, semester: 3, req: true },
+  { code: 'IT201', name: 'Kiến trúc máy tính', credits: 3, semester: 3, req: true },
+  { code: 'EN101', name: 'Tiếng Anh 1', credits: 3, semester: 3, req: true },
+  // Semester 4
+  { code: 'IT202', name: 'Mạng máy tính', credits: 3, semester: 4, req: true },
+  { code: 'IT203', name: 'Hệ điều hành', credits: 3, semester: 4, req: true },
+  { code: 'IT204', name: 'Công nghệ phần mềm', credits: 3, semester: 4, req: true },
+  { code: 'IT205', name: 'Lập trình Java', credits: 3, semester: 4, req: false },
+  // Semester 5
+  { code: 'IT306', name: 'Lập trình Web Nâng cao', credits: 3, semester: 5, req: true },
+  { code: 'IT301', name: 'Phân tích thiết kế hệ thống', credits: 3, semester: 5, req: true },
+  { code: 'IT308', name: 'Điện toán Đám mây', credits: 3, semester: 5, req: true },
+  { code: 'IT302', name: 'Trí tuệ nhân tạo', credits: 3, semester: 5, req: true },
+  // Semester 6
+  { code: 'IT309', name: 'Kiểm thử Phần mềm', credits: 3, semester: 6, req: true },
+  { code: 'IT303', name: 'Quản lý dự án phần mềm', credits: 3, semester: 6, req: true },
+  { code: 'IT304', name: 'Lập trình thiết bị di động', credits: 3, semester: 6, req: false },
+  { code: 'IT305', name: 'Thực tập chuyên ngành', credits: 2, semester: 6, req: true },
+  // Semester 7
+  { code: 'IT401', name: 'An toàn thông tin', credits: 3, semester: 7, req: true },
+  { code: 'IT402', name: 'Phát triển phần mềm linh hoạt (Agile)', credits: 3, semester: 7, req: false },
+  { code: 'IT403', name: 'Học máy (Machine Learning)', credits: 3, semester: 7, req: false },
+  { code: 'IT404', name: 'Khởi nghiệp', credits: 2, semester: 7, req: true },
+  // Semester 8
+  { code: 'IT405', name: 'Đồ án tốt nghiệp', credits: 6, semester: 8, req: true },
+  { code: 'IT406', name: 'Khai phá dữ liệu', credits: 3, semester: 8, req: false },
 ];
 
 async function seed() {
   try {
-    await sequelize.sync({ force: true }); // drop tables and recreate them to ensure clean state
+    await sequelize.sync({ force: true });
     console.log('Database synced.');
+
+    // 0. Create Majors
+    const majorIT = await Major.create({ code: 'CNTT', name: 'Công nghệ thông tin' });
+    const majorBA = await Major.create({ code: 'QTKD', name: 'Quản trị kinh doanh' });
+    const majorMKT = await Major.create({ code: 'MKT', name: 'Marketing' });
+    const majorMED = await Major.create({ code: 'YD', name: 'Y Dược' });
+    console.log('Created majors.');
 
     // 1. Create users
     const admin = await User.create({
@@ -46,6 +88,7 @@ async function seed() {
       email: 'student@lms.edu.vn',
       password: '123456',
       role: 'student',
+      major_id: majorIT.id,
     });
     console.log('Created mock users.');
 
@@ -60,10 +103,9 @@ async function seed() {
     // 3. Create Categories & Courses
     const categoryMap = {};
     const courseMap = {};
-    for (const c of mockCourses) {
-      const cat = await Category.create({ name: c.code, description: `Danh mục môn ${c.name}` });
-      categoryMap[c.code] = cat.id;
-
+    const cat = await Category.create({ name: 'IT', description: `Danh mục các môn chuyên ngành CNTT` });
+    
+    for (const c of extendedCourses) {
       const course = await Course.create({
         code: c.code,
         name: c.name,
@@ -75,13 +117,26 @@ async function seed() {
     }
     console.log('Created categories & courses.');
 
-    // 4. Create Classes
+    // 3.5 Create Curriculum for IT major
+    for (const c of extendedCourses) {
+      await Curriculum.create({ 
+        major_id: majorIT.id, 
+        course_id: courseMap[c.code], 
+        semester_number: c.semester, 
+        is_required: c.req 
+      });
+    }
+    console.log('Created curriculums.');
+
+    // 4. Create Classes (for some current semester courses - Semester 5 usually)
     const classIt306 = await Class.create({
       course_id: courseMap['IT306'],
       teacher_id: teacher.id,
       semester_id: currentSemester.id,
       room: 'Phòng 203',
       schedule_time: 'Thứ 2, 08:00-10:00',
+      max_students: 40,
+      status: 'active'
     });
     
     const classIt307 = await Class.create({
@@ -90,29 +145,76 @@ async function seed() {
       semester_id: currentSemester.id,
       room: 'Lab B1',
       schedule_time: 'Thứ 4, 13:00-16:00',
+      max_students: 40,
+      status: 'active'
+    });
+    
+    const classIt308 = await Class.create({
+      course_id: courseMap['IT308'],
+      teacher_id: teacher.id,
+      semester_id: currentSemester.id,
+      room: 'Lab C2',
+      schedule_time: 'Thứ 6, 08:00-10:00',
+      max_students: 40,
+      status: 'active'
+    });
+
+    const classIt309 = await Class.create({
+      course_id: courseMap['IT309'],
+      teacher_id: teacher.id,
+      semester_id: currentSemester.id,
+      room: 'Hội trường 1',
+      schedule_time: 'Thứ 3, 13:00-16:00',
+      max_students: 40,
+      status: 'active'
     });
     console.log('Created classes.');
 
-    // 5. Create Enrollments and Grades
-    const enr1 = await Enrollment.create({ student_id: student.id, class_id: classIt306.id, status: 'enrolled' });
-    await Grade.create({ enrollment_id: enr1.id, midterm_score: 8.5, final_score: null, overall_score: null });
+    // 5. Create Enrollments and Grades (History for Semesters 1, 2, 3)
+    const createGrade = async (courseCode, score) => {
+      const cls = await Class.create({
+        course_id: courseMap[courseCode],
+        teacher_id: teacher.id,
+        semester_id: currentSemester.id, // technically an older semester, but mock is fine
+        room: 'Online',
+        schedule_time: 'N/A',
+        status: 'completed'
+      });
+      const enr = await Enrollment.create({ student_id: student.id, class_id: cls.id, status: 'completed' });
+      await Grade.create({ enrollment_id: enr.id, midterm_score: score, final_score: score + 0.5, overall_score: score + 0.2 });
+    };
 
-    const enr2 = await Enrollment.create({ student_id: student.id, class_id: classIt307.id, status: 'completed' });
-    await Grade.create({ enrollment_id: enr2.id, midterm_score: 7.0, final_score: 8.0, overall_score: 7.6 });
+    await createGrade('MA101', 8.0);
+    await createGrade('PH101', 7.5);
+    await createGrade('IT101', 9.0);
+    await createGrade('ML101', 6.5);
+    await createGrade('PE101', 8.5);
+    
+    await createGrade('MA102', 7.0);
+    await createGrade('PH102', 6.0);
+    await createGrade('IT102', 8.5);
+    await createGrade('IT103', 7.5);
+
+    // Current enrollments (Semester 4/5)
+    const enrCurrent = await Enrollment.create({ student_id: student.id, class_id: classIt306.id, status: 'enrolled' });
+    await Grade.create({ enrollment_id: enrCurrent.id, midterm_score: 8.5, final_score: null, overall_score: null });
+
     console.log('Created enrollments & grades.');
 
     // 6. Create Materials
     for (const mat of mockMaterials) {
-      await Material.create({
-        title: mat.title,
-        description: 'Tài liệu tham khảo dành cho sinh viên.',
-        file_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // dummy url
-        file_type: mat.type,
-        file_size: mat.size,
-        category_id: categoryMap[mat.subject],
-        user_id: teacher.id,
-        status: 'active'
-      });
+      if (categoryMap[mat.subject]) { // Only if category exists in our mapping
+        await Material.create({
+          title: mat.title,
+          description: 'Tài liệu tham khảo dành cho sinh viên.',
+          file_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // dummy url
+          file_type: mat.type,
+          file_size: mat.size,
+          category_id: cat.id,
+          user_id: teacher.id,
+          status: 'active'
+        });
+      }
     }
     console.log('Created materials.');
 
