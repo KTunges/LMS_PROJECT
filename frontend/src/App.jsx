@@ -6,6 +6,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/auth/AuthPage';
+import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/student/Profile';
 import Registration from './pages/student/Registration';
 import Schedule from './pages/student/Schedule';
@@ -15,11 +16,13 @@ import ResourceCenter from './pages/student/ResourceCenter';
 import OnlineCourses from './pages/student/OnlineCourses';
 import MyClasses from './pages/student/MyClasses';
 import Classroom from './pages/student/Classroom';
+import PinSetupModal from './components/common/PinSetupModal';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <PinSetupModal />
         <Routes>
           {/* Admin routes */}
           <Route
@@ -75,6 +78,7 @@ function App() {
 
           {/* Public Login page */}
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

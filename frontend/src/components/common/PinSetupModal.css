@@ -1,0 +1,110 @@
+.pin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.pin-modal-content {
+  background: var(--theme-bg-main);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 24px;
+  padding: 40px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.pin-modal-header {
+  margin-bottom: 32px;
+}
+
+.pin-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  margin: 0 auto 16px;
+}
+
+.pin-modal-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--theme-text-main);
+  margin-bottom: 12px;
+}
+
+.pin-modal-header p {
+  font-size: 14.5px;
+  color: var(--theme-text-muted);
+  line-height: 1.5;
+}
+
+.otp-input-container {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.otp-input {
+  width: 50px;
+  height: 60px;
+  background: var(--theme-glass-bg);
+  border: 2px solid var(--theme-glass-border);
+  border-radius: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--theme-text-main);
+  transition: all 0.3s ease;
+  outline: none;
+  font-family: monospace;
+}
+
+.otp-input:focus {
+  background: var(--theme-glass-bg-hover);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+.pin-submit-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 16px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.pin-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
