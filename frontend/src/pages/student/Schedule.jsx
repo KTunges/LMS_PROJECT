@@ -11,7 +11,7 @@ import './Schedule.css';
 
 registerLocale('vi', vi);
 
-const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 const shifts = [
   { id: 1, name: 'Ca 1 (08:00 - 10:15)', period: 'Sáng' },
   { id: 2, name: 'Ca 2 (10:30 - 12:45)', period: 'Sáng' },
@@ -36,7 +36,8 @@ const parseScheduleTime = (timeStr) => {
   if (parts.length !== 2) return null;
   
   const dayStr = parts[0].trim();
-  const day = 'T' + dayStr.replace('Thứ ', '').trim();
+  let day = 'T' + dayStr.replace('Thứ ', '').trim();
+  if (dayStr.toLowerCase() === 'chủ nhật') day = 'CN';
 
   const timeStrPart = parts[1].trim();
   let shift = 1;
@@ -82,9 +83,12 @@ const Schedule = () => {
         });
 
         setScheduleData(events);
+        // Simulate network delay for skeleton loading
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
       } catch (error) {
         console.error('Failed to fetch schedule:', error);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -156,7 +160,8 @@ const Schedule = () => {
                       day === 'T3' ? 'Thứ 3' : 
                       day === 'T4' ? 'Thứ 4' : 
                       day === 'T5' ? 'Thứ 5' : 
-                      day === 'T6' ? 'Thứ 6' : 'Thứ 7'}
+                      day === 'T6' ? 'Thứ 6' : 
+                      day === 'T7' ? 'Thứ 7' : 'Chủ nhật'}
                     </div>
                     <div className="day-date">{formattedDate}</div>
                   </div>
