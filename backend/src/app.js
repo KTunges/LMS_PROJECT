@@ -11,6 +11,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const materialRoutes = require('./routes/materialRoutes');
 const courseRoutes = require('./routes/courseRoutes');
+const curriculumRoutes = require('./routes/curriculumRoutes');
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/curriculum', curriculumRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

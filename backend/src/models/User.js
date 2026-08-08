@@ -41,6 +41,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: true,
   },
+  major_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // Only for students
+    references: {
+      model: 'majors',
+      key: 'id',
+    },
+  },
 }, {
   tableName: 'users',
   hooks: {

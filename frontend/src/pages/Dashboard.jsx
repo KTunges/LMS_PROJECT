@@ -23,7 +23,7 @@ const Dashboard = () => {
   ];
 
   const quickLinks = [
-    { icon: <FiBookOpen size={18} />, label: 'Đăng ký môn học' },
+    { icon: <FiBookOpen size={18} />, label: 'Đăng ký học phần' },
     { icon: <FiGrades size={18} />, label: 'Xem điểm' },
     { icon: <FiCalendar size={18} />, label: 'Thời khóa biểu' },
     { icon: <FiCreditCard size={18} />, label: 'Học phí' },

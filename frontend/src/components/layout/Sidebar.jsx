@@ -106,7 +106,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'HỌC VỤ & ĐÀO TẠO',
       icon: <FiMonitor />,
       children: [
-        { to: '/student/registration', label: 'Đăng ký môn học' },
+        { to: '/student/registration', label: 'Đăng ký học phần' },
         { to: '/student/curriculum', label: 'Chương trình khung' },
         { to: '/student/schedule', label: 'Thời khóa biểu' },
         { to: '/student/results', label: 'Kết quả học tập' },

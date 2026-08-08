@@ -43,21 +43,39 @@ exports.getStudentClasses = async (req, res, next) => {
 
 exports.getAvailableClasses = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const user = req.user;
     
     // Get all enrollments for this user
     const enrollments = await Enrollment.findAll({
-      where: { student_id: userId },
+      where: { student_id: user.id },
       attributes: ['class_id']
     });
     const enrolledClassIds = enrollments.map(e => e.class_id);
 
-    // Get all active classes the user is NOT enrolled in
+    // Get curriculum for the user's major
+    let allowedCourseIds = [];
+    if (user.major_id) {
+      const curriculums = await require('../models').Curriculum.findAll({
+        where: { major_id: user.major_id },
+        attributes: ['course_id']
+      });
+      allowedCourseIds = curriculums.map(c => c.course_id);
+    }
+
+    // Build the query
+    const whereClause = {
+      id: { [Op.notIn]: enrolledClassIds },
+      status: 'active'
+    };
+
+    // If user has a major, only show courses from their curriculum
+    if (allowedCourseIds.length > 0) {
+      whereClause.course_id = { [Op.in]: allowedCourseIds };
+    }
+
+    // Get all active classes the user is NOT enrolled in (and matches curriculum if applicable)
     const availableClasses = await Class.findAll({
-      where: {
-        id: { [Op.notIn]: enrolledClassIds },
-        status: 'active'
-      },
+      where: whereClause,
       include: [
         { model: Course, as: 'course' },
         { model: User, as: 'teacher', attributes: ['full_name'] },

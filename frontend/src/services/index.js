@@ -41,3 +41,8 @@ export const courseService = {
   enrollClass: (classId) => api.post('/courses/enroll', { classId }),
   cancelEnrollment: (classId) => api.delete(`/courses/enroll/${classId}`),
 };
+
+// Curriculum services
+export const curriculumService = {
+  getMyCurriculum: () => api.get('/curriculum/my-curriculum'),
+};

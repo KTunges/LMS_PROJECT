@@ -13,8 +13,21 @@ const Submission = require('./Submission');
 const ExamSchedule = require('./ExamSchedule');
 const TuitionFee = require('./TuitionFee');
 const Notification = require('./Notification');
+const Major = require('./Major');
+const Curriculum = require('./Curriculum');
 
 // ---- Associations ----
+
+// User and Major
+Major.hasMany(User, { foreignKey: 'major_id', as: 'students' });
+User.belongsTo(Major, { foreignKey: 'major_id', as: 'major' });
+
+// Major, Course and Curriculum
+Major.hasMany(Curriculum, { foreignKey: 'major_id', as: 'curriculums' });
+Curriculum.belongsTo(Major, { foreignKey: 'major_id', as: 'major' });
+
+Course.hasMany(Curriculum, { foreignKey: 'course_id', as: 'curriculums' });
+Curriculum.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
 
 // User has many Materials
 User.hasMany(Material, { foreignKey: 'user_id', as: 'materials' });
@@ -98,4 +111,6 @@ module.exports = {
   ExamSchedule,
   TuitionFee,
   Notification,
+  Major,
+  Curriculum,
 };
