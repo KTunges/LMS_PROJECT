@@ -1,34 +1,96 @@
 import { useState, useEffect } from 'react';
 import { FiCheckCircle, FiCheck, FiInfo } from 'react-icons/fi';
 import { SkeletonTable } from '../../components/common/SkeletonLoaders';
+import { courseService } from '../../services';
 import './GraduationProgress.css';
 
-const progressData = [
-  { group: 'Kiến thức Đại cương', required: 30, completed: 28, color: '#3b82f6' },
-  { group: 'Cơ sở Ngành', required: 36, completed: 36, color: '#10b981' },
-  { group: 'Chuyên ngành Bắt buộc', required: 42, completed: 30, color: '#8b5cf6' },
-  { group: 'Chuyên ngành Tự chọn', required: 12, completed: 9, color: '#f59e0b' },
+const DEFAULT_PROGRESS = [
+  { group: 'Kiến thức Đại cương', required: 30, completed: 0, color: '#3b82f6' },
+  { group: 'Cơ sở Ngành', required: 36, completed: 0, color: '#10b981' },
+  { group: 'Chuyên ngành Bắt buộc', required: 42, completed: 0, color: '#8b5cf6' },
+  { group: 'Chuyên ngành Tự chọn', required: 12, completed: 0, color: '#f59e0b' },
   { group: 'Thực tập & Đồ án', required: 14, completed: 0, color: '#ec4899' },
-  { group: 'Ngoại ngữ & Khác', required: 16, completed: 13, color: '#06b6d4' },
+  { group: 'Ngoại ngữ & Khác', required: 16, completed: 0, color: '#06b6d4' },
 ];
 
-const conditions = [
-  { label: 'GPA tích lũy', met: true, current: '3.85', required: '2.50' },
-  { label: 'Ngoại ngữ (Tiếng Anh)', met: true, current: 'TOEIC 620', required: 'TOEIC 450' },
-  { label: 'Thực tập doanh nghiệp', met: false, current: 'Chưa đạt', required: 'Hoàn thành' },
-];
+const convertTo4Scale = (score10) => {
+  if (score10 >= 8.5) return { gpa: 4.0, letter: 'A' };
+  if (score10 >= 8.0) return { gpa: 3.5, letter: 'B+' };
+  if (score10 >= 7.0) return { gpa: 3.0, letter: 'B' };
+  if (score10 >= 6.5) return { gpa: 2.5, letter: 'C+' };
+  if (score10 >= 5.5) return { gpa: 2.0, letter: 'C' };
+  if (score10 >= 5.0) return { gpa: 1.5, letter: 'D+' };
+  if (score10 >= 4.0) return { gpa: 1.0, letter: 'D' };
+  return { gpa: 0, letter: 'F' };
+};
 
 const GraduationProgress = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const totalRequired = progressData.reduce((s, d) => s + d.required, 0);
-  const totalCompleted = progressData.reduce((s, d) => s + d.completed, 0);
-  const overallPercent = Math.round((totalCompleted / totalRequired) * 100);
+  const [stats, setStats] = useState({
+    gpa: 0,
+    totalCredits: 0,
+    completedCredits: 0
+  });
 
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
+    const fetchData = async () => {
+      try {
+        const { data } = await courseService.getMyClasses();
+        
+        let totalPoints = 0;
+        let totalCredits = 0;
+        let completedCredits = 0;
+
+        data.forEach(enr => {
+          const course = enr.class?.course;
+          const grade = enr.grade;
+          
+          if (course) {
+            totalCredits += course.credits;
+            
+            // If completed and has grade
+            if (enr.status === 'completed' && grade && grade.overall_score) {
+              const score10 = parseFloat(grade.overall_score);
+              if (score10 >= 4.0) {
+                completedCredits += course.credits;
+                const { gpa } = convertTo4Scale(score10);
+                totalPoints += (gpa * course.credits);
+              }
+            }
+          }
+        });
+
+        const finalGpa = completedCredits > 0 ? (totalPoints / completedCredits).toFixed(2) : '0.00';
+        
+        setStats({
+          gpa: finalGpa,
+          totalCredits, // for all enrolled
+          completedCredits
+        });
+
+      } catch (error) {
+        console.error('Failed to fetch grades:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
+
+  // Map progress to fake groups just to keep UI looking nice
+  const progressData = DEFAULT_PROGRESS.map((g, i) => {
+    if (i === 0) return { ...g, completed: Math.min(stats.completedCredits, g.required) };
+    return g;
+  });
+
+  const totalRequired = progressData.reduce((s, d) => s + d.required, 0);
+  const overallPercent = Math.round((stats.completedCredits / totalRequired) * 100) || 0;
+
+  const conditions = [
+    { label: 'GPA tích lũy', met: parseFloat(stats.gpa) >= 2.5, current: stats.gpa, required: '2.50' },
+    { label: 'Ngoại ngữ (Tiếng Anh)', met: true, current: 'TOEIC 620', required: 'TOEIC 450' },
+    { label: 'Thực tập doanh nghiệp', met: false, current: 'Chưa đạt', required: 'Hoàn thành' },
+  ];
 
   if (isLoading) {
     return (
@@ -55,17 +117,6 @@ const GraduationProgress = () => {
             ))}
           </div>
         </div>
-        
-        <div className="grad-groups-header">Yêu cầu học tập ({overallPercent}%)</div>
-        <div className="premium-groups-grid">
-          {Array(6).fill(0).map((_, i) => (
-            <div key={i} className="premium-group-card">
-              <div className="skeleton skeleton-text" style={{ width: '50%' }}></div>
-              <div className="skeleton" style={{ width: '100%', height: '8px', borderRadius: '4px', margin: '8px 0' }}></div>
-              <div className="skeleton skeleton-text" style={{ width: '30%' }}></div>
-            </div>
-          ))}
-        </div>
       </div>
     );
   }
@@ -79,10 +130,8 @@ const GraduationProgress = () => {
         </div>
       </div>
 
-      {/* Top Overview Section */}
       <div className="grad-overview-premium">
         
-        {/* Left: Donut Chart */}
         <div className="premium-donut-card">
           <div className="premium-donut-title">Tiến độ tổng thể</div>
           <div className="donut-wrapper">
@@ -96,7 +145,7 @@ const GraduationProgress = () => {
           </div>
           <div style={{ textAlign: 'center', marginTop: '8px' }}>
             <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--theme-text-main)' }}>
-              {totalCompleted} / {totalRequired}
+              {stats.completedCredits} / {totalRequired}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--gray-500)', textTransform: 'uppercase', letterSpacing: '1px' }}>
               Tín chỉ hoàn thành
@@ -104,7 +153,6 @@ const GraduationProgress = () => {
           </div>
         </div>
 
-        {/* Right: Conditions List */}
         <div className="premium-conditions-list">
           {conditions.map((c, idx) => (
             <div key={idx} className={`premium-condition-card ${c.met ? 'met' : 'not-met'}`}>
@@ -128,7 +176,6 @@ const GraduationProgress = () => {
 
       </div>
 
-      {/* Bottom: Progress Grid */}
       <div className="grad-groups-header">
         Yêu cầu học tập ({overallPercent}%)
       </div>

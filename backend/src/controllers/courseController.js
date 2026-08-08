@@ -27,6 +27,10 @@ exports.getStudentClasses = async (req, res, next) => {
             { model: Course, as: 'course' },
             { model: User, as: 'teacher', attributes: ['full_name'] }
           ]
+        },
+        {
+          model: require('../models').Grade,
+          as: 'grade'
         }
       ]
     });
