@@ -1,6 +1,6 @@
 import { useState, useEffect, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiChevronLeft, FiChevronRight, FiCalendar, FiDownload, FiMapPin, FiUser } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiCalendar, FiDownload, FiMapPin, FiUser, FiClock, FiFilter, FiAlertTriangle, FiFileText, FiMonitor } from 'react-icons/fi';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { vi } from 'date-fns/locale/vi';
 import { startOfWeek, addDays, format } from 'date-fns';
@@ -20,6 +20,58 @@ const shifts = [
 ];
 
 const COLORS = ['blue', 'green', 'purple', 'orange', 'pink', 'indigo'];
+
+// Mock exam data for now (to be integrated with backend later)
+const examData = [
+  {
+    id: 1,
+    code: 'IT306',
+    name: 'Lập trình Web Nâng cao',
+    type: 'Cuối kỳ',
+    format: 'Tự luận + Thực hành',
+    date: '2026-08-25',
+    time: '08:00 - 10:00',
+    room: 'Phòng thi A301',
+    note: 'Được sử dụng tài liệu',
+    semester: 'HK2 - 2026',
+  },
+  {
+    id: 2,
+    code: 'IT307',
+    name: 'Hệ quản trị CSDL Nâng cao',
+    type: 'Cuối kỳ',
+    format: 'Trắc nghiệm + Thực hành',
+    date: '2026-08-27',
+    time: '13:00 - 15:00',
+    room: 'Lab B2-05',
+    note: 'Thi trên máy tính',
+    semester: 'HK2 - 2026',
+  },
+  {
+    id: 3,
+    code: 'IT308',
+    name: 'Điện toán Đám mây',
+    type: 'Cuối kỳ',
+    format: 'Vấn đáp + Demo',
+    date: '2026-08-30',
+    time: '09:00 - 11:00',
+    room: 'Phòng thi A205',
+    note: 'Chuẩn bị slide thuyết trình',
+    semester: 'HK2 - 2026',
+  },
+  {
+    id: 4,
+    code: 'IT309',
+    name: 'Kiểm thử Phần mềm',
+    type: 'Cuối kỳ',
+    format: 'Trắc nghiệm',
+    date: '2026-09-02',
+    time: '08:00 - 09:30',
+    room: 'Phòng thi C102',
+    note: '',
+    semester: 'HK2 - 2026',
+  }
+];
 
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
   <div className="date-input-wrapper glass-card" onClick={onClick} ref={ref} style={{ cursor: 'pointer' }}>
@@ -54,6 +106,7 @@ const Schedule = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [scheduleData, setScheduleData] = useState([]);
+  const [viewMode, setViewMode] = useState('all'); // 'all', 'study', 'exam'
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -83,10 +136,7 @@ const Schedule = () => {
         });
 
         setScheduleData(events);
-        // Simulate network delay for skeleton loading
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 500);
+        setTimeout(() => setIsLoading(false), 500);
       } catch (error) {
         console.error('Failed to fetch schedule:', error);
         setIsLoading(false);
@@ -99,7 +149,64 @@ const Schedule = () => {
     return scheduleData.find(c => c.day === day && c.shift === shiftId);
   };
 
+  const getDaysLeft = (dateStr) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const exam = new Date(dateStr);
+    const diff = Math.ceil((exam - today) / (1000 * 60 * 60 * 24));
+    return diff;
+  };
+
+  const getFormatIcon = (format) => {
+    if (format.includes('Thực hành') || format.includes('Demo')) return <FiMonitor />;
+    if (format.includes('Tiểu luận')) return <FiFileText />;
+    return <FiCalendar />;
+  };
+
   const currentMonday = startOfWeek(selectedDate, { weekStartsOn: 1 });
+  const sortedExams = [...examData].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const upcomingCount = examData.filter(e => getDaysLeft(e.date) >= 0).length;
+
+  // Filter grid data based on viewMode
+  const getGridEventsForSlot = (day, shiftId) => {
+    // 1. Regular classes (happen every week)
+    let classes = [];
+    if (viewMode === 'all' || viewMode === 'study') {
+      classes = scheduleData.filter(c => c.day === day && c.shift === shiftId);
+    }
+
+    // 2. Exams (happen on specific dates)
+    let exams = [];
+    if (viewMode === 'all' || viewMode === 'exam') {
+      const dayIndex = days.indexOf(day);
+      const cellDate = addDays(currentMonday, dayIndex);
+      const cellDateStr = format(cellDate, 'yyyy-MM-dd');
+      
+      exams = examData.filter(exam => {
+        if (exam.date !== cellDateStr) return false;
+        
+        // Parse time to shift
+        const timeParts = exam.time.split('-');
+        const startHour = parseInt(timeParts[0].trim().split(':')[0]);
+        let examShift = 1;
+        if (startHour >= 7 && startHour <= 8) examShift = 1;
+        else if (startHour >= 9 && startHour <= 10) examShift = 2;
+        else if (startHour >= 13 && startHour <= 14) examShift = 3;
+        else if (startHour >= 15 && startHour <= 16) examShift = 4;
+        
+        return examShift === shiftId;
+      }).map(exam => ({
+        id: `exam-${exam.id}`,
+        name: `${exam.name} (Thi)`,
+        type: 'exam',
+        room: exam.room,
+        teacher: exam.format, // display format instead of teacher
+        color: 'yellow' // Yellow color for exams
+      }));
+    }
+
+    return [...classes, ...exams][0]; // Return the first event for the slot
+  };
 
   return (
     <div className="schedule-page">
@@ -109,6 +216,21 @@ const Schedule = () => {
         </div>
         
         <div className="schedule-controls">
+          <div className="view-mode-toggle glass-card" style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '0 20px', height: '42px', borderRadius: '12px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+              <input type="radio" name="viewMode" value="all" checked={viewMode === 'all'} onChange={() => setViewMode('all')} />
+              Tất cả
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+              <input type="radio" name="viewMode" value="study" checked={viewMode === 'study'} onChange={() => setViewMode('study')} />
+              Lịch học
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+              <input type="radio" name="viewMode" value="exam" checked={viewMode === 'exam'} onChange={() => setViewMode('exam')} />
+              Lịch thi
+            </label>
+          </div>
+
           <div className="date-picker-group">
             <DatePicker
               selected={selectedDate}
@@ -123,16 +245,10 @@ const Schedule = () => {
           </div>
           
           <div className="nav-buttons-group" style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              className="btn-nav-week" 
-              onClick={() => setSelectedDate(prev => addDays(prev, -7))}
-            >
+            <button className="btn-nav-week" onClick={() => setSelectedDate(prev => addDays(prev, -7))}>
               <FiChevronLeft /> Trở về
             </button>
-            <button 
-              className="btn-nav-week" 
-              onClick={() => setSelectedDate(prev => addDays(prev, 7))}
-            >
+            <button className="btn-nav-week" onClick={() => setSelectedDate(prev => addDays(prev, 7))}>
               Tiếp <FiChevronRight />
             </button>
           </div>
@@ -176,20 +292,25 @@ const Schedule = () => {
                   </div>
                   
                   {days.map(day => {
-                    const course = getCourseForSlot(day, shift.id);
+                    const event = getGridEventsForSlot(day, shift.id);
                     return (
                       <div key={`${day}-${shift.id}`} className="grid-cell course-cell">
-                        {course ? (
+                        {event ? (
                           <div 
-                            className={`course-card color-${course.color}`}
-                            onClick={() => navigate(`/student/classroom/${course.id}`)}
-                            style={{ cursor: 'pointer' }}
+                            className={`course-card ${event.type === 'exam' ? '' : `color-${event.color}`}`}
+                            style={{ 
+                              cursor: 'pointer', 
+                              background: event.type === 'exam' ? '#fef08a' : undefined,
+                              border: event.type === 'exam' ? '1px solid #fde047' : undefined
+                            }}
                           >
-                            <div className="course-type-badge">{course.type === 'lab' ? 'Thực hành' : 'Lý thuyết'}</div>
-                            <h4 className="course-name">{course.name}</h4>
+                            <div className="course-type-badge" style={{ background: event.type === 'exam' ? '#ca8a04' : undefined, color: event.type === 'exam' ? '#fff' : undefined }}>
+                              {event.type === 'lab' ? 'Thực hành' : event.type === 'exam' ? 'Lịch thi' : 'Lý thuyết'}
+                            </div>
+                            <h4 className="course-name">{event.name}</h4>
                             <div className="course-details">
-                              <span><FiMapPin /> {course.room}</span>
-                              <span><FiUser /> {course.teacher}</span>
+                              <span><FiMapPin /> {event.room}</span>
+                              <span><FiUser /> {event.teacher}</span>
                             </div>
                           </div>
                         ) : (
@@ -219,18 +340,74 @@ const Schedule = () => {
           <span>Lịch học trực tuyến</span>
         </div>
         <div className="legend-item">
-          <div className="legend-color" style={{ background: '#fef08a' }}></div>
+          <div className="legend-color" style={{ background: '#fef08a', border: '1px solid #fde047' }}></div>
           <span>Lịch thi</span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ background: '#ef4444' }}></div>
-          <span>Lịch tạm ngưng</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ background: '#3b82f6' }}></div>
-          <span>Lịch lâm sàng</span>
-        </div>
       </div>
+
+      {(viewMode === 'all' || viewMode === 'exam') && (
+        <div className="exam-section" style={{ marginTop: '2rem' }}>
+          {viewMode === 'all' && <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>Lịch thi sắp tới</h2>}
+          <div className="exam-list" style={{ display: 'grid', gap: '15px' }}>
+            {isLoading && viewMode === 'exam' ? (
+              <SkeletonTable rows={4} cols={5} />
+            ) : sortedExams.length === 0 ? (
+              <div className="glass-card" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+                Không có lịch thi nào trong thời gian tới.
+              </div>
+            ) : (
+              sortedExams.map(exam => {
+                const daysLeft = getDaysLeft(exam.date);
+                const isPast = daysLeft < 0;
+                const isUrgent = daysLeft >= 0 && daysLeft <= 3;
+                const dateObj = new Date(exam.date);
+
+                return (
+                  <div key={exam.id} className={`exam-card glass-card ${isPast ? 'past' : ''} ${isUrgent ? 'urgent' : ''}`} style={{ display: 'flex', padding: '15px 20px', alignItems: 'center', gap: '20px' }}>
+                    <div className="exam-card__left" style={{ textAlign: 'center', minWidth: '80px', borderRight: '1px solid #e2e8f0', paddingRight: '20px' }}>
+                      <div className="exam-date-box" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="exam-day" style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0f172a', lineHeight: '1' }}>{dateObj.getDate()}</span>
+                        <span className="exam-month" style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '4px' }}>Tháng {dateObj.getMonth() + 1}</span>
+                      </div>
+                    </div>
+                    <div className="exam-card__center" style={{ flex: '1' }}>
+                      <div className="exam-card__top" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                        <span className={`exam-type-badge`} style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', backgroundColor: exam.type === 'Giữa kỳ' ? '#e0e7ff' : '#fee2e2', color: exam.type === 'Giữa kỳ' ? '#4f46e5' : '#ef4444' }}>
+                          {exam.type}
+                        </span>
+                        <span className="exam-code" style={{ fontWeight: '600', color: '#64748b', fontSize: '0.85rem' }}>{exam.code}</span>
+                      </div>
+                      <h3 className="exam-name" style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 8px 0' }}>{exam.name}</h3>
+                      <div className="exam-details" style={{ display: 'flex', gap: '15px', color: '#475569', fontSize: '0.85rem' }}>
+                        <span className="exam-detail" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          {getFormatIcon(exam.format)} {exam.format}
+                        </span>
+                        <span className="exam-detail" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <FiClock /> {exam.time}
+                        </span>
+                        <span className="exam-detail" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <FiMapPin /> {exam.room}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="exam-card__right" style={{ minWidth: '120px', textAlign: 'right' }}>
+                      {isPast ? (
+                        <span className="countdown past" style={{ color: '#94a3b8', fontWeight: '500' }}>Đã qua</span>
+                      ) : daysLeft === 0 ? (
+                        <span className="countdown today" style={{ color: '#ef4444', fontWeight: '700' }}>Hôm nay</span>
+                      ) : (
+                        <span className={`countdown ${isUrgent ? 'urgent' : ''}`} style={{ color: isUrgent ? '#ef4444' : '#10b981', fontWeight: '600' }}>
+                          {daysLeft} ngày nữa
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

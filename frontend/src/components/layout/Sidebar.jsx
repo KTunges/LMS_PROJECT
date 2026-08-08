@@ -110,7 +110,6 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/student/curriculum', label: 'Chương trình khung' },
         { to: '/student/schedule', label: 'Thời khóa biểu' },
         { to: '/student/results', label: 'Kết quả học tập' },
-        { to: '/student/exam-schedule', label: 'Lịch thi dự kiến' },
         { to: '/student/graduation-progress', label: 'Tiến độ tốt nghiệp' },
       ],
     },
