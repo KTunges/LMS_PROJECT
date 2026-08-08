@@ -4,19 +4,10 @@ import {
   FiVideo, FiFile, FiEye, FiStar, FiClock,
   FiBook, FiBookOpen, FiExternalLink, FiHardDrive, FiTrash2
 } from 'react-icons/fi';
+import { materialService } from '../../services';
 import './ResourceCenter.css';
 
-// --- MOCK DATA ---
-const mockMaterials = [
-  { id: 1, title: 'Giáo trình Lập trình Web Nâng cao', subject: 'IT306', author: 'ThS. Nguyễn Văn A', type: 'PDF', size: '5.2 MB', downloads: 234, date: '15/07/2026', rating: 4.8 },
-  { id: 2, title: 'Slide bài giảng CSDL - Chương 5', subject: 'IT307', author: 'PGS.TS. Trần B', type: 'PPTX', size: '3.1 MB', downloads: 189, date: '12/07/2026', rating: 4.5 },
-  { id: 3, title: 'Video hướng dẫn Docker cơ bản', subject: 'IT308', author: 'ThS. Lê Thị C', type: 'MP4', size: '120 MB', downloads: 412, date: '10/07/2026', rating: 4.9 },
-  { id: 4, title: 'Bài tập thực hành SQL nâng cao', subject: 'IT307', author: 'PGS.TS. Trần B', type: 'PDF', size: '1.8 MB', downloads: 156, date: '08/07/2026', rating: 4.3 },
-  { id: 5, title: 'Tài liệu tham khảo ReactJS Hooks', subject: 'IT306', author: 'ThS. Nguyễn Văn A', type: 'PDF', size: '2.4 MB', downloads: 321, date: '05/07/2026', rating: 4.7 },
-  { id: 6, title: 'Đề cương ôn tập Kiểm thử PM', subject: 'IT309', author: 'TS. Phạm D', type: 'DOCX', size: '850 KB', downloads: 98, date: '01/07/2026', rating: 4.1 },
-  { id: 7, title: 'Infographic: Các mô hình phát triển PM', subject: 'IT309', author: 'TS. Phạm D', type: 'PNG', size: '2.1 MB', downloads: 76, date: '28/06/2026', rating: 4.0 },
-  { id: 8, title: 'Lab Guide: AWS Cloud Practitioner', subject: 'IT308', author: 'ThS. Lê Thị C', type: 'PDF', size: '8.5 MB', downloads: 287, date: '25/06/2026', rating: 4.6 },
-];
+// --- MOCK DATA FOR OTHER TABS ---
 
 const mockBooks = [
   { id: 1, title: 'Clean Code: A Handbook of Agile Software', author: 'Robert C. Martin', category: 'Kỹ thuật Phần mềm', year: 2008, pages: 464, rating: 4.9, available: true, cover: '📘' },
@@ -75,13 +66,33 @@ const SkeletonCard = () => (
 );
 
 // --- SUB-COMPONENTS ---
-const MaterialsTab = ({ isLoading }) => {
+const MaterialsTab = ({ isLoading: isTabLoading }) => {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('Tất cả');
+  const [materials, setMaterials] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filtered = mockMaterials
-    .filter(m => filterType === 'Tất cả' || m.type === filterType)
-    .filter(m => m.title.toLowerCase().includes(search.toLowerCase()) || m.subject.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      setIsLoading(true);
+      try {
+        const res = await materialService.getAll({ search, status: 'published' });
+        setMaterials(res.data.materials || []);
+      } catch (error) {
+        console.error('Failed to fetch materials:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    const delayDebounceFn = setTimeout(() => {
+      fetchMaterials();
+    }, 500); // debounce search
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [search]);
+
+  const filtered = materials.filter(m => filterType === 'Tất cả' || (m.file_type && m.file_type.toUpperCase() === filterType));
 
   return (
     <div>
@@ -114,30 +125,41 @@ const MaterialsTab = ({ isLoading }) => {
       </div>
 
       <div className="materials-grid">
-        {isLoading ? (
+        {isLoading || isTabLoading ? (
           Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1', color: 'var(--gray-500)' }}>
+            Không có tài liệu nào phù hợp.
+          </div>
         ) : (
-          filtered.map(mat => (
+          filtered.map(mat => {
+            const formatSize = (bytes) => {
+              if (!bytes) return 'N/A';
+              const mb = bytes / (1024 * 1024);
+              return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
+            };
+            const type = mat.file_type || 'FILE';
+            return (
             <div key={mat.id} className="mat-card glass-card">
-            <div className="mat-card__icon" style={{ background: `${getFileColor(mat.type)}15`, color: getFileColor(mat.type) }}>
-              {getFileIcon(mat.type)}
-              <span className="mat-type-label" style={{ color: getFileColor(mat.type) }}>{mat.type}</span>
+            <div className="mat-card__icon" style={{ background: `${getFileColor(type)}15`, color: getFileColor(type) }}>
+              {getFileIcon(type)}
+              <span className="mat-type-label" style={{ color: getFileColor(type) }}>{type}</span>
             </div>
             <div className="mat-card__body">
               <h3 className="mat-title">{mat.title}</h3>
-              <p className="mat-author">{mat.author}</p>
+              <p className="mat-author">{mat.author?.full_name || 'Hệ thống'}</p>
               <div className="mat-meta">
-                <span className="mat-subject">{mat.subject}</span>
-                <span className="mat-size">{mat.size}</span>
+                <span className="mat-subject">{mat.category?.name || 'Tài liệu chung'}</span>
+                <span className="mat-size">{formatSize(mat.file_size)}</span>
               </div>
               <div className="mat-footer">
                 <div className="mat-stats">
-                  <span className="mat-stat"><FiDownload /> {mat.downloads}</span>
-                  <span className="mat-stat"><FiStar /> {mat.rating}</span>
+                  <span className="mat-stat"><FiDownload /> 0</span>
+                  <span className="mat-stat"><FiStar /> 5.0</span>
                 </div>
                 <div className="mat-actions">
                   <button className="btn-mat btn-preview"><FiEye /></button>
-                  <button className="btn-mat btn-download"><FiDownload /></button>
+                  <a href={mat.file_url} target="_blank" rel="noreferrer" className="btn-mat btn-download"><FiDownload /></a>
                 </div>
                 </div>
               </div>
