@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getProfile, updateProfile, changePassword, uploadAvatar } = require('../controllers/authController');
+const { register, login, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
@@ -98,6 +98,35 @@ router.post('/register', register);
  *         description: Email hoặc mật khẩu không đúng
  */
 router.post('/login', login);
+
+/**
+ * @swagger
+ * /api/auth/setup-pin:
+ *   post:
+ *     summary: Cài đặt mã PIN (Bắt buộc ở lần đăng nhập đầu)
+ *     tags: [Xác thực]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/setup-pin', authenticate, setupPin);
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Yêu cầu khôi phục mật khẩu (Gửi email)
+ *     tags: [Xác thực]
+ */
+router.post('/forgot-password', forgotPassword);
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Đặt lại mật khẩu mới
+ *     tags: [Xác thực]
+ */
+router.post('/reset-password', resetPassword);
 
 /**
  * @swagger

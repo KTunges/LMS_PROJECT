@@ -61,6 +61,18 @@ const User = sequelize.define('User', {
       key: 'id',
     },
   },
+  pin_code: {
+    type: DataTypes.STRING(255), // Will store hashed PIN
+    allowNull: true,
+  },
+  reset_password_token: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  reset_password_expires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   hooks: {
@@ -68,10 +80,16 @@ const User = sequelize.define('User', {
       if (user.password) {
         user.password = await bcrypt.hash(user.password, 10);
       }
+      if (user.pin_code) {
+        user.pin_code = await bcrypt.hash(user.pin_code, 10);
+      }
     },
     beforeUpdate: async (user) => {
       if (user.changed('password')) {
         user.password = await bcrypt.hash(user.password, 10);
+      }
+      if (user.changed('pin_code')) {
+        user.pin_code = await bcrypt.hash(user.pin_code, 10);
       }
     },
   },
@@ -82,10 +100,19 @@ User.prototype.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Remove password from JSON output
+// Instance method to compare PIN
+User.prototype.comparePin = async function (candidatePin) {
+  if (!this.pin_code) return false;
+  return bcrypt.compare(candidatePin, this.pin_code);
+};
+
+// Remove sensitive fields from JSON output
 User.prototype.toJSON = function () {
   const values = { ...this.get() };
   delete values.password;
+  delete values.pin_code;
+  delete values.reset_password_token;
+  delete values.reset_password_expires;
   return values;
 };
 

@@ -15,15 +15,20 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [requirePinSetup, setRequirePinSetup] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
+    const needsPin = localStorage.getItem('requirePinSetup') === 'true';
     if (token && savedUser) {
       try {
         setUser(JSON.parse(savedUser));
+        setRequirePinSetup(needsPin);
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('requirePinSetup');
       }
     }
     setLoading(false);
@@ -31,11 +36,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await authService.login({ email, password });
-    const { token, user: userData } = response.data;
+    const { token, user: userData, require_pin_setup } = response.data;
+    
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('requirePinSetup', require_pin_setup ? 'true' : 'false');
+    
     setUser(userData);
-    return userData;
+    setRequirePinSetup(require_pin_setup);
+    
+    return { require_pin_setup, user: userData };
+  };
+
+  const completePinSetup = () => {
+    setRequirePinSetup(false);
+    localStorage.removeItem('requirePinSetup');
   };
 
   const register = async (userData) => {
@@ -44,13 +59,15 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);
-    return newUser;
+    return { require_pin_setup: false, user: newUser };
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('requirePinSetup');
     setUser(null);
+    setRequirePinSetup(false);
   };
 
   const updateUserLocal = (newData) => {
@@ -64,6 +81,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    completePinSetup,
+    requirePinSetup,
     logout,
     updateUserLocal,
     isAuthenticated: !!user,
