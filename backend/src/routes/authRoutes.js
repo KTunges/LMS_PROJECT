@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getProfile } = require('../controllers/authController');
+const { register, login, getProfile, updateProfile, changePassword, uploadAvatar } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 /**
  * @swagger
@@ -120,5 +121,82 @@ router.post('/login', login);
  *         description: Chưa đăng nhập hoặc token hết hạn
  */
 router.get('/profile', authenticate, getProfile);
+
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     summary: Cập nhật thông tin cá nhân
+ *     tags: [Xác thực]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               full_name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               code:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công
+ */
+router.put('/profile', authenticate, updateProfile);
+
+/**
+ * @swagger
+ * /api/auth/change-password:
+ *   put:
+ *     summary: Đổi mật khẩu
+ *     tags: [Xác thực]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [currentPassword, newPassword]
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ */
+router.put('/change-password', authenticate, changePassword);
+
+/**
+ * @swagger
+ * /api/auth/avatar:
+ *   post:
+ *     summary: Cập nhật ảnh đại diện
+ *     tags: [Xác thực]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Thành công
+ */
+router.post('/avatar', authenticate, upload.single('avatar'), uploadAvatar);
 
 module.exports = router;

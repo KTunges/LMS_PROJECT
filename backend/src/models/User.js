@@ -41,6 +41,18 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: true,
   },
+  phone: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
+  address: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  code: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
   major_id: {
     type: DataTypes.INTEGER,
     allowNull: true, // Only for students
