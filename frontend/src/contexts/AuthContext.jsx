@@ -70,6 +70,12 @@ export const AuthProvider = ({ children }) => {
     setRequirePinSetup(false);
   };
 
+  const updateUserLocal = (newData) => {
+    const updatedUser = { ...user, ...newData };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   const value = {
     user,
     loading,
@@ -78,6 +84,7 @@ export const AuthProvider = ({ children }) => {
     completePinSetup,
     requirePinSetup,
     logout,
+    updateUserLocal,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isTeacher: user?.role === 'teacher',

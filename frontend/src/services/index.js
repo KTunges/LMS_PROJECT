@@ -8,6 +8,11 @@ export const authService = {
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token, newPassword) => api.post('/auth/reset-password', { token, newPassword }),
   getProfile: () => api.get('/auth/profile'),
+  updateProfile: (userData) => api.put('/auth/profile', userData),
+  changePassword: (data) => api.put('/auth/change-password', data),
+  uploadAvatar: (formData) => api.post('/auth/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 };
 
 // Material services

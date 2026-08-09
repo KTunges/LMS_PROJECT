@@ -154,4 +154,83 @@ const getProfile = async (req, res) => {
   res.json({ user: req.user.toJSON() });
 };
 
-module.exports = { register, login, setupPin, forgotPassword, resetPassword, getProfile };
+// @desc    Update current user profile
+// @route   PUT /api/auth/profile
+const updateProfile = async (req, res, next) => {
+  try {
+    const { full_name, phone, address, code } = req.body;
+    const user = await User.findByPk(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    user.full_name = full_name || user.full_name;
+    user.phone = phone !== undefined ? phone : user.phone;
+    user.address = address !== undefined ? address : user.address;
+    user.code = code !== undefined ? code : user.code;
+
+    await user.save();
+
+    res.json({
+      message: 'Cập nhật thông tin thành công',
+      user: user.toJSON()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Đổi mật khẩu thành công' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Upload user avatar
+// @route   POST /api/auth/avatar
+const uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Vui lòng chọn file ảnh' });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    user.avatar = avatarUrl;
+    await user.save();
+
+    res.json({
+      message: 'Cập nhật ảnh đại diện thành công',
+      avatarUrl,
+      user: user.toJSON()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { register, login, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar };
