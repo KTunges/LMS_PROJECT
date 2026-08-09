@@ -100,6 +100,37 @@ async function seed() {
       phone: '0901234567',
       address: 'Quận 1, TP. Hồ Chí Minh'
     });
+
+    // Create 50 mock students with different majors
+    const majorsList = [majorIT, majorBA, majorMKT, majorMED];
+    const lastNames = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Huỳnh', 'Phan', 'Vũ', 'Võ', 'Đặng'];
+    const middleNames = ['Văn', 'Thị', 'Hữu', 'Thanh', 'Minh', 'Ngọc', 'Quang', 'Hải', 'Thảo', 'Quốc'];
+    const firstNames = ['An', 'Bình', 'Châu', 'Dũng', 'Đức', 'Hà', 'Kiên', 'Linh', 'Mai', 'Nam'];
+    const districts = ['Quận 1', 'Quận 3', 'Quận 7', 'Quận 10', 'Bình Thạnh', 'Thủ Đức', 'Gò Vấp', 'Tân Bình'];
+    
+    for (let i = 1; i <= 50; i++) {
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const middleName = middleNames[Math.floor(Math.random() * middleNames.length)];
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const major = majorsList[Math.floor(Math.random() * majorsList.length)];
+      const district = districts[Math.floor(Math.random() * districts.length)];
+      
+      const codeStr = `SV2023${String(i).padStart(4, '0')}`;
+      // e.g. sv20230001@lms.edu.vn
+      const emailStr = `sv2023${String(i).padStart(4, '0')}@lms.edu.vn`;
+      
+      await User.create({
+        full_name: `${lastName} ${middleName} ${firstName}`,
+        email: emailStr,
+        password: '123456',
+        role: 'student',
+        major_id: major.id,
+        code: codeStr,
+        phone: `09${Math.floor(10000000 + Math.random() * 90000000)}`,
+        address: `${district}, TP. Hồ Chí Minh`
+      });
+    }
+
     console.log('Created mock users.');
 
     // 2. Create Semesters
