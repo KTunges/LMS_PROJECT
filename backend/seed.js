@@ -96,6 +96,9 @@ async function seed() {
       password: '123456',
       role: 'student',
       major_id: majorIT.id,
+      code: 'SV20239999',
+      phone: '0901234567',
+      address: 'Quận 1, TP. Hồ Chí Minh'
     });
     console.log('Created mock users.');
 
