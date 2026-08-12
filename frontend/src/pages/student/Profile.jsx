@@ -172,7 +172,7 @@ const Profile = () => {
           <div className="profile-info">
             <h1 className="profile-name">{user?.full_name}</h1>
             <p className="profile-major">
-              {user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'teacher' ? 'Giảng viên' : 'Sinh viên'} 
+              {user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'teacher' ? 'Giảng viên' : (user?.major?.name || 'Sinh viên')} 
               {user?.code && ` • ${user.code}`}
             </p>
           </div>

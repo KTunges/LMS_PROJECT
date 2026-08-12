@@ -333,7 +333,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <div className="sidebar__user-dropdown">
                   <div className="dropdown-header">
                     <strong>{user.full_name || 'Người dùng'}</strong>
-                    <span>{user.role === 'student' ? 'Học viên' : user.role === 'teacher' ? 'Giảng viên' : 'Quản trị viên'}</span>
+                    <span>{user.role === 'student' ? (user.major?.name || 'Học viên') : user.role === 'teacher' ? 'Giảng viên' : 'Quản trị viên'}</span>
                   </div>
                   <div className="dropdown-divider"></div>
                   <NavLink to={`/${user.role}/profile`} className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>

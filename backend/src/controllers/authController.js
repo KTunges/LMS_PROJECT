@@ -28,7 +28,10 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: 'Vui lòng nhập email và mật khẩu' });
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ 
+      where: { email },
+      include: ['major']
+    });
     if (!user) {
       return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' });
     }
@@ -159,7 +162,9 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res, next) => {
   try {
     const { full_name, phone, address, code } = req.body;
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, {
+      include: ['major']
+    });
     
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
@@ -214,7 +219,9 @@ const uploadAvatar = async (req, res, next) => {
       return res.status(400).json({ message: 'Vui lòng chọn file ảnh' });
     }
 
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, {
+      include: ['major']
+    });
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
