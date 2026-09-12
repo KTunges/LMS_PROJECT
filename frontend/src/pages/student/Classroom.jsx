@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiCheckCircle, FiPlayCircle, FiFileText, FiAward } from 'react-icons/fi';
-import { classService, lessonService } from '../../services';
+import { classService, studentService } from '../../services';
+import CustomVideoPlayer from '../../components/common/VideoPlayer/CustomVideoPlayer';
 import './Classroom.css';
 
 const Classroom = () => {
@@ -44,12 +45,23 @@ const Classroom = () => {
 
   const markAsCompleted = async () => {
     try {
-      await lessonService.markProgress(activeLesson.id);
+      const res = await studentService.completeLesson(activeLesson.id);
       const updatedLessons = lessons.map(l => 
         l.id === activeLesson.id ? { ...l, completed: true } : l
       );
       setLessons(updatedLessons);
       setActiveLesson({ ...activeLesson, completed: true });
+      
+      if (res.data?.gamification) {
+        const { xpGained, newLevel, newBadge, newCertificate } = res.data.gamification;
+        if (newCertificate) {
+          alert(`Chúc mừng! Bạn đã hoàn thành khóa học và nhận được Chứng chỉ!`);
+        } else if (newLevel) {
+          alert(`Chúc mừng! Bạn đã thăng cấp lên Level ${newLevel}!`);
+        } else if (newBadge) {
+          alert(`Chúc mừng! Bạn nhận được huy hiệu: ${newBadge.name}`);
+        }
+      }
     } catch (err) {
       console.error(err);
       alert('Có lỗi xảy ra, vui lòng thử lại.');
@@ -80,15 +92,13 @@ const Classroom = () => {
         {/* LEFT: Main Content (Video / PDF / Quiz) */}
         <div className="learning-main">
           {activeLesson.type === 'video' ? (
-            <div className="video-player-container">
-              <iframe 
-                className="video-iframe"
-                src={activeLesson.content_url} 
-                title={activeLesson.title}
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-              ></iframe>
+            <div className="video-player-container" style={{ aspectRatio: '16/9', width: '100%' }}>
+              <CustomVideoPlayer 
+                url={activeLesson.content_url}
+                onEnded={() => {
+                  if (!activeLesson.completed) markAsCompleted();
+                }}
+              />
             </div>
           ) : activeLesson.type === 'document' ? (
             <div className="document-viewer-container">

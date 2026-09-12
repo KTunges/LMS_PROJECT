@@ -85,6 +85,14 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  xp: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  level: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+  },
   otp_code: {
     type: DataTypes.STRING(255), // Will store hashed OTP
     allowNull: true,
@@ -123,13 +131,14 @@ const User = sequelize.define('User', {
 
 // Instance method to compare password
 User.prototype.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+  if (!this.password) return false;
+  return bcrypt.compare(String(candidatePassword), this.password);
 };
 
 // Instance method to compare PIN
 User.prototype.comparePin = async function (candidatePin) {
   if (!this.pin_code) return false;
-  return bcrypt.compare(candidatePin, this.pin_code);
+  return bcrypt.compare(String(candidatePin), this.pin_code);
 };
 
 // Remove sensitive fields from JSON output

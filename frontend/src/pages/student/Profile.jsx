@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services';
 import { toast } from 'react-toastify';
 import { SkeletonProfile, SkeletonTable } from '../../components/common/SkeletonLoaders';
+import jsPDF from 'jspdf';
 import './Profile.css';
 
 const Profile = () => {
@@ -46,12 +47,20 @@ const Profile = () => {
     gpa: 0
   });
 
+  const [gamification, setGamification] = useState({
+    xp: 0,
+    level: 1,
+    badges: [],
+    certificates: []
+  });
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [classesRes, gradesRes] = await Promise.all([
+        const [classesRes, gradesRes, gamificationRes] = await Promise.all([
           import('../../services').then(m => m.studentService.getMyClasses()),
-          import('../../services').then(m => m.studentService.getGrades())
+          import('../../services').then(m => m.studentService.getGrades()),
+          import('../../services').then(m => m.studentService.getGamification())
         ]);
         const classes = classesRes.data?.success ? classesRes.data.data : [];
         const grades = gradesRes.data?.success ? gradesRes.data.data : [];
@@ -60,8 +69,12 @@ const Profile = () => {
         setProfileStats({
           enrolled: classes.length,
           downloads: 0,
-          gpa: count > 0 ? (totalScore / count).toFixed(1) : '0.0'
+          gpa: count > 0 ? Math.round((totalScore / count) * 10) : 0 // Scale 10 to 100 for E-learning
         });
+
+        if (gamificationRes.data?.success) {
+          setGamification(gamificationRes.data.data);
+        }
       } catch (err) {
         console.error('Failed to fetch profile stats:', err);
       }
@@ -150,6 +163,58 @@ const Profile = () => {
     }
   };
 
+  const handleDownloadCertificate = (cert) => {
+    // Generate simple PDF Certificate
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Background or border
+    doc.setLineWidth(5);
+    doc.setDrawColor(59, 130, 246); // Blue
+    doc.rect(10, 10, 277, 190);
+    
+    // Inner border
+    doc.setLineWidth(1);
+    doc.rect(15, 15, 267, 180);
+
+    // Title
+    doc.setFontSize(40);
+    doc.setTextColor(30, 64, 175);
+    doc.text('CHỨNG NHẬN HOÀN THÀNH', 148, 60, { align: 'center' });
+
+    // Subtitle
+    doc.setFontSize(16);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Chứng nhận này được cấp cho', 148, 80, { align: 'center' });
+
+    // Student Name
+    doc.setFontSize(32);
+    doc.setTextColor(15, 23, 42);
+    doc.text(user?.full_name || 'Học viên', 148, 105, { align: 'center' });
+
+    // Description
+    doc.setFontSize(16);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Đã hoàn thành xuất sắc khóa học:`, 148, 130, { align: 'center' });
+    
+    // Course Name
+    doc.setFontSize(24);
+    doc.setTextColor(30, 64, 175);
+    doc.text(cert.course?.name || 'Khóa học', 148, 145, { align: 'center' });
+
+    // Date
+    doc.setFontSize(14);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Ngày cấp: ${new Date(cert.issue_date).toLocaleDateString('vi-VN')}`, 148, 170, { align: 'center' });
+
+    // Save PDF
+    doc.save(`Chung-nhan-${cert.course?.id || 'khoa-hoc'}.pdf`);
+    toast.success('Đã tải chứng chỉ xuống!');
+  };
+
   if (isLoading) {
     return (
       <div className="profile-page">
@@ -194,9 +259,19 @@ const Profile = () => {
           <div className="profile-info">
             <h1 className="profile-name">{user?.full_name}</h1>
             <p className="profile-major">
-              {user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'teacher' ? 'Giảng viên' : (user?.major?.name || 'Sinh viên')} 
+              {user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'teacher' ? 'Giảng viên' : (user?.major?.name || 'Học viên')} 
               {user?.code && ` • ${user.code}`}
             </p>
+            
+            {user?.role === 'student' && (
+              <div className="profile-level-badge">
+                <span className="level-icon">🔥</span> Level {gamification.level}
+                <div className="xp-bar-container">
+                  <div className="xp-bar" style={{ width: `${(gamification.xp % 500) / 5}%` }}></div>
+                </div>
+                <span className="xp-text">{gamification.xp} XP</span>
+              </div>
+            )}
           </div>
 
           <div className="profile-stats">
@@ -204,7 +279,7 @@ const Profile = () => {
               <div className="stat-icon bg-blue-light"><FiBookOpen /></div>
               <div className="stat-details">
                 <span className="stat-value">{profileStats.enrolled}</span>
-                <span className="stat-label">Môn học</span>
+                <span className="stat-label">Khóa học</span>
               </div>
             </div>
             <div className="stat-item">
@@ -217,8 +292,8 @@ const Profile = () => {
             <div className="stat-item">
               <div className="stat-icon bg-yellow-light"><FiStar /></div>
               <div className="stat-details">
-                <span className="stat-value">{profileStats.gpa}</span>
-                <span className="stat-label">Điểm TB</span>
+                <span className="stat-value">{profileStats.gpa}/100</span>
+                <span className="stat-label">Điểm đánh giá</span>
               </div>
             </div>
           </div>
@@ -240,6 +315,12 @@ const Profile = () => {
             onClick={() => setActiveTab('security')}
           >
             <FiLock /> Đổi mật khẩu
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'gamification' ? 'active' : ''}`}
+            onClick={() => setActiveTab('gamification')}
+          >
+            <FiStar /> Thành tích
           </button>
         </div>
 
@@ -289,7 +370,7 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>Mã Sinh Viên</label>
+                  <label>Mã Học Viên</label>
                   <div className="input-with-icon">
                     <FiBookOpen className="input-icon" />
                     <input 
@@ -394,6 +475,54 @@ const Profile = () => {
                   {isSaving ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
                 </button>
               </form>
+            </div>
+          )}
+          {activeTab === 'gamification' && (
+            <div className="tab-pane fade-in">
+              <div className="pane-header">
+                <h2>Huy hiệu & Chứng chỉ</h2>
+              </div>
+              
+              <div className="gamification-section">
+                <h3 className="section-title">Huy hiệu của bạn ({gamification.badges.length})</h3>
+                {gamification.badges.length === 0 ? (
+                  <p className="empty-text">Bạn chưa có huy hiệu nào. Hãy hoàn thành các bài học để nhận huy hiệu nhé!</p>
+                ) : (
+                  <div className="badges-grid">
+                    {gamification.badges.map(badge => (
+                      <div key={badge.id} className="badge-card">
+                        <div className="badge-icon">🎖️</div>
+                        <h4>{badge.name}</h4>
+                        <p>{badge.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="gamification-section" style={{ marginTop: '32px' }}>
+                <h3 className="section-title">Chứng chỉ ({gamification.certificates.length})</h3>
+                {gamification.certificates.length === 0 ? (
+                  <p className="empty-text">Bạn chưa có chứng chỉ nào. Hoàn thành 100% khóa học để nhận chứng chỉ.</p>
+                ) : (
+                  <div className="certificates-list">
+                    {gamification.certificates.map(cert => (
+                      <div key={cert.id} className="certificate-card">
+                        <div className="cert-info">
+                          <FiBookOpen className="cert-icon" />
+                          <div>
+                            <h4>Khóa học: {cert.course?.name || 'Đang cập nhật'}</h4>
+                            <p>Cấp ngày: {new Date(cert.issue_date).toLocaleDateString('vi-VN')}</p>
+                          </div>
+                        </div>
+                        <button className="btn btn-outline" onClick={() => handleDownloadCertificate(cert)}>
+                          <FiDownload /> Tải PDF
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

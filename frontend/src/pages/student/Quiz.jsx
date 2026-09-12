@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiClock, FiCheckCircle, FiXCircle, FiArrowLeft, FiAward } from 'react-icons/fi';
 import { quizService } from '../../services';
+import CodeEditor from '../../components/common/CodeEditor/CodeEditor';
 import './Quiz.css';
 
 const Quiz = () => {
@@ -132,24 +133,37 @@ const Quiz = () => {
 
       <div className="quiz-layout">
         <div className="quiz-main">
-          <div className="question-card glass-card">
+          <div className="question-card glass-card" style={{ width: '100%', maxWidth: currentQuestion.question_type === 'coding' ? '1200px' : '800px' }}>
             <div className="question-number">Câu hỏi {currentQuestionIndex + 1} / {questions.length}</div>
             <h3 className="question-text">{currentQuestion.content}</h3>
             
-            <div className="options-list">
-              {currentQuestion.answers.map((ans) => (
-                <div 
-                  key={ans.id} 
-                  className={`option-item ${selectedAnswers[currentQuestion.id] === ans.id ? 'selected' : ''}`}
-                  onClick={() => handleSelectAnswer(ans.id)}
-                >
-                  <div className="option-radio">
-                    {selectedAnswers[currentQuestion.id] === ans.id && <div className="radio-dot"></div>}
+            {currentQuestion.question_type === 'coding' ? (
+              <CodeEditor 
+                question={currentQuestion} 
+                testCases={currentQuestion.test_cases || []} 
+                onSubmit={(result) => {
+                  setSelectedAnswers({
+                    ...selectedAnswers,
+                    [currentQuestion.id]: result
+                  });
+                }}
+              />
+            ) : (
+              <div className="options-list">
+                {currentQuestion.answers?.map((ans) => (
+                  <div 
+                    key={ans.id} 
+                    className={`option-item ${selectedAnswers[currentQuestion.id] === ans.id ? 'selected' : ''}`}
+                    onClick={() => handleSelectAnswer(ans.id)}
+                  >
+                    <div className="option-radio">
+                      {selectedAnswers[currentQuestion.id] === ans.id && <div className="radio-dot"></div>}
+                    </div>
+                    <span className="option-text">{ans.content}</span>
                   </div>
-                  <span className="option-text">{ans.content}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="quiz-navigation">

@@ -33,7 +33,7 @@ const AuthPage = () => {
 
   // If already logged in AND we are not showing the loading screen, redirect to dashboard
   if (isAuthenticated && user && !isSuccessLoading && !isRedirecting.current) {
-    const redirectMap = { admin: '/admin', teacher: '/teacher', student: '/student' };
+    const redirectMap = { admin: '/admin', teacher: '/portal-giang-vien', student: '/student' };
     return <Navigate to={redirectMap[user.role] || '/student'} replace />;
   }
 
@@ -41,7 +41,7 @@ const AuthPage = () => {
     isRedirecting.current = true;
     setIsSuccessLoading(true);
     setTimeout(() => {
-      const redirectMap = { admin: '/admin', teacher: '/teacher', student: '/student' };
+      const redirectMap = { admin: '/admin', teacher: '/portal-giang-vien', student: '/student' };
       navigate(redirectMap[role] || '/student');
     }, 1500);
   };

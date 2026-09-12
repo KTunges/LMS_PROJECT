@@ -8,8 +8,10 @@ import { studentService } from '../../services';
 const CourseCatalog = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('all'); // 'all', 'free', 'paid'
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [paymentModalData, setPaymentModalData] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -20,7 +22,15 @@ const CourseCatalog = () => {
       try {
         const res = await studentService.getCatalog();
         if (res.data && res.data.success) {
-          setCourses(res.data.data);
+          const fetchedCourses = res.data.data;
+          setCourses(fetchedCourses);
+          
+          // Extract unique categories (tags)
+          const uniqueCats = new Set();
+          fetchedCourses.forEach(c => {
+            if (c.tags) c.tags.forEach(t => uniqueCats.add(t));
+          });
+          setCategories(['all', ...Array.from(uniqueCats)]);
         }
       } catch (error) {
         console.error("Lỗi lấy danh mục môn học", error);
@@ -36,6 +46,9 @@ const CourseCatalog = () => {
     const matchSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         course.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
     
+    const matchCategory = selectedCategory === 'all' || course.tags?.includes(selectedCategory);
+
+    if (!matchCategory) return false;
     if (filterMode === 'free' && course.price > 0) return false;
     if (filterMode === 'paid' && course.price === 0) return false;
 
@@ -103,27 +116,50 @@ const CourseCatalog = () => {
             />
           </div>
           
-          <div className="filter-group">
-            <button 
-              className={`filter-btn ${filterMode === 'all' ? 'active' : ''}`}
-              onClick={() => setFilterMode('all')}
+          <div className="filter-group" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <select 
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px',
+                border: '1px solid var(--gray-200)',
+                background: 'rgba(255, 255, 255, 0.7)',
+                color: 'var(--gray-700)',
+                fontWeight: 500,
+                outline: 'none',
+                cursor: 'pointer'
+              }}
             >
-              Tất cả
-            </button>
-            <button 
-              className={`filter-btn ${filterMode === 'free' ? 'active' : ''}`}
-              onClick={() => setFilterMode('free')}
-            >
-              Miễn phí
-            </button>
-            <button 
-              className={`filter-btn ${filterMode === 'paid' ? 'active' : ''}`}
-              onClick={() => setFilterMode('paid')}
-            >
-              Trả phí
-            </button>
+              <option value="all">Tất cả danh mục</option>
+              {categories.filter(c => c !== 'all').map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            
+            <div className="filter-buttons" style={{ display: 'flex', gap: '8px', background: 'rgba(255, 255, 255, 0.7)', padding: '4px', borderRadius: '8px' }}>
+              <button 
+                className={`filter-btn ${filterMode === 'all' ? 'active' : ''}`}
+                onClick={() => setFilterMode('all')}
+              >
+                Tất cả
+              </button>
+              <button 
+                className={`filter-btn ${filterMode === 'free' ? 'active' : ''}`}
+                onClick={() => setFilterMode('free')}
+              >
+                Miễn phí
+              </button>
+              <button 
+                className={`filter-btn ${filterMode === 'paid' ? 'active' : ''}`}
+                onClick={() => setFilterMode('paid')}
+              >
+                Trả phí
+              </button>
+            </div>
           </div>
         </div>
+
       </div>
 
       <div className="catalog-grid">

@@ -448,11 +448,17 @@ exports.getLeaderboard = async (req, res, next) => {
         });
       }
 
+      let title = 'Tân binh';
+      if (totalXp > 8000) title = 'Chiến thần học tập';
+      else if (totalXp > 5000) title = 'Chuyên gia cày cuốc';
+      else if (totalXp > 2000) title = 'Học bá tiềm năng';
+
       return {
         id: student.id,
         name: student.full_name,
         xp: totalXp,
         avatar: student.full_name ? student.full_name.charAt(0).toUpperCase() : '?',
+        title: title,
         completedCourses
       };
     }).filter(s => s.xp > 0); // Only show students with XP
@@ -483,6 +489,237 @@ exports.getLeaderboard = async (req, res, next) => {
     });
 
     res.json({ success: true, data: leaderboard });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.completeLesson = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
+    const lessonId = req.params.id;
+    
+    const { LessonProgress, User, Badge, UserBadge, Lesson, Class, Course, Curriculum, Certificate } = require('../models');
+    
+    // Check if progress already exists
+    let progress = await LessonProgress.findOne({
+      where: { student_id: studentId, lesson_id: lessonId }
+    });
+
+    let isFirstCompletion = false;
+
+    if (progress) {
+      if (!progress.is_completed) {
+        progress.is_completed = true;
+        progress.completed_at = new Date();
+        await progress.save();
+        isFirstCompletion = true;
+      }
+    } else {
+      progress = await LessonProgress.create({
+        student_id: studentId,
+        lesson_id: lessonId,
+        is_completed: true,
+        completed_at: new Date()
+      });
+      isFirstCompletion = true;
+    }
+
+    let xpGained = 0;
+    let newLevel = null;
+    let newBadge = null;
+    let newCertificate = null;
+
+    if (isFirstCompletion) {
+      // Award XP
+      xpGained = 50;
+      
+      const user = await User.findByPk(studentId);
+      user.xp += xpGained;
+      
+      // Calculate level (simple logic: Level = floor(XP / 500) + 1)
+      const calculatedLevel = Math.floor(user.xp / 500) + 1;
+      if (calculatedLevel > user.level) {
+        user.level = calculatedLevel;
+        newLevel = calculatedLevel;
+      }
+      await user.save();
+
+      // Check badges (e.g. FIRST_LESSON badge)
+      const firstLessonBadge = await Badge.findOne({ where: { condition_type: 'LESSON_COMPLETED', condition_value: 1 } });
+      if (firstLessonBadge) {
+        const existingUserBadge = await UserBadge.findOne({ where: { user_id: studentId, badge_id: firstLessonBadge.id }});
+        if (!existingUserBadge) {
+          await UserBadge.create({ user_id: studentId, badge_id: firstLessonBadge.id });
+          newBadge = firstLessonBadge;
+        }
+      }
+
+      // Check for Course completion (Certificate)
+      // 1. Find course of this lesson
+      const lesson = await Lesson.findByPk(lessonId);
+      if (lesson) {
+        const curriculum = await Curriculum.findByPk(lesson.curriculum_id);
+        if (curriculum) {
+          const courseId = curriculum.course_id;
+          // Count all lessons in this course
+          const totalLessons = await Lesson.count({
+            include: [{ model: Curriculum, as: 'section', where: { course_id: courseId } }]
+          });
+          // Count completed lessons in this course
+          const completedLessons = await LessonProgress.count({
+            where: { student_id: studentId, is_completed: true },
+            include: [{ model: Lesson, as: 'lesson', include: [{ model: Curriculum, as: 'section', where: { course_id: courseId } }] }]
+          });
+
+          if (completedLessons >= totalLessons && totalLessons > 0) {
+            // Check if certificate already exists
+            let cert = await Certificate.findOne({ where: { user_id: studentId, course_id: courseId } });
+            if (!cert) {
+              cert = await Certificate.create({
+                user_id: studentId,
+                course_id: courseId
+              });
+              newCertificate = cert;
+              
+              // Grant course completion badge
+              const courseBadge = await Badge.findOne({ where: { condition_type: 'COURSE_COMPLETED', condition_value: 1 } });
+              if (courseBadge) {
+                 const hasBadge = await UserBadge.findOne({ where: { user_id: studentId, badge_id: courseBadge.id }});
+                 if (!hasBadge) {
+                   await UserBadge.create({ user_id: studentId, badge_id: courseBadge.id });
+                   if (!newBadge) newBadge = courseBadge;
+                 }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Đã hoàn thành bài học',
+      gamification: {
+        xpGained,
+        newLevel,
+        newBadge,
+        newCertificate
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getGamificationStatus = async (req, res, next) => {
+  try {
+    const { User, Badge, Certificate } = require('../models');
+    
+    const user = await User.findByPk(req.user.id, {
+      include: [
+        { model: Badge, as: 'badges' },
+        { model: Certificate, as: 'certificates' }
+      ]
+    });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        xp: user.xp,
+        level: user.level,
+        badges: user.badges,
+        certificates: user.certificates
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.executeCode = async (req, res, next) => {
+  try {
+    const { language, sourceCode, testCases } = req.body;
+    
+    // Map language to Piston API format
+    const languageMap = {
+      'javascript': { language: 'javascript', version: '18.15.0' },
+      'python': { language: 'python', version: '3.10.0' },
+      'java': { language: 'java', version: '15.0.2' },
+      'cpp': { language: 'c++', version: '10.2.0' },
+      'c': { language: 'c', version: '10.2.0' }
+    };
+    
+    const pistonLang = languageMap[language] || languageMap['javascript'];
+    const axios = require('axios');
+    
+    const results = [];
+    let passedCount = 0;
+    
+    // Test case execution loop (ideally run in parallel for speed, but sequentially for simplicity here)
+    for (const testCase of testCases) {
+      try {
+        const payload = {
+          language: pistonLang.language,
+          version: pistonLang.version,
+          files: [
+            {
+              content: sourceCode
+            }
+          ],
+          stdin: testCase.input,
+          args: [],
+          compile_timeout: 10000,
+          run_timeout: 3000,
+          compile_memory_limit: -1,
+          run_memory_limit: -1
+        };
+        
+        const response = await axios.post('https://emkc.org/api/v2/piston/execute', payload);
+        
+        const output = response.data.run.stdout.trim() || response.data.run.stderr.trim();
+        const expected = testCase.expected_output.trim();
+        const passed = output === expected;
+        
+        if (passed) passedCount++;
+        
+        results.push({
+          id: testCase.id,
+          passed: passed,
+          input: testCase.input,
+          output: output,
+          expected: expected,
+          isHidden: testCase.is_hidden || false,
+          error: response.data.run.stderr ? true : false
+        });
+      } catch (err) {
+        results.push({
+          id: testCase.id,
+          passed: false,
+          input: testCase.input,
+          output: 'Execution Error',
+          expected: testCase.expected_output,
+          isHidden: testCase.is_hidden || false,
+          error: true
+        });
+      }
+    }
+    
+    const score = Math.round((passedCount / testCases.length) * 100);
+
+    res.json({
+      success: true,
+      data: {
+        score,
+        passedCount,
+        totalCases: testCases.length,
+        results
+      }
+    });
   } catch (error) {
     next(error);
   }

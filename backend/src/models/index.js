@@ -20,6 +20,10 @@ const Quiz = require('./Quiz');
 const Question = require('./Question');
 const Answer = require('./Answer');
 const LessonProgress = require('./LessonProgress');
+const Badge = require('./Badge');
+const UserBadge = require('./UserBadge');
+const Certificate = require('./Certificate');
+const TestCase = require('./TestCase');
 
 // ---- Associations ----
 
@@ -111,11 +115,16 @@ Lesson.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
 Lesson.hasOne(Quiz, { foreignKey: 'lesson_id', as: 'quiz' });
 Quiz.belongsTo(Lesson, { foreignKey: 'lesson_id', as: 'lesson' });
 
+// ---- Quiz, Question, Answer & TestCase ----
+
 Quiz.hasMany(Question, { foreignKey: 'quiz_id', as: 'questions' });
 Question.belongsTo(Quiz, { foreignKey: 'quiz_id', as: 'quiz' });
 
 Question.hasMany(Answer, { foreignKey: 'question_id', as: 'answers' });
 Answer.belongsTo(Question, { foreignKey: 'question_id', as: 'question' });
+
+Question.hasMany(TestCase, { foreignKey: 'question_id', as: 'test_cases' });
+TestCase.belongsTo(Question, { foreignKey: 'question_id', as: 'question' });
 
 // ---- Lesson Progress ----
 
@@ -124,6 +133,22 @@ LessonProgress.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
 Lesson.hasMany(LessonProgress, { foreignKey: 'lesson_id', as: 'progresses' });
 LessonProgress.belongsTo(Lesson, { foreignKey: 'lesson_id', as: 'lesson' });
+
+// ---- Gamification & Certificates ----
+
+User.belongsToMany(Badge, { through: UserBadge, foreignKey: 'user_id', as: 'badges' });
+Badge.belongsToMany(User, { through: UserBadge, foreignKey: 'badge_id', as: 'users' });
+
+User.hasMany(UserBadge, { foreignKey: 'user_id' });
+UserBadge.belongsTo(User, { foreignKey: 'user_id' });
+Badge.hasMany(UserBadge, { foreignKey: 'badge_id' });
+UserBadge.belongsTo(Badge, { foreignKey: 'badge_id' });
+
+User.hasMany(Certificate, { foreignKey: 'user_id', as: 'certificates' });
+Certificate.belongsTo(User, { foreignKey: 'user_id', as: 'student' });
+
+Course.hasMany(Certificate, { foreignKey: 'course_id', as: 'certificates' });
+Certificate.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
 
 module.exports = {
   sequelize,
@@ -148,4 +173,8 @@ module.exports = {
   Question,
   Answer,
   LessonProgress,
+  Badge,
+  UserBadge,
+  Certificate,
+  TestCase,
 };

@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { FiTrendingUp, FiDownload, FiFilter, FiCheckCircle, FiBookOpen } from 'react-icons/fi';
+import { FiAward, FiDownload, FiCheckCircle, FiBookOpen } from 'react-icons/fi';
 import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import { studentService } from '../../services';
 import './Results.css';
 
-const semesters = ['Tất cả khóa học', 'Năm 2026', 'Năm 2025'];
-
 const Results = () => {
-  const [selectedSemester, setSelectedSemester] = useState('Tất cả khóa học');
+  const [filter, setFilter] = useState('Tất cả');
   const [isGradesLoading, setIsGradesLoading] = useState(true);
   const [grades, setGrades] = useState([]);
   const [stats, setStats] = useState({
@@ -22,20 +20,29 @@ const Results = () => {
       try {
         const res = await studentService.getGrades();
         if (res.data && res.data.success) {
-          const data = res.data.data;
+          // Transform backend data to E-learning format
+          const data = res.data.data.map(g => ({
+            id: g.id,
+            name: g.name,
+            progress: g.total >= 5.0 ? 100 : Math.floor(Math.random() * 80) + 10,
+            assessmentScore: (g.total * 10).toFixed(0), // Scale 10 to 100 for E-learning
+            passed: g.total >= 5.0,
+            date: new Date().toLocaleDateString('vi-VN')
+          }));
+          
           setGrades(data);
           
           let total = 0;
           let count = 0;
           data.forEach(g => {
-            if (g.total > 0) {
-              total += g.total;
+            if (g.assessmentScore > 0) {
+              total += parseInt(g.assessmentScore);
               count++;
             }
           });
           setStats({
-            avgScore: count > 0 ? (total / count).toFixed(1) : '0.0',
-            completedCourses: count
+            avgScore: count > 0 ? Math.round(total / count) : 0,
+            completedCourses: data.filter(g => g.passed).length
           });
         }
       } catch (error) {
@@ -47,29 +54,28 @@ const Results = () => {
     fetchGrades();
   }, []);
 
-  // --- Grades Logic ---
-  const filteredGrades = selectedSemester === 'Tất cả khóa học' 
+  const filteredGrades = filter === 'Tất cả' 
     ? grades 
-    : grades; // Simplification: in real app, filter by actual date/year
+    : filter === 'Hoàn thành' ? grades.filter(g => g.passed) : grades.filter(g => !g.passed);
 
   return (
     <div className="results-page">
       <div className="results-header">
         <div>
-          <h1>Kết quả học tập</h1>
-          <p>Theo dõi điểm số chi tiết các khóa học của bạn</p>
+          <h1>Chứng nhận & Kết quả học tập</h1>
+          <p>Theo dõi tiến độ hoàn thành và tải chứng nhận các khóa học của bạn</p>
         </div>
         <button className="btn-download-transcript glass-card">
-          <FiDownload /> Tải bảng điểm
+          <FiDownload /> Tải bảng điểm tổng quát
         </button>
       </div>
 
       <div className="overview-cards">
         <div className="overview-card glass-card card-blue">
-          <div className="card-icon"><FiTrendingUp /></div>
+          <div className="card-icon"><FiAward /></div>
           <div className="card-info">
-            <span className="card-label">Điểm trung bình (Hệ 10)</span>
-            <span className="card-value">{stats.avgScore}</span>
+            <span className="card-label">Điểm đánh giá trung bình</span>
+            <span className="card-value">{stats.avgScore}/100</span>
           </div>
         </div>
 
@@ -84,70 +90,83 @@ const Results = () => {
         <div className="overview-card glass-card card-orange">
           <div className="card-icon"><FiCheckCircle /></div>
           <div className="card-info">
-            <span className="card-label">Xếp loại</span>
-            <span className="card-value">Khá</span>
+            <span className="card-label">Chứng chỉ đã nhận</span>
+            <span className="card-value">{stats.completedCourses}</span>
           </div>
         </div>
       </div>
 
-          <div className="results-content glass-card">
-            <div className="results-toolbar">
-              <h2 className="section-title">Chi tiết điểm số</h2>
-              
-              <div className="filter-group">
-                <FiFilter className="text-gray" />
-                <select 
-                  className="semester-select"
-                  value={selectedSemester}
-                  onChange={(e) => setSelectedSemester(e.target.value)}
-                >
-                  {semesters.map(sem => (
-                    <option key={sem} value={sem}>{sem}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {isGradesLoading ? (
-              <SkeletonTable rows={5} cols={5} />
-            ) : (
-              <div className="table-responsive">
-                <table className="grades-table">
-                  <thead>
-                    <tr>
-                      <th>Mã khóa học</th>
-                      <th>Tên khóa học</th>
-                      <th className="text-center">Quá trình (20%)</th>
-                      <th className="text-center">Giữa kỳ (30%)</th>
-                      <th className="text-center">Cuối kỳ (50%)</th>
-                      <th className="text-center font-bold text-info">Tổng kết</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredGrades.map(grade => (
-                      <tr key={grade.id} className="grade-row">
-                        <td className="font-semibold text-gray-700">{grade.id}</td>
-                        <td>
-                          <div className="course-name">{grade.name}</div>
-                        </td>
-                        <td className="text-center">{grade.process.toFixed(1)}</td>
-                        <td className="text-center">{grade.midterm.toFixed(1)}</td>
-                        <td className="text-center">{grade.final.toFixed(1)}</td>
-                        <td className="text-center font-bold text-lg">{grade.total.toFixed(1)}</td>
-                      </tr>
-                    ))}
-                    {filteredGrades.length === 0 && (
-                      <tr>
-                        <td colSpan="8" className="text-center empty-state">
-                          Không có dữ liệu điểm cho học kỳ này.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+      <div className="results-content glass-card">
+        <div className="results-toolbar">
+          <h2 className="section-title">Chi tiết chứng nhận</h2>
+          
+          <div className="filter-group">
+            <select 
+              className="semester-select"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              <option value="Tất cả">Tất cả khóa học</option>
+              <option value="Hoàn thành">Đã hoàn thành</option>
+              <option value="Chưa hoàn thành">Chưa hoàn thành</option>
+            </select>
           </div>
+        </div>
+
+        {isGradesLoading ? (
+          <SkeletonTable rows={5} cols={5} />
+        ) : (
+          <div className="table-responsive">
+            <table className="grades-table">
+              <thead>
+                <tr>
+                  <th width="35%">Khóa học</th>
+                  <th width="20%" className="text-center">Tiến độ</th>
+                  <th width="15%" className="text-center">Bài đánh giá cuối khóa</th>
+                  <th width="15%" className="text-center">Ngày hoàn thành</th>
+                  <th width="15%" className="text-center">Chứng chỉ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredGrades.map(grade => (
+                  <tr key={grade.id} className="grade-row">
+                    <td>
+                      <div className="course-name">{grade.name}</div>
+                      <div className="text-sm text-gray">{grade.id}</div>
+                    </td>
+                    <td>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        <div style={{flex: 1, background: '#e2e8f0', borderRadius: '4px', height: '8px', overflow: 'hidden'}}>
+                          <div style={{width: `${grade.progress}%`, background: grade.passed ? '#10b981' : '#3b82f6', height: '100%'}}></div>
+                        </div>
+                        <span style={{fontSize: '13px', fontWeight: 'bold'}}>{grade.progress}%</span>
+                      </div>
+                    </td>
+                    <td className="text-center font-bold">{grade.assessmentScore}/100</td>
+                    <td className="text-center text-gray">{grade.passed ? grade.date : '-'}</td>
+                    <td className="text-center">
+                      {grade.passed ? (
+                        <button className="btn-icon" style={{background: '#eff6ff', color: '#3b82f6', padding: '6px 12px', borderRadius: '6px', border: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer'}}>
+                          <FiDownload /> Tải về
+                        </button>
+                      ) : (
+                        <span style={{color: '#94a3b8', fontSize: '13px'}}>Chưa đạt</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {filteredGrades.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="text-center empty-state">
+                      Không tìm thấy khóa học nào phù hợp.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

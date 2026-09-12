@@ -15,4 +15,11 @@ router.post('/courses/:courseId/enroll', studentController.enrollInCourse);
 router.get('/exams', studentController.getExams);
 router.get('/leaderboard', studentController.getLeaderboard);
 
+// Gamification & Certificates
+router.post('/lessons/:id/complete', studentController.completeLesson);
+router.get('/gamification', studentController.getGamificationStatus);
+
+// Code Execution
+router.post('/code/execute', studentController.executeCode);
+
 module.exports = router;

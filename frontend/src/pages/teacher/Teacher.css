@@ -1,0 +1,228 @@
+/* Teacher UI Global Styles */
+
+.teacher-page {
+  padding: 24px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.teacher-header {
+  margin-bottom: 32px;
+}
+
+.teacher-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--theme-text-main);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-subtitle {
+  color: var(--theme-text-muted);
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--theme-glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px var(--theme-glass-shadow);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px var(--theme-glass-shadow);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  color: var(--theme-text-muted);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  color: var(--theme-text-main);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Dashboard Layout */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.dashboard-panel {
+  background: var(--theme-glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.panel-title {
+  color: var(--theme-text-main);
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Chart Placeholder */
+.chart-container {
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.chart-bar {
+  flex: 1;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.8s ease-in-out;
+  position: relative;
+}
+
+.chart-bar:hover {
+  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.chart-bar:hover::after {
+  content: attr(data-value);
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Recent Sales */
+.sales-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sale-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.sale-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.sale-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sale-student {
+  color: var(--theme-text-main);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.sale-course {
+  color: var(--theme-text-muted);
+  font-size: 13px;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sale-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.sale-amount {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.sale-time {
+  color: var(--theme-text-muted);
+  font-size: 12px;
+}
+
+/* Utilities */
+.text-green { color: #10b981; }
+.bg-green-light { background: rgba(16, 185, 129, 0.15); }
+
+.text-blue { color: #3b82f6; }
+.bg-blue-light { background: rgba(59, 130, 246, 0.15); }
+
+.text-purple { color: #8b5cf6; }
+.bg-purple-light { background: rgba(139, 92, 246, 0.15); }
+
+.text-orange { color: #f59e0b; }
+.bg-orange-light { background: rgba(245, 158, 11, 0.15); }
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+}

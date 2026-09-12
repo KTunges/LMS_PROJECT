@@ -32,7 +32,7 @@ const MyClasses = () => {
   const displayClasses = activeTab === 'current' ? currentClasses : completedClasses;
 
   if (isLoading) {
-    return <div className="myclasses-page" style={{padding: 40}}>Đang tải danh sách lớp học...</div>;
+    return <div className="myclasses-page" style={{padding: 40}}>Đang tải danh sách khóa học...</div>;
   }
 
 
@@ -41,8 +41,8 @@ const MyClasses = () => {
     <div className="myclasses-page">
       <div className="myclasses-header">
         <div className="myclasses-title">
-          <h1>Không gian học tập</h1>
-          <p>Truy cập vào các lớp học hiện tại của bạn để nhận tài liệu và nộp bài tập.</p>
+          <h1>Khóa học của tôi</h1>
+          <p>Truy cập vào các khóa học bạn đã đăng ký để tiếp tục lộ trình học tập.</p>
         </div>
       </div>
 
@@ -81,10 +81,10 @@ const MyClasses = () => {
             <div className="class-card__content">
               <div className="class-card__stats">
                 <span className="stat-item">
-                  <FiClock /> {cls.semester_name || cls.semester}
+                  <FiClock /> Tự do (Self-paced)
                 </span>
                 <span className="stat-item">
-                  <FiUsers /> {cls.studentsCount || 40} HV
+                  <FiUsers /> {cls.studentsCount || Math.floor(Math.random() * 500 + 50)} HV
                 </span>
               </div>
               
@@ -105,21 +105,21 @@ const MyClasses = () => {
               </div>
             </div>
 
-            {cls.nextAssignment && (
-              <div className="class-card__footer">
-                <div className="upcoming-task">
-                  <span className="task-label">Sắp đến hạn:</span>
-                  <span className="task-title">{cls.nextAssignment}</span>
-                </div>
-                <span className="task-due text-danger">{cls.dueDate}</span>
-              </div>
-            )}
+            <div className="class-card__footer" style={{marginTop: '16px'}}>
+              <button 
+                className="btn btn-primary" 
+                style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}
+                onClick={(e) => { e.stopPropagation(); navigate(`/student/classroom/${cls.id}`); }}
+              >
+                <FiPlayCircle /> {cls.progress === 100 ? 'Học lại' : cls.progress > 0 ? 'Tiếp tục học' : 'Bắt đầu học'}
+              </button>
+            </div>
           </div>
         ))}
 
         {displayClasses.length === 0 && (
           <div className="empty-state">
-            <p>Chưa có lớp học nào trong danh sách này.</p>
+            <p>Chưa có khóa học nào trong danh sách này.</p>
           </div>
         )}
       </div>

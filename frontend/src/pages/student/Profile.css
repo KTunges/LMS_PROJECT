@@ -405,3 +405,103 @@
     justify-content: center;
   }
 }
+
+/* Gamification Styles */
+.profile-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-top: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.level-icon {
+  font-size: 16px;
+}
+
+.xp-bar-container {
+  width: 100px;
+  height: 6px;
+  background: var(--theme-glass-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 4px;
+}
+
+.xp-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  border-radius: 4px;
+  transition: width 1s ease-in-out;
+}
+
+.xp-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.badge-card {
+  background: var(--theme-glass-bg);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.badge-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px var(--theme-glass-shadow);
+  border-color: #f59e0b;
+}
+
+.badge-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.certificates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.certificate-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--theme-glass-bg);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.certificate-card:hover {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.cert-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cert-icon {
+  font-size: 24px;
+  color: #3b82f6;
+}

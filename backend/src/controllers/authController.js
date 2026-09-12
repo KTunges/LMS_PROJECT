@@ -163,6 +163,7 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: 'Vui lòng nhập email và mật khẩu' });
     }
 
+
     const user = await User.findOne({ 
       where: { email },
       include: ['major']

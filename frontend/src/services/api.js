@@ -24,9 +24,23 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Do not redirect if the error is from the login endpoint itself
+      const url = error.config?.url || '';
+      const isLoginRequest = url.includes('/auth/login') || url.includes('/login');
+      
+      if (!isLoginRequest) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Redirect to appropriate login page based on current path
+        if (window.location.pathname.includes('/portal-giang-vien')) {
+          window.location.href = '/portal-giang-vien/login';
+        } else if (window.location.pathname.includes('/admin')) {
+          window.location.href = '/admin/login';
+        } else {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }

@@ -2,7 +2,7 @@ const {
   sequelize, User, Category, Material, Course, Class, 
   Enrollment, Grade, Semester, Assignment, Submission, 
   ExamSchedule, TuitionFee, Notification, Major, Curriculum,
-  Lesson, Quiz, Question, Answer, LessonProgress
+  Lesson, Quiz, Question, Answer, LessonProgress, TestCase
 } = require('./src/models');
 const bcrypt = require('bcryptjs');
 
@@ -260,6 +260,20 @@ async function seed() {
     await Answer.create({ question_id: q3.id, content: 'Chỉ lưu trữ dữ liệu người dùng', is_correct: false });
     await Answer.create({ question_id: q3.id, content: 'Thay thế hoàn toàn HTML', is_correct: false });
     
+    // Add a Coding Question
+    const q4 = await Question.create({ 
+      quiz_id: quiz1.id, 
+      content: 'Viết một hàm `sum(a, b)` trong JavaScript để tính tổng 2 số nguyên. Ví dụ: sum(2, 3) => 5.', 
+      question_type: 'coding', 
+      marks: 10,
+      language: 'javascript', // In real app, might want to save this to DB, but for frontend default it's fine.
+      default_code: 'function sum(a, b) {\n  // Viết code của bạn ở đây\n  \n}\n\n// Đừng sửa dòng này\nconst a = parseInt(process.argv[2]);\nconst b = parseInt(process.argv[3]);\nconsole.log(sum(a, b));'
+    });
+    
+    await TestCase.create({ question_id: q4.id, input: '2 3', expected_output: '5', is_hidden: false });
+    await TestCase.create({ question_id: q4.id, input: '-1 1', expected_output: '0', is_hidden: false });
+    await TestCase.create({ question_id: q4.id, input: '100 200', expected_output: '300', is_hidden: true });
+
     // 1 document lesson for the course
     const l6 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Tài liệu ôn tập chương 1', lesson_type: 'document', content_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', duration: 'PDF - 2.5MB', order_index: 6 });
     

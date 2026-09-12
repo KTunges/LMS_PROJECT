@@ -1,4 +1,4 @@
-const { Quiz, Question, Answer, LessonProgress } = require('../models');
+const { Quiz, Question, Answer, LessonProgress, TestCase } = require('../models');
 
 // GET /api/quizzes/:quizId
 exports.getQuizDetails = async (req, res, next) => {
@@ -15,6 +15,11 @@ exports.getQuizDetails = async (req, res, next) => {
               model: Answer,
               as: 'answers',
               attributes: ['id', 'content'] // Exclude is_correct to prevent cheating!
+            },
+            {
+              model: TestCase,
+              as: 'test_cases',
+              attributes: ['id', 'input', 'expected_output', 'is_hidden']
             }
           ]
         }
@@ -61,21 +66,24 @@ exports.submitQuiz = async (req, res, next) => {
     const totalQuestions = quiz.questions.length;
 
     quiz.questions.forEach(q => {
-      const studentAnswerId = answers[q.id];
-      const correctAnswer = q.answers.find(a => a.is_correct);
-
-      let isCorrect = false;
-      if (correctAnswer && studentAnswerId === correctAnswer.id) {
-        correctCount++;
-        isCorrect = true;
+      if (q.question_type === 'coding') {
+        const result = answers[q.id]; // we expect `{ score: 100, passedCount: 3, ... }`
+        if (result && result.score === 100) {
+          correctCount++;
+          resultDetails.push({ questionId: q.id, correct: true, type: 'coding' });
+        } else {
+          resultDetails.push({ questionId: q.id, correct: false, type: 'coding' });
+        }
+      } else {
+        const studentAnswerId = answers[q.id];
+        const correctAns = q.answers.find(a => a.is_correct);
+        if (correctAns && correctAns.id === studentAnswerId) {
+          correctCount++;
+          resultDetails.push({ questionId: q.id, correct: true, type: 'multiple_choice' });
+        } else {
+          resultDetails.push({ questionId: q.id, correct: false, type: 'multiple_choice', correctAnsId: correctAns ? correctAns.id : null });
+        }
       }
-
-      resultDetails.push({
-        questionId: q.id,
-        isCorrect: isCorrect,
-        correctAnswerId: correctAnswer ? correctAnswer.id : null,
-        studentAnswerId: studentAnswerId
-      });
     });
 
     const score = Math.round((correctCount / totalQuestions) * 100);
