@@ -1,82 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiFilter, FiStar, FiClock, FiUsers, FiCheckCircle } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiStar, FiClock, FiUsers, FiCheckCircle, FiX } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 import './CourseCatalog.css';
-
-const MOCK_CATALOG = [
-  {
-    id: 101,
-    title: 'Lập trình Web Frontend Cơ bản',
-    instructor: 'TS. Nguyễn Văn A',
-    rating: 4.8,
-    students: 1250,
-    duration: '4 tuần',
-    price: 0,
-    level: 'Cơ bản',
-    tags: ['HTML', 'CSS', 'JS'],
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=400',
-    enrolled: false
-  },
-  {
-    id: 102,
-    title: 'Luyện thi IELTS Target 7.0+',
-    instructor: 'ThS. Trần Thị B',
-    rating: 4.9,
-    students: 3420,
-    duration: '12 tuần',
-    price: 599000,
-    level: 'Nâng cao',
-    tags: ['IELTS', 'Tiếng Anh'],
-    image: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=400',
-    enrolled: false
-  },
-  {
-    id: 103,
-    title: 'Trí tuệ nhân tạo (AI) Thực chiến',
-    instructor: 'PGS.TS Lê Văn C',
-    rating: 4.7,
-    students: 850,
-    duration: '8 tuần',
-    price: 899000,
-    level: 'Chuyên gia',
-    tags: ['AI', 'Python'],
-    image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=400',
-    enrolled: false
-  },
-  {
-    id: 104,
-    title: 'Làm chủ Figma trong 7 ngày',
-    instructor: 'Designer Phạm D',
-    rating: 4.9,
-    students: 5600,
-    duration: '1 tuần',
-    price: 0,
-    level: 'Cơ bản',
-    tags: ['Design', 'UI/UX'],
-    image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400',
-    enrolled: false
-  },
-  {
-    id: 105,
-    title: 'Hệ quản trị Cơ sở dữ liệu',
-    instructor: 'ThS. Trần Thị B',
-    rating: 4.6,
-    students: 2100,
-    duration: '6 tuần',
-    price: 299000,
-    level: 'Trung cấp',
-    tags: ['SQL', 'Database'],
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=400',
-    enrolled: true
-  }
-];
+import { studentService } from '../../services';
 
 const CourseCatalog = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('all'); // 'all', 'free', 'paid'
   const [searchQuery, setSearchQuery] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [paymentModalData, setPaymentModalData] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const filteredCourses = MOCK_CATALOG.filter(course => {
+  React.useEffect(() => {
+    const fetchCatalog = async () => {
+      setIsLoading(true);
+      try {
+        const res = await studentService.getCatalog();
+        if (res.data && res.data.success) {
+          setCourses(res.data.data);
+        }
+      } catch (error) {
+        console.error("Lỗi lấy danh mục môn học", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCatalog();
+  }, []);
+
+  const filteredCourses = courses.filter(course => {
     // 1. Lọc theo chữ
     const matchSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         course.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -88,22 +43,48 @@ const CourseCatalog = () => {
     return matchSearch;
   });
 
-  const handleAction = (course) => {
+  const handleAction = async (course) => {
     if (course.enrolled) {
-      alert('Bạn đã tham gia khóa học này rồi!');
+      toast.info('Bạn đã tham gia khóa học này rồi!');
       return;
     }
 
-    if (course.price === 0) {
-      // Free course -> Enroll directly
-      alert(`Đăng ký thành công môn học miễn phí:\n${course.title}`);
-      // Thực tế sẽ gọi API đăng ký, sau đó navigate về MyClasses
-    } else {
-      // Paid course -> Redirect to payment / Checkout
-      const confirmBuy = window.confirm(`Thanh toán ${course.price.toLocaleString()}đ để đăng ký môn học:\n${course.title}?`);
-      if (confirmBuy) {
-        alert('Chuyển hướng đến Cổng thanh toán VNPay/Momo...');
+    try {
+      if (course.price === 0) {
+        // Miễn phí -> Đăng ký luôn
+        const res = await studentService.enrollCourse(course.id);
+        if (res.data && res.data.success) {
+          toast.success(`Đăng ký thành công khóa học: ${course.title}`);
+          navigate('/student/my-classes');
+        }
+      } else {
+        // Trả phí -> Mở popup thanh toán
+        setPaymentModalData(course);
       }
+    } catch (error) {
+      console.error("Lỗi đăng ký khóa học", error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký khóa học');
+    }
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (!paymentModalData) return;
+    setIsProcessing(true);
+    try {
+      // Giả lập redirect qua VNPAY, sau đó return và enroll
+      // User sẽ tích hợp VNPAY Sandbox ở đây sau này
+      await new Promise(r => setTimeout(r, 1000)); // giả lập delay loading
+      const res = await studentService.enrollCourse(paymentModalData.id);
+      if (res.data && res.data.success) {
+        toast.success(`Thanh toán và đăng ký thành công: ${paymentModalData.title}`);
+        setPaymentModalData(null);
+        navigate('/student/my-classes');
+      }
+    } catch (error) {
+      console.error("Lỗi thanh toán khóa học", error);
+      toast.error(error.response?.data?.message || 'Lỗi thanh toán');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -151,7 +132,9 @@ const CourseCatalog = () => {
       </div>
 
       <div className="catalog-grid">
-        {filteredCourses.map(course => (
+        {isLoading ? (
+          <div style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1' }}>Đang tải danh mục môn học...</div>
+        ) : filteredCourses.map(course => (
           <div key={course.id} className="catalog-card glass-card">
             
             {/* Price Badge */}
@@ -207,13 +190,67 @@ const CourseCatalog = () => {
           </div>
         ))}
 
-        {filteredCourses.length === 0 && (
+        {!isLoading && filteredCourses.length === 0 && (
           <div className="no-results">
             <p>Không tìm thấy môn học nào phù hợp với tìm kiếm của bạn.</p>
           </div>
         )}
       </div>
 
+      {/* Payment Modal */}
+      {paymentModalData && (
+        <div className="payment-modal-overlay" onClick={() => !isProcessing && setPaymentModalData(null)}>
+          <div className="payment-modal" onClick={e => e.stopPropagation()}>
+            <div className="payment-modal-header">
+              <h3>Xác nhận thanh toán</h3>
+              <button className="close-btn" onClick={() => !isProcessing && setPaymentModalData(null)}><FiX /></button>
+            </div>
+            
+            <div className="payment-course-info">
+              <div className="payment-img-wrapper">
+                <img src={paymentModalData.image} alt={paymentModalData.title} />
+              </div>
+              <div className="payment-course-details">
+                <h4>{paymentModalData.title}</h4>
+                <p className="payment-price">{paymentModalData.price.toLocaleString()}đ</p>
+              </div>
+            </div>
+            
+            <div className="payment-method-section">
+              <p className="payment-label">Chọn phương thức thanh toán:</p>
+              <div className="payment-option selected">
+                <div className="payment-option-logo">
+                  <span>VNPAY</span>
+                </div>
+                <div className="payment-option-text">
+                  <strong>Ví VNPAY / Thẻ Ngân Hàng</strong>
+                  <span>Sandbox Testing</span>
+                </div>
+                <div className="payment-option-radio">
+                  <div className="radio-inner"></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="payment-actions">
+              <button 
+                className="btn-cancel-pay" 
+                onClick={() => setPaymentModalData(null)}
+                disabled={isProcessing}
+              >
+                Hủy
+              </button>
+              <button 
+                className="btn-confirm-pay" 
+                onClick={handlePaymentSubmit}
+                disabled={isProcessing}
+              >
+                {isProcessing ? 'Đang kết nối VNPAY...' : `Thanh toán ${paymentModalData.price.toLocaleString()}đ`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

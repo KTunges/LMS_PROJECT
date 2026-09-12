@@ -18,45 +18,14 @@ const mockMaterials = [
 ];
 
 const extendedCourses = [
-  // Semester 1
-  { code: 'MA101', name: 'Giải tích 1', credits: 3, semester: 1, req: true },
-  { code: 'PH101', name: 'Vật lý 1', credits: 3, semester: 1, req: true },
-  { code: 'IT101', name: 'Nhập môn lập trình', credits: 3, semester: 1, req: true },
-  { code: 'ML101', name: 'Triết học Mác - Lênin', credits: 3, semester: 1, req: true },
-  { code: 'PE101', name: 'Giáo dục thể chất 1', credits: 1, semester: 1, req: true },
-  // Semester 2
-  { code: 'MA102', name: 'Giải tích 2', credits: 3, semester: 2, req: true },
-  { code: 'PH102', name: 'Vật lý 2', credits: 3, semester: 2, req: true },
-  { code: 'IT102', name: 'Lập trình hướng đối tượng', credits: 3, semester: 2, req: true },
-  { code: 'IT103', name: 'Cấu trúc dữ liệu và giải thuật', credits: 3, semester: 2, req: true },
-  // Semester 3
-  { code: 'MA201', name: 'Xác suất thống kê', credits: 3, semester: 3, req: true },
-  { code: 'IT307', name: 'Cơ sở Dữ liệu', credits: 4, semester: 3, req: true },
-  { code: 'IT201', name: 'Kiến trúc máy tính', credits: 3, semester: 3, req: true },
-  { code: 'EN101', name: 'Tiếng Anh 1', credits: 3, semester: 3, req: true },
-  // Semester 4
-  { code: 'IT202', name: 'Mạng máy tính', credits: 3, semester: 4, req: true },
-  { code: 'IT203', name: 'Hệ điều hành', credits: 3, semester: 4, req: true },
-  { code: 'IT204', name: 'Công nghệ phần mềm', credits: 3, semester: 4, req: true },
-  { code: 'IT205', name: 'Lập trình Java', credits: 3, semester: 4, req: false },
-  // Semester 5
-  { code: 'IT306', name: 'Lập trình Web Nâng cao', credits: 3, semester: 5, req: true },
-  { code: 'IT301', name: 'Phân tích thiết kế hệ thống', credits: 3, semester: 5, req: true },
-  { code: 'IT308', name: 'Điện toán Đám mây', credits: 3, semester: 5, req: true },
-  { code: 'IT302', name: 'Trí tuệ nhân tạo', credits: 3, semester: 5, req: true },
-  // Semester 6
-  { code: 'IT309', name: 'Kiểm thử Phần mềm', credits: 3, semester: 6, req: true },
-  { code: 'IT303', name: 'Quản lý dự án phần mềm', credits: 3, semester: 6, req: true },
-  { code: 'IT304', name: 'Lập trình thiết bị di động', credits: 3, semester: 6, req: false },
-  { code: 'IT305', name: 'Thực tập chuyên ngành', credits: 2, semester: 6, req: true },
-  // Semester 7
-  { code: 'IT401', name: 'An toàn thông tin', credits: 3, semester: 7, req: true },
-  { code: 'IT402', name: 'Phát triển phần mềm linh hoạt (Agile)', credits: 3, semester: 7, req: false },
-  { code: 'IT403', name: 'Học máy (Machine Learning)', credits: 3, semester: 7, req: false },
-  { code: 'IT404', name: 'Khởi nghiệp', credits: 2, semester: 7, req: true },
-  // Semester 8
-  { code: 'IT405', name: 'Đồ án tốt nghiệp', credits: 6, semester: 8, req: true },
-  { code: 'IT406', name: 'Khai phá dữ liệu', credits: 3, semester: 8, req: false },
+  { code: 'WEB101', name: 'Lập trình Web Frontend Hiện đại (React)', price: 0, image_url: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80', level: 'Cơ bản', duration: '4 tuần', cat: 'Lập trình Web' },
+  { code: 'WEB201', name: 'RESTful API & Node.js Backend', price: 299000, image_url: 'https://images.unsplash.com/photo-1627398240448-18e4e9411985?w=400&q=80', level: 'Nâng cao', duration: '6 tuần', cat: 'Lập trình Web' },
+  { code: 'ENG101', name: 'Tiếng Anh Giao tiếp Công sở', price: 0, image_url: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=80', level: 'Cơ bản', duration: '8 tuần', cat: 'Tiếng Anh giao tiếp' },
+  { code: 'ENG201', name: 'Luyện thi IELTS Target 7.0+', price: 599000, image_url: 'https://images.unsplash.com/photo-1523287562758-66c7fc58967f?w=400&q=80', level: 'Nâng cao', duration: '12 tuần', cat: 'Luyện thi IELTS' },
+  { code: 'UIUX101', name: 'Làm chủ Figma trong 7 ngày', price: 0, image_url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&q=80', level: 'Cơ bản', duration: '2 tuần', cat: 'Thiết kế UI/UX' },
+  { code: 'MKT101', name: 'Digital Marketing Thực chiến', price: 450000, image_url: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=400&q=80', level: 'Trung cấp', duration: '8 tuần', cat: 'Digital Marketing' },
+  { code: 'AI101', name: 'Nhập môn Trí tuệ nhân tạo (AI)', price: 899000, image_url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&q=80', level: 'Cơ bản', duration: '10 tuần', cat: 'Trí tuệ nhân tạo' },
+  { code: 'DATA101', name: 'Phân tích dữ liệu với Python', price: 350000, image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80', level: 'Trung cấp', duration: '6 tuần', cat: 'Khoa học dữ liệu' }
 ];
 
 async function seed() {
@@ -145,67 +114,68 @@ async function seed() {
     // 3. Create Categories & Courses
     const categoryMap = {};
     const courseMap = {};
-    const cat = await Category.create({ name: 'IT', description: `Danh mục các môn chuyên ngành CNTT` });
     
+    // Create categories based on the distinct ones in extendedCourses
+    const catNames = [...new Set(extendedCourses.map(c => c.cat))];
+    for (const name of catNames) {
+      const cat = await Category.create({ name, description: `Danh mục ${name}` });
+      categoryMap[name] = cat.id;
+    }
+
     for (const c of extendedCourses) {
       const course = await Course.create({
         code: c.code,
         name: c.name,
-        credits: c.credits,
+        price: c.price,
+        image_url: c.image_url,
+        level: c.level,
+        duration: c.duration,
         description: `Mô tả nội dung cho môn ${c.name}`,
-        category_id: cat.id,
+        category_id: categoryMap[c.cat],
       });
       courseMap[c.code] = course.id;
     }
     console.log('Created categories & courses.');
 
-    // 3.5 Create Curriculum for IT major
-    for (const c of extendedCourses) {
-      await Curriculum.create({ 
-        major_id: majorIT.id, 
-        course_id: courseMap[c.code], 
-        semester_number: c.semester, 
-        is_required: c.req 
-      });
-    }
-    console.log('Created curriculums.');
+    // 3.5 Create Curriculum (skipped for non-university)
+    console.log('Skipped curriculums.');
 
-    // 4. Create Classes (for some current semester courses - Semester 5 usually)
+    // 4. Create Classes
     const classIt306 = await Class.create({
-      course_id: courseMap['IT306'],
+      course_id: courseMap['WEB101'],
       teacher_id: teacher.id,
       semester_id: currentSemester.id,
-      room: 'Phòng 203',
+      room: 'Online',
       schedule_time: 'Thứ 2, 08:00-10:00',
       max_students: 40,
       status: 'active'
     });
     
     const classIt307 = await Class.create({
-      course_id: courseMap['IT307'],
+      course_id: courseMap['ENG101'],
       teacher_id: teacher.id,
       semester_id: currentSemester.id,
-      room: 'Lab B1',
+      room: 'Online',
       schedule_time: 'Thứ 4, 13:00-16:00',
       max_students: 40,
       status: 'active'
     });
     
     const classIt308 = await Class.create({
-      course_id: courseMap['IT308'],
+      course_id: courseMap['UIUX101'],
       teacher_id: teacher.id,
       semester_id: currentSemester.id,
-      room: 'Lab C2',
+      room: 'Online',
       schedule_time: 'Thứ 6, 08:00-10:00',
       max_students: 40,
       status: 'active'
     });
 
     const classIt309 = await Class.create({
-      course_id: courseMap['IT309'],
+      course_id: courseMap['MKT101'],
       teacher_id: teacher.id,
       semester_id: currentSemester.id,
-      room: 'Hội trường 1',
+      room: 'Online',
       schedule_time: 'Thứ 3, 13:00-16:00',
       max_students: 40,
       status: 'active'
@@ -226,16 +196,10 @@ async function seed() {
       await Grade.create({ enrollment_id: enr.id, midterm_score: score, final_score: score + 0.5, overall_score: score + 0.2 });
     };
 
-    await createGrade('MA101', 8.0);
-    await createGrade('PH101', 7.5);
-    await createGrade('IT101', 9.0);
-    await createGrade('ML101', 6.5);
-    await createGrade('PE101', 8.5);
-    
-    await createGrade('MA102', 7.0);
-    await createGrade('PH102', 6.0);
-    await createGrade('IT102', 8.5);
-    await createGrade('IT103', 7.5);
+    await createGrade('WEB201', 8.0);
+    await createGrade('ENG201', 7.5);
+    await createGrade('AI101', 9.0);
+    await createGrade('DATA101', 8.5);
 
     // Current enrollments (Semester 4/5)
     const enrCurrent = await Enrollment.create({ student_id: student.id, class_id: classIt306.id, status: 'enrolled' });
@@ -264,10 +228,10 @@ async function seed() {
     const courseIt306Id = courseMap['IT306'];
     
     // 4 standard lessons for the course
-    const l1 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 1: Giới thiệu khóa học', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', duration: '5:30', order_index: 1 });
-    const l2 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 2: Cài đặt môi trường', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/M7lc1UVf-VE', duration: '12:45', order_index: 2 });
-    const l3 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 3: Cấu trúc cơ bản', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/tgbNymZ7vqY', duration: '18:20', order_index: 3 });
-    const l4 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 4: Các thành phần (Components)', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/bHQqvYy5KYo', duration: '22:15', order_index: 4 });
+    const l1 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 1: Giới thiệu khóa học', lesson_type: 'video', content_url: '', duration: '5:30', order_index: 1 });
+    const l2 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 2: Cài đặt môi trường', lesson_type: 'video', content_url: '', duration: '12:45', order_index: 2 });
+    const l3 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 3: Cấu trúc cơ bản', lesson_type: 'video', content_url: '', duration: '18:20', order_index: 3 });
+    const l4 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 4: Các thành phần (Components)', lesson_type: 'video', content_url: '', duration: '22:15', order_index: 4 });
     
     // 1 quiz lesson for the course
     // First create quiz without lesson_id, then link them
@@ -300,7 +264,7 @@ async function seed() {
     const l6 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Tài liệu ôn tập chương 1', lesson_type: 'document', content_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', duration: 'PDF - 2.5MB', order_index: 6 });
     
     // 1 supplementary lesson ONLY for classIt306
-    const l7 = await Lesson.create({ course_id: null, class_id: classIt306.id, title: '[Bonus] Luyện tập React Hooks với dự án thực tế', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', duration: '45:00', order_index: 7 });
+    const l7 = await Lesson.create({ course_id: null, class_id: classIt306.id, title: '[Bonus] Luyện tập React Hooks với dự án thực tế', lesson_type: 'video', content_url: '', duration: '45:00', order_index: 7 });
 
     // Progress for student
     await LessonProgress.create({ student_id: student.id, lesson_id: l1.id, is_completed: true });

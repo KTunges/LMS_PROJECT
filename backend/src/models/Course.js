@@ -16,10 +16,24 @@ const Course = sequelize.define('Course', {
     type: DataTypes.STRING(255),
     allowNull: false,
   },
-  credits: {
+  price: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 3,
+    defaultValue: 0,
+  },
+  image_url: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  level: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    defaultValue: 'Cơ bản',
+  },
+  duration: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    defaultValue: '4 tuần',
   },
   description: {
     type: DataTypes.TEXT,

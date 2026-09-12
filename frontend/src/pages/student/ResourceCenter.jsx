@@ -5,52 +5,10 @@ import {
   FiVideo, FiFile, FiEye, FiStar, FiClock,
   FiBook, FiBookOpen, FiExternalLink, FiHardDrive, FiTrash2
 } from 'react-icons/fi';
-import { materialService } from '../../services';
+import { studentService } from '../../services';
 import './ResourceCenter.css';
 
-// --- MOCK DỮ LIỆU ĐA DẠNG CHO TOÀN BỘ CÂY DANH MỤC HỌC LIỆU ---
-const FALLBACK_MATERIALS = [
-  // 1. Công nghệ thông tin & Lập trình
-  { id: 101, title: 'Giáo trình Lập trình Web Frontend Hiện đại (React + Vite)', category: { name: 'Lập trình Web' }, subject: 'WEB101', file_type: 'PDF', file_size: 5452595, author: { full_name: 'TS. Nguyễn Văn A' }, file_url: '#' },
-  { id: 102, title: 'Slide bài giảng RESTful API & Node.js Backend Architecture', category: { name: 'Lập trình Web' }, subject: 'WEB201', file_type: 'PPTX', file_size: 3850585, author: { full_name: 'ThS. Trần B' }, file_url: '#' },
-  { id: 103, title: 'Video thực hành: Xây dựng Fullstack E-Learning App từ A-Z', category: { name: 'Lập trình Web' }, subject: 'WEB301', file_type: 'MP4', file_size: 155829120, author: { full_name: 'LMS Academy' }, file_url: '#' },
-  { id: 104, title: 'Cẩm nang Lập trình Flutter & Dart cho ứng dụng di động đa nền tảng', category: { name: 'Lập trình Di động' }, subject: 'MOB101', file_type: 'PDF', file_size: 4200000, author: { full_name: 'KS. Hoàng Nam' }, file_url: '#' },
-  { id: 105, title: 'Nhập môn Machine Learning & Deep Learning với Python', category: { name: 'Trí tuệ nhân tạo (AI)' }, subject: 'AI201', file_type: 'PDF', file_size: 7800000, author: { full_name: 'PGS.TS Lê Văn C' }, file_url: '#' },
-  { id: 106, title: 'Bộ bài tập Phân tích Dữ liệu Pandas & Numpy thực chiến', category: { name: 'Khoa học dữ liệu' }, subject: 'DATA101', file_type: 'DOCX', file_size: 2100000, author: { full_name: 'Data Analyst Minh' }, file_url: '#' },
-  { id: 107, title: 'Lab Guide thực hành: Docker Container & AWS Cloud Practitioner', category: { name: 'Điện toán đám mây & DevOps' }, subject: 'CLOUD101', file_type: 'PDF', file_size: 8912896, author: { full_name: 'DevOps Lead' }, file_url: '#' },
-  { id: 108, title: 'Giáo trình An toàn thông tin & Phòng chống tấn công mạng', category: { name: 'An toàn thông tin' }, subject: 'SEC101', file_type: 'PDF', file_size: 6100000, author: { full_name: 'Security Specialist' }, file_url: '#' },
-
-  // 2. Kinh tế, Tài chính & QTKD
-  { id: 109, title: 'Chiến lược Digital Marketing Đa kênh & Tối ưu SEO 2026', category: { name: 'Digital Marketing' }, subject: 'MKT201', file_type: 'PDF', file_size: 4500000, author: { full_name: 'Marketing Director' }, file_url: '#' },
-  { id: 110, title: 'Báo cáo Phân tích Thị trường Tài chính & Quản trị Danh mục', category: { name: 'Tài chính & Đầu tư' }, subject: 'FIN301', file_type: 'DOCX', file_size: 3200000, author: { full_name: 'CFA Mentor' }, file_url: '#' },
-  { id: 111, title: 'Hệ thống Kế toán doanh nghiệp và Chuẩn mực Kiểm toán quốc tế', category: { name: 'Kế toán - Kiểm toán' }, subject: 'ACC101', file_type: 'PDF', file_size: 5100000, author: { full_name: 'ThS. Kế toán' }, file_url: '#' },
-  { id: 112, title: 'Slide Khung Quản lý Dự án Agile & Scrum Thực chiến', category: { name: 'Quản trị dự án (Agile)' }, subject: 'PM101', file_type: 'PPTX', file_size: 4800000, author: { full_name: 'Scrum Master' }, file_url: '#' },
-  { id: 113, title: 'Giáo trình Quản trị Kinh doanh & Khởi nghiệp Đổi mới sáng tạo', category: { name: 'Quản trị kinh doanh' }, subject: 'BA101', file_type: 'PDF', file_size: 6200000, author: { full_name: 'TS. Kinh tế' }, file_url: '#' },
-
-  // 3. Ngoại ngữ & Chứng chỉ
-  { id: 114, title: 'Bộ đề dự đoán IELTS Speaking & Writing Quý 3/2026 Band 7.5+', category: { name: 'Luyện thi IELTS' }, subject: 'ENG201', file_type: 'PDF', file_size: 6300000, author: { full_name: 'IELTS 8.5 Master' }, file_url: '#' },
-  { id: 115, title: 'Tổng hợp 1000 Từ vựng và Ngữ pháp TOEIC 4 kỹ năng then chốt', category: { name: 'Luyện thi TOEIC' }, subject: 'ENG102', file_type: 'PDF', file_size: 3400000, author: { full_name: 'TOEIC Center' }, file_url: '#' },
-  { id: 116, title: 'Sổ tay Giao tiếp Tiếng Anh Công sở & Viết Email chuyên nghiệp', category: { name: 'Tiếng Anh giao tiếp' }, subject: 'ENG103', file_type: 'DOCX', file_size: 2800000, author: { full_name: 'Business English' }, file_url: '#' },
-  { id: 117, title: 'Sổ tay Ngữ pháp và Kanji JLPT N3 - N2 cấp tốc', category: { name: 'Tiếng Nhật (JLPT)' }, subject: 'JPN201', file_type: 'PDF', file_size: 4100000, author: { full_name: 'Sensei Tanaka' }, file_url: '#' },
-  { id: 118, title: 'Giáo trình Chuẩn HSK 4 & Từ vựng ứng dụng thương mại', category: { name: 'Tiếng Trung (HSK)' }, subject: 'CHN101', file_type: 'PDF', file_size: 5000000, author: { full_name: 'Lão sư Vương' }, file_url: '#' },
-  { id: 119, title: 'Từ vựng và Cấu trúc đề thi TOPIK II Tiếng Hàn', category: { name: 'Tiếng Hàn (TOPIK)' }, subject: 'KOR101', file_type: 'PDF', file_size: 3900000, author: { full_name: 'K-Language Hub' }, file_url: '#' },
-
-  // 4. Thiết kế sáng tạo & Multimedia
-  { id: 120, title: 'Bộ UI Kit & Design System Chuẩn Quốc Tế trên Figma', category: { name: 'Thiết kế UI/UX (Figma)' }, subject: 'UIUX101', file_type: 'PNG', file_size: 15400000, author: { full_name: 'Lead Designer' }, file_url: '#' },
-  { id: 121, title: 'Bộ nhận diện thương hiệu & Hướng dẫn sử dụng Photoshop/Illustrator', category: { name: 'Đồ họa & Thương hiệu' }, subject: 'DES102', file_type: 'PDF', file_size: 8200000, author: { full_name: 'Brand Designer' }, file_url: '#' },
-  { id: 122, title: 'Tài liệu Kỹ xảo Video & Color Grading Premiere Pro đỉnh cao', category: { name: 'Biên tập Video & Kỹ xảo' }, subject: 'VID101', file_type: 'PDF', file_size: 4200000, author: { full_name: 'Video Creator' }, file_url: '#' },
-  { id: 123, title: 'Giáo trình Dựng hình 3D Blender từ Cơ bản đến Hoàn thiện', category: { name: 'Diễn họa 3D (Blender)' }, subject: '3D101', file_type: 'PDF', file_size: 9200000, author: { full_name: '3D Artist' }, file_url: '#' },
-
-  // 5. Kỹ năng mềm & Phát triển
-  { id: 124, title: 'Nghệ thuật Thuyết trình truyền cảm hứng & Đàm phán đỉnh cao', category: { name: 'Thuyết trình & Đàm phán' }, subject: 'SOFT101', file_type: 'DOCX', file_size: 1900000, author: { full_name: 'Coach NLP' }, file_url: '#' },
-  { id: 125, title: 'Phương pháp Quản lý Thời gian Pomodoro & Ma trận Eisenhower', category: { name: 'Quản lý thời gian' }, subject: 'SOFT102', file_type: 'PDF', file_size: 2300000, author: { full_name: 'Life Coach' }, file_url: '#' },
-  { id: 126, title: 'Tư duy phản biện và Kỹ năng Giải quyết vấn đề phức tạp', category: { name: 'Tư duy phản biện' }, subject: 'SOFT103', file_type: 'PDF', file_size: 3100000, author: { full_name: 'Harvard Business Review' }, file_url: '#' },
-
-  // 6. Khoa học cơ bản & Đại cương
-  { id: 127, title: 'Giáo trình Toán Cao cấp & Giải tích 1 - ĐH Bách Khoa', category: { name: 'Toán cao cấp & Giải tích' }, subject: 'MATH101', file_type: 'PDF', file_size: 8500000, author: { full_name: 'Khoa Toán' }, file_url: '#' },
-  { id: 128, title: 'Xác suất Thống kê và Ứng dụng thực tiễn trong Phân tích Dữ liệu', category: { name: 'Xác suất thống kê' }, subject: 'STAT201', file_type: 'PDF', file_size: 6700000, author: { full_name: 'TS. Toán ứng dụng' }, file_url: '#' },
-  { id: 129, title: 'Đề cương Ôn tập Triết học Mác - Lênin & Pháp luật đại cương', category: { name: 'Triết học & Pháp luật' }, subject: 'PHI101', file_type: 'DOCX', file_size: 1600000, author: { full_name: 'Bộ môn Lý luận' }, file_url: '#' },
-];
+// --- REMOVED MOCK DATA ---
 
 const mockBooks = [
   { id: 1, title: 'Clean Code: A Handbook of Agile Software', author: 'Robert C. Martin', category: 'Lập trình Web', year: 2008, pages: 464, rating: 4.9, available: true, cover: '📘' },
@@ -132,8 +90,8 @@ const MaterialsTab = ({ isLoading: isTabLoading, categoryParam, onClearCategory 
     const fetchMaterials = async () => {
       setIsLoading(true);
       try {
-        const res = await materialService.getAll({ search, status: 'active' });
-        setMaterials(res.data.materials || []);
+        const res = await studentService.getMaterials();
+        setMaterials(res.data.data || []);
       } catch (error) {
         console.error('Failed to fetch materials:', error);
       } finally {
@@ -148,8 +106,7 @@ const MaterialsTab = ({ isLoading: isTabLoading, categoryParam, onClearCategory 
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
 
-  // Kết hợp tài liệu từ Backend và Fallback phong phú
-  const allMaterials = [...materials, ...FALLBACK_MATERIALS];
+  const allMaterials = [...materials];
   const uniqueMaterials = Array.from(new Map(allMaterials.map(item => [item.title, item])).values());
 
   const filtered = uniqueMaterials.filter(m => {
