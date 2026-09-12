@@ -15,6 +15,11 @@ const TuitionFee = require('./TuitionFee');
 const Notification = require('./Notification');
 const Major = require('./Major');
 const Curriculum = require('./Curriculum');
+const Lesson = require('./Lesson');
+const Quiz = require('./Quiz');
+const Question = require('./Question');
+const Answer = require('./Answer');
+const LessonProgress = require('./LessonProgress');
 
 // ---- Associations ----
 
@@ -95,6 +100,31 @@ TuitionFee.belongsTo(Semester, { foreignKey: 'semester_id', as: 'semester' });
 User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications' });
 Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// ---- Lesson & Quiz Associations ----
+
+Course.hasMany(Lesson, { foreignKey: 'course_id', as: 'lessons' });
+Lesson.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
+
+Class.hasMany(Lesson, { foreignKey: 'class_id', as: 'class_lessons' });
+Lesson.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
+
+Lesson.hasOne(Quiz, { foreignKey: 'lesson_id', as: 'quiz' });
+Quiz.belongsTo(Lesson, { foreignKey: 'lesson_id', as: 'lesson' });
+
+Quiz.hasMany(Question, { foreignKey: 'quiz_id', as: 'questions' });
+Question.belongsTo(Quiz, { foreignKey: 'quiz_id', as: 'quiz' });
+
+Question.hasMany(Answer, { foreignKey: 'question_id', as: 'answers' });
+Answer.belongsTo(Question, { foreignKey: 'question_id', as: 'question' });
+
+// ---- Lesson Progress ----
+
+User.hasMany(LessonProgress, { foreignKey: 'student_id', as: 'lesson_progresses' });
+LessonProgress.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+
+Lesson.hasMany(LessonProgress, { foreignKey: 'lesson_id', as: 'progresses' });
+LessonProgress.belongsTo(Lesson, { foreignKey: 'lesson_id', as: 'lesson' });
+
 module.exports = {
   sequelize,
   User,
@@ -113,4 +143,9 @@ module.exports = {
   Notification,
   Major,
   Curriculum,
+  Lesson,
+  Quiz,
+  Question,
+  Answer,
+  LessonProgress,
 };

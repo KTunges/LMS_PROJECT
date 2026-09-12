@@ -54,3 +54,25 @@ export const courseService = {
 export const curriculumService = {
   getMyCurriculum: () => api.get('/curriculum/my-curriculum'),
 };
+
+// Student Dashboard services
+export const studentService = {
+  getDashboardStats: () => api.get('/student/dashboard'),
+  getMyClasses: () => api.get('/student/classes'),
+};
+
+// Class services
+export const classService = {
+  getLessons: (classId) => api.get(`/classes/${classId}/lessons`),
+};
+
+// Lesson services
+export const lessonService = {
+  markProgress: (lessonId) => api.post(`/lessons/${lessonId}/progress`),
+};
+
+// Quiz services
+export const quizService = {
+  getQuiz: (quizId) => api.get(`/quizzes/${quizId}`),
+  submitQuiz: (quizId, answers) => api.post(`/quizzes/${quizId}/submit`, { answers }),
+};

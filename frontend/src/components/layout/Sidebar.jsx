@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -27,31 +27,76 @@ import {
   FiMessageCircle
 } from 'react-icons/fi';
 
-// Dummy category data for the tree
+// Danh mục học liệu đa dạng và chi tiết cho hệ thống LMS E-Learning
 const dummyCategories = [
   {
     id: 1,
-    name: 'Công nghệ thông tin',
+    name: 'Công nghệ thông tin & Lập trình',
+    icon: '💻',
     children: [
       { id: 11, name: 'Lập trình Web' },
-      { id: 12, name: 'Trí tuệ nhân tạo' },
-      { id: 13, name: 'Cơ sở dữ liệu' },
+      { id: 12, name: 'Lập trình Di động' },
+      { id: 13, name: 'Trí tuệ nhân tạo (AI)' },
+      { id: 14, name: 'Khoa học dữ liệu' },
+      { id: 15, name: 'Điện toán đám mây & DevOps' },
+      { id: 16, name: 'An toàn thông tin' },
     ],
   },
   {
     id: 2,
-    name: 'Kinh tế & Quản trị',
+    name: 'Kinh tế, Tài chính & QTKD',
+    icon: '💼',
     children: [
-      { id: 21, name: 'Marketing' },
-      { id: 22, name: 'Kế toán - Kiểm toán' },
+      { id: 21, name: 'Digital Marketing' },
+      { id: 22, name: 'Tài chính & Đầu tư' },
+      { id: 23, name: 'Kế toán - Kiểm toán' },
+      { id: 24, name: 'Quản trị kinh doanh' },
+      { id: 25, name: 'Quản trị dự án (Agile)' },
     ],
   },
   {
     id: 3,
-    name: 'Ngoại ngữ',
+    name: 'Ngoại ngữ & Chứng chỉ',
+    icon: '🌐',
     children: [
-      { id: 31, name: 'Tiếng Anh' },
-      { id: 32, name: 'Tiếng Nhật' },
+      { id: 31, name: 'Luyện thi IELTS' },
+      { id: 32, name: 'Luyện thi TOEIC' },
+      { id: 33, name: 'Tiếng Anh giao tiếp' },
+      { id: 34, name: 'Tiếng Nhật (JLPT)' },
+      { id: 35, name: 'Tiếng Trung (HSK)' },
+      { id: 36, name: 'Tiếng Hàn (TOPIK)' },
+    ],
+  },
+  {
+    id: 4,
+    name: 'Thiết kế sáng tạo & Multimedia',
+    icon: '🎨',
+    children: [
+      { id: 41, name: 'Thiết kế UI/UX (Figma)' },
+      { id: 42, name: 'Đồ họa & Thương hiệu' },
+      { id: 43, name: 'Biên tập Video & Kỹ xảo' },
+      { id: 44, name: 'Diễn họa 3D (Blender)' },
+    ],
+  },
+  {
+    id: 5,
+    name: 'Kỹ năng mềm & Phát triển',
+    icon: '🚀',
+    children: [
+      { id: 51, name: 'Thuyết trình & Đàm phán' },
+      { id: 52, name: 'Quản lý thời gian' },
+      { id: 53, name: 'Tư duy phản biện' },
+      { id: 54, name: 'Kỹ năng lãnh đạo' },
+    ],
+  },
+  {
+    id: 6,
+    name: 'Khoa học cơ bản & Đại cương',
+    icon: '📚',
+    children: [
+      { id: 61, name: 'Toán cao cấp & Giải tích' },
+      { id: 62, name: 'Xác suất thống kê' },
+      { id: 63, name: 'Triết học & Pháp luật' },
     ],
   },
 ];
@@ -59,9 +104,28 @@ const dummyCategories = [
 const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+
+  // Tự động mở danh mục cha nếu URL query parameter trùng khớp với một danh mục con
+  useEffect(() => {
+    if (location.pathname === '/student/resource-center') {
+      const searchCat = decodeURIComponent(new URLSearchParams(location.search).get('category') || '');
+      if (searchCat) {
+        const matchedParent = dummyCategories.find(parent => 
+          parent.children.some(child => child.name === searchCat)
+        );
+        if (matchedParent) {
+          setExpandedCategories(prev => ({
+            ...prev,
+            [matchedParent.id]: true
+          }));
+        }
+      }
+    }
+  }, [location.search, location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -102,13 +166,11 @@ const Sidebar = ({ isOpen, onClose }) => {
   const studentMenu = [
     { to: '/student', icon: <FiHome />, label: 'TỔNG QUAN' },
     {
-      id: 'academic',
-      label: 'HỌC VỤ & ĐÀO TẠO',
+      id: 'my-courses',
+      label: 'KHÓA HỌC CỦA TÔI',
       icon: <FiMonitor />,
       children: [
-        { to: '/student/registration', label: 'Đăng ký học phần' },
-        { to: '/student/curriculum', label: 'Chương trình khung' },
-        { to: '/student/schedule', label: 'Thời khóa biểu' },
+        { to: '/student/my-classes', label: 'Khóa học đang tham gia' },
         { to: '/student/results', label: 'Kết quả học tập' },
       ],
     },
@@ -118,59 +180,19 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: <FiBook />,
       children: [
         { to: '/student/resource-center', label: 'Trung tâm học liệu' },
-        { to: '/student/online-courses', label: 'Khóa học trực tuyến' },
+        { to: '/student/catalog', label: 'Khám phá khóa học' },
       ],
     },
-    {
-      id: 'services',
-      label: 'DỊCH VỤ TRỰC TUYẾN',
-      icon: <FiFileText />,
-      children: [
-        { to: '#', label: 'Cấp giấy chứng nhận' },
-        { to: '#', label: 'Thẻ sinh viên điện tử' },
-        { to: '#', label: 'Nộp chứng chỉ ngoại ngữ' },
-        { to: '#', label: 'Nộp chứng chỉ tin học' },
-      ],
-    },
-    {
-      id: 'community',
-      label: 'CỘNG ĐỒNG & NGOẠI KHÓA',
-      icon: <FiGlobe />,
-      children: [
-        { to: '#', label: 'Câu lạc bộ / Đội nhóm' },
-        { to: '#', label: 'Hoạt động Đoàn - Hội' },
-        { to: '#', label: 'Khen thưởng - Kỷ luật' },
-      ],
-    },
+    { to: '/student/schedule', icon: <FiCalendar />, label: 'LỊCH HỌC' },
+    { to: '/student/leaderboard', icon: <FiAward />, label: 'BẢNG XẾP HẠNG' },
     {
       id: 'personal',
       label: 'CÁ NHÂN',
       icon: <FiUser />,
       children: [
-        { to: '/student/profile', label: 'Hồ sơ sinh viên' },
-        { to: '/student/tuition', label: 'Học phí & Thanh toán' },
-        { to: '#', label: 'Tra cứu công nợ' },
-        { to: '#', label: 'Đánh giá rèn luyện' },
-      ],
-    },
-    {
-      id: 'survey',
-      label: 'KHẢO SÁT & ĐÁNH GIÁ',
-      icon: <FiTarget />,
-      children: [
-        { to: '#', label: 'Khảo sát môn học' },
-        { to: '#', label: 'Đánh giá giảng viên' },
-        { to: '#', label: 'Khảo sát dịch vụ' },
-      ],
-    },
-    {
-      id: 'support',
-      label: 'HỖ TRỢ',
-      icon: <FiMessageCircle />,
-      children: [
-        { to: '#', label: 'Cố vấn học tập' },
-        { to: '#', label: 'Giải đáp thắc mắc' },
-        { to: '#', label: 'Quy chế & Sổ tay SV' },
+        { to: '/student/profile', label: 'Hồ sơ học viên' },
+        { to: '/student/achievements', label: 'Thành tựu của tôi' },
+        { to: '/student/transactions', label: 'Lịch sử giao dịch' },
       ],
     },
   ];
@@ -273,23 +295,30 @@ const Sidebar = ({ isOpen, onClose }) => {
                       <span className="sidebar__tree-arrow">
                         {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
                       </span>
-                      <span className="sidebar__tree-label">{category.name}</span>
+                      <span className="sidebar__tree-label">
+                        {category.icon && <span style={{ marginRight: '6px' }}>{category.icon}</span>}
+                        {category.name}
+                      </span>
                     </button>
                     
                     {/* Children Container */}
                     <div className={`sidebar__tree-children ${isExpanded ? 'sidebar__tree-children--open' : ''}`}>
-                      {category.children.map((child) => (
-                        <NavLink
-                          key={child.id}
-                          to={`/category/${child.id}`}
-                          className={({ isActive }) =>
-                            `sidebar__tree-child ${isActive ? 'sidebar__tree-child--active' : ''}`
-                          }
-                        >
-                          <FiHash size={12} className="sidebar__tree-child-icon" />
-                          <span className="sidebar__tree-child-label">{child.name}</span>
-                        </NavLink>
-                      ))}
+                      {category.children.map((child) => {
+                        const targetUrl = `/student/resource-center?category=${encodeURIComponent(child.name)}`;
+                        const isChildActive = location.pathname === '/student/resource-center' &&
+                          decodeURIComponent(new URLSearchParams(location.search).get('category') || '') === child.name;
+
+                        return (
+                          <NavLink
+                            key={child.id}
+                            to={targetUrl}
+                            className={`sidebar__tree-child ${isChildActive ? 'sidebar__tree-child--active' : ''}`}
+                          >
+                            <FiHash size={12} className="sidebar__tree-child-icon" />
+                            <span className="sidebar__tree-child-label">{child.name}</span>
+                          </NavLink>
+                        );
+                      })}
                     </div>
                   </div>
                 );

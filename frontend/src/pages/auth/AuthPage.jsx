@@ -66,13 +66,13 @@ const AuthPage = () => {
       const response = await login(email, password);
       // Bật màn hình loading chuyển hướng (luôn bật)
       setIsSuccessLoading(true);
-      
+
       setTimeout(() => {
         toast.success('Đăng nhập thành công!');
         const redirectMap = { admin: '/admin', teacher: '/teacher', student: '/student' };
         navigate(redirectMap[response.user.role] || '/student');
       }, 1500);
-      
+
     } catch (error) {
       toast.error(error.response?.data?.message || 'Đăng nhập thất bại!');
       setLoading(false);
@@ -129,7 +129,7 @@ const AuthPage = () => {
               <span className="logo-letter-l">L</span>
               <span className="logo-letter-ms">MS</span>
             </div>
-            
+
             {showForgotPassword ? (
               <>
                 <h2 className="vip-auth__title">Quên mật khẩu</h2>
@@ -166,9 +166,9 @@ const AuthPage = () => {
               </button>
 
               <div className="vip-auth__footer">
-                <button 
-                  type="button" 
-                  className="vip-link-btn" 
+                <button
+                  type="button"
+                  className="vip-link-btn"
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}
                   onClick={() => setShowForgotPassword(false)}
                 >

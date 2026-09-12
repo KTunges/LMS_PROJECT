@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   FiSearch, FiFilter, FiDownload, FiFileText, FiImage, 
   FiVideo, FiFile, FiEye, FiStar, FiClock,
@@ -7,27 +8,82 @@ import {
 import { materialService } from '../../services';
 import './ResourceCenter.css';
 
-// --- MOCK DATA FOR OTHER TABS ---
+// --- MOCK DỮ LIỆU ĐA DẠNG CHO TOÀN BỘ CÂY DANH MỤC HỌC LIỆU ---
+const FALLBACK_MATERIALS = [
+  // 1. Công nghệ thông tin & Lập trình
+  { id: 101, title: 'Giáo trình Lập trình Web Frontend Hiện đại (React + Vite)', category: { name: 'Lập trình Web' }, subject: 'WEB101', file_type: 'PDF', file_size: 5452595, author: { full_name: 'TS. Nguyễn Văn A' }, file_url: '#' },
+  { id: 102, title: 'Slide bài giảng RESTful API & Node.js Backend Architecture', category: { name: 'Lập trình Web' }, subject: 'WEB201', file_type: 'PPTX', file_size: 3850585, author: { full_name: 'ThS. Trần B' }, file_url: '#' },
+  { id: 103, title: 'Video thực hành: Xây dựng Fullstack E-Learning App từ A-Z', category: { name: 'Lập trình Web' }, subject: 'WEB301', file_type: 'MP4', file_size: 155829120, author: { full_name: 'LMS Academy' }, file_url: '#' },
+  { id: 104, title: 'Cẩm nang Lập trình Flutter & Dart cho ứng dụng di động đa nền tảng', category: { name: 'Lập trình Di động' }, subject: 'MOB101', file_type: 'PDF', file_size: 4200000, author: { full_name: 'KS. Hoàng Nam' }, file_url: '#' },
+  { id: 105, title: 'Nhập môn Machine Learning & Deep Learning với Python', category: { name: 'Trí tuệ nhân tạo (AI)' }, subject: 'AI201', file_type: 'PDF', file_size: 7800000, author: { full_name: 'PGS.TS Lê Văn C' }, file_url: '#' },
+  { id: 106, title: 'Bộ bài tập Phân tích Dữ liệu Pandas & Numpy thực chiến', category: { name: 'Khoa học dữ liệu' }, subject: 'DATA101', file_type: 'DOCX', file_size: 2100000, author: { full_name: 'Data Analyst Minh' }, file_url: '#' },
+  { id: 107, title: 'Lab Guide thực hành: Docker Container & AWS Cloud Practitioner', category: { name: 'Điện toán đám mây & DevOps' }, subject: 'CLOUD101', file_type: 'PDF', file_size: 8912896, author: { full_name: 'DevOps Lead' }, file_url: '#' },
+  { id: 108, title: 'Giáo trình An toàn thông tin & Phòng chống tấn công mạng', category: { name: 'An toàn thông tin' }, subject: 'SEC101', file_type: 'PDF', file_size: 6100000, author: { full_name: 'Security Specialist' }, file_url: '#' },
+
+  // 2. Kinh tế, Tài chính & QTKD
+  { id: 109, title: 'Chiến lược Digital Marketing Đa kênh & Tối ưu SEO 2026', category: { name: 'Digital Marketing' }, subject: 'MKT201', file_type: 'PDF', file_size: 4500000, author: { full_name: 'Marketing Director' }, file_url: '#' },
+  { id: 110, title: 'Báo cáo Phân tích Thị trường Tài chính & Quản trị Danh mục', category: { name: 'Tài chính & Đầu tư' }, subject: 'FIN301', file_type: 'DOCX', file_size: 3200000, author: { full_name: 'CFA Mentor' }, file_url: '#' },
+  { id: 111, title: 'Hệ thống Kế toán doanh nghiệp và Chuẩn mực Kiểm toán quốc tế', category: { name: 'Kế toán - Kiểm toán' }, subject: 'ACC101', file_type: 'PDF', file_size: 5100000, author: { full_name: 'ThS. Kế toán' }, file_url: '#' },
+  { id: 112, title: 'Slide Khung Quản lý Dự án Agile & Scrum Thực chiến', category: { name: 'Quản trị dự án (Agile)' }, subject: 'PM101', file_type: 'PPTX', file_size: 4800000, author: { full_name: 'Scrum Master' }, file_url: '#' },
+  { id: 113, title: 'Giáo trình Quản trị Kinh doanh & Khởi nghiệp Đổi mới sáng tạo', category: { name: 'Quản trị kinh doanh' }, subject: 'BA101', file_type: 'PDF', file_size: 6200000, author: { full_name: 'TS. Kinh tế' }, file_url: '#' },
+
+  // 3. Ngoại ngữ & Chứng chỉ
+  { id: 114, title: 'Bộ đề dự đoán IELTS Speaking & Writing Quý 3/2026 Band 7.5+', category: { name: 'Luyện thi IELTS' }, subject: 'ENG201', file_type: 'PDF', file_size: 6300000, author: { full_name: 'IELTS 8.5 Master' }, file_url: '#' },
+  { id: 115, title: 'Tổng hợp 1000 Từ vựng và Ngữ pháp TOEIC 4 kỹ năng then chốt', category: { name: 'Luyện thi TOEIC' }, subject: 'ENG102', file_type: 'PDF', file_size: 3400000, author: { full_name: 'TOEIC Center' }, file_url: '#' },
+  { id: 116, title: 'Sổ tay Giao tiếp Tiếng Anh Công sở & Viết Email chuyên nghiệp', category: { name: 'Tiếng Anh giao tiếp' }, subject: 'ENG103', file_type: 'DOCX', file_size: 2800000, author: { full_name: 'Business English' }, file_url: '#' },
+  { id: 117, title: 'Sổ tay Ngữ pháp và Kanji JLPT N3 - N2 cấp tốc', category: { name: 'Tiếng Nhật (JLPT)' }, subject: 'JPN201', file_type: 'PDF', file_size: 4100000, author: { full_name: 'Sensei Tanaka' }, file_url: '#' },
+  { id: 118, title: 'Giáo trình Chuẩn HSK 4 & Từ vựng ứng dụng thương mại', category: { name: 'Tiếng Trung (HSK)' }, subject: 'CHN101', file_type: 'PDF', file_size: 5000000, author: { full_name: 'Lão sư Vương' }, file_url: '#' },
+  { id: 119, title: 'Từ vựng và Cấu trúc đề thi TOPIK II Tiếng Hàn', category: { name: 'Tiếng Hàn (TOPIK)' }, subject: 'KOR101', file_type: 'PDF', file_size: 3900000, author: { full_name: 'K-Language Hub' }, file_url: '#' },
+
+  // 4. Thiết kế sáng tạo & Multimedia
+  { id: 120, title: 'Bộ UI Kit & Design System Chuẩn Quốc Tế trên Figma', category: { name: 'Thiết kế UI/UX (Figma)' }, subject: 'UIUX101', file_type: 'PNG', file_size: 15400000, author: { full_name: 'Lead Designer' }, file_url: '#' },
+  { id: 121, title: 'Bộ nhận diện thương hiệu & Hướng dẫn sử dụng Photoshop/Illustrator', category: { name: 'Đồ họa & Thương hiệu' }, subject: 'DES102', file_type: 'PDF', file_size: 8200000, author: { full_name: 'Brand Designer' }, file_url: '#' },
+  { id: 122, title: 'Tài liệu Kỹ xảo Video & Color Grading Premiere Pro đỉnh cao', category: { name: 'Biên tập Video & Kỹ xảo' }, subject: 'VID101', file_type: 'PDF', file_size: 4200000, author: { full_name: 'Video Creator' }, file_url: '#' },
+  { id: 123, title: 'Giáo trình Dựng hình 3D Blender từ Cơ bản đến Hoàn thiện', category: { name: 'Diễn họa 3D (Blender)' }, subject: '3D101', file_type: 'PDF', file_size: 9200000, author: { full_name: '3D Artist' }, file_url: '#' },
+
+  // 5. Kỹ năng mềm & Phát triển
+  { id: 124, title: 'Nghệ thuật Thuyết trình truyền cảm hứng & Đàm phán đỉnh cao', category: { name: 'Thuyết trình & Đàm phán' }, subject: 'SOFT101', file_type: 'DOCX', file_size: 1900000, author: { full_name: 'Coach NLP' }, file_url: '#' },
+  { id: 125, title: 'Phương pháp Quản lý Thời gian Pomodoro & Ma trận Eisenhower', category: { name: 'Quản lý thời gian' }, subject: 'SOFT102', file_type: 'PDF', file_size: 2300000, author: { full_name: 'Life Coach' }, file_url: '#' },
+  { id: 126, title: 'Tư duy phản biện và Kỹ năng Giải quyết vấn đề phức tạp', category: { name: 'Tư duy phản biện' }, subject: 'SOFT103', file_type: 'PDF', file_size: 3100000, author: { full_name: 'Harvard Business Review' }, file_url: '#' },
+
+  // 6. Khoa học cơ bản & Đại cương
+  { id: 127, title: 'Giáo trình Toán Cao cấp & Giải tích 1 - ĐH Bách Khoa', category: { name: 'Toán cao cấp & Giải tích' }, subject: 'MATH101', file_type: 'PDF', file_size: 8500000, author: { full_name: 'Khoa Toán' }, file_url: '#' },
+  { id: 128, title: 'Xác suất Thống kê và Ứng dụng thực tiễn trong Phân tích Dữ liệu', category: { name: 'Xác suất thống kê' }, subject: 'STAT201', file_type: 'PDF', file_size: 6700000, author: { full_name: 'TS. Toán ứng dụng' }, file_url: '#' },
+  { id: 129, title: 'Đề cương Ôn tập Triết học Mác - Lênin & Pháp luật đại cương', category: { name: 'Triết học & Pháp luật' }, subject: 'PHI101', file_type: 'DOCX', file_size: 1600000, author: { full_name: 'Bộ môn Lý luận' }, file_url: '#' },
+];
 
 const mockBooks = [
-  { id: 1, title: 'Clean Code: A Handbook of Agile Software', author: 'Robert C. Martin', category: 'Kỹ thuật Phần mềm', year: 2008, pages: 464, rating: 4.9, available: true, cover: '📘' },
-  { id: 2, title: 'Introduction to Algorithms (CLRS)', author: 'Thomas H. Cormen et al.', category: 'Giải thuật', year: 2009, pages: 1312, rating: 4.8, available: true, cover: '📗' },
-  { id: 3, title: 'Design Patterns: Elements of Reusable OO Software', author: 'Gang of Four', category: 'Kỹ thuật Phần mềm', year: 1994, pages: 395, rating: 4.7, available: false, cover: '📕' },
-  { id: 4, title: 'Database System Concepts', author: 'Abraham Silberschatz', category: 'Cơ sở Dữ liệu', year: 2019, pages: 1376, rating: 4.6, available: true, cover: '📙' },
-  { id: 5, title: 'Computer Networks', author: 'Andrew S. Tanenbaum', category: 'Mạng Máy tính', year: 2021, pages: 960, rating: 4.5, available: true, cover: '📘' },
-  { id: 6, title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell, Peter Norvig', category: 'Trí tuệ Nhân tạo', year: 2020, pages: 1136, rating: 4.8, available: false, cover: '📗' },
-  { id: 7, title: 'Operating System Concepts', author: 'Abraham Silberschatz', category: 'Hệ Điều hành', year: 2018, pages: 976, rating: 4.4, available: true, cover: '📕' },
-  { id: 8, title: 'The Pragmatic Programmer', author: 'David Thomas, Andrew Hunt', category: 'Kỹ thuật Phần mềm', year: 2019, pages: 352, rating: 4.9, available: true, cover: '📙' },
+  { id: 1, title: 'Clean Code: A Handbook of Agile Software', author: 'Robert C. Martin', category: 'Lập trình Web', year: 2008, pages: 464, rating: 4.9, available: true, cover: '📘' },
+  { id: 2, title: 'Introduction to Algorithms (CLRS)', author: 'Thomas H. Cormen et al.', category: 'Công nghệ thông tin', year: 2009, pages: 1312, rating: 4.8, available: true, cover: '📗' },
+  { id: 3, title: 'Deep Learning with Python', author: 'François Chollet', category: 'Trí tuệ nhân tạo (AI)', year: 2021, pages: 504, rating: 4.9, available: true, cover: '📕' },
+  { id: 4, title: 'Python for Data Analysis (3rd Edition)', author: 'Wes McKinney', category: 'Khoa học dữ liệu', year: 2022, pages: 550, rating: 4.8, available: true, cover: '📙' },
+  { id: 5, title: 'Traction: How Any Startup Can Achieve Explosive Growth', author: 'Gabriel Weinberg', category: 'Digital Marketing', year: 2020, pages: 240, rating: 4.7, available: true, cover: '📘' },
+  { id: 6, title: 'The Lean Startup (Khởi Nghiệp Tinh Gọn)', author: 'Eric Ries', category: 'Quản trị kinh doanh', year: 2019, pages: 336, rating: 4.8, available: true, cover: '📗' },
+  { id: 7, title: 'Cambridge IELTS Practice Tests 19 Academic', author: 'Cambridge University Press', category: 'Luyện thi IELTS', year: 2024, pages: 180, rating: 4.9, available: true, cover: '📕' },
+  { id: 8, title: 'Don\'t Make Me Think, Revisited', author: 'Steve Krug', category: 'Thiết kế UI/UX (Figma)', year: 2021, pages: 216, rating: 4.9, available: true, cover: '📙' },
+  { id: 9, title: 'Atomic Habits: Thay Đổi Tí Hon, Hiệu Quả Bất Ngờ', author: 'James Clear', category: 'Quản lý thời gian', year: 2022, pages: 320, rating: 5.0, available: true, cover: '📗' },
+  { id: 10, title: 'Giáo trình Giải tích Toán học 1 & 2', author: 'GS. Nguyễn Đình Trí', category: 'Toán cao cấp & Giải tích', year: 2020, pages: 420, rating: 4.6, available: true, cover: '📘' },
 ];
 
 const mockDownloads = [
-  { id: 1, title: 'Giáo trình Lập trình Web Nâng cao', type: 'PDF', size: '5.2 MB', date: '07/08/2026 - 14:32', subject: 'IT306' },
-  { id: 2, title: 'Slide bài giảng CSDL - Chương 5', type: 'PPTX', size: '3.1 MB', date: '06/08/2026 - 09:15', subject: 'IT307' },
-  { id: 3, title: 'Video hướng dẫn Docker cơ bản', type: 'MP4', size: '120 MB', date: '05/08/2026 - 22:01', subject: 'IT308' },
+  { id: 1, title: 'Giáo trình Lập trình Web Frontend Hiện đại', type: 'PDF', size: '5.2 MB', date: '07/08/2026 - 14:32', subject: 'WEB101' },
+  { id: 2, title: 'Slide bài giảng RESTful API & Node.js', type: 'PPTX', size: '3.1 MB', date: '06/08/2026 - 09:15', subject: 'WEB201' },
+  { id: 3, title: 'Video thực hành Fullstack E-Learning App', type: 'MP4', size: '120 MB', date: '05/08/2026 - 22:01', subject: 'WEB301' },
 ];
 
 const fileTypes = ['Tất cả', 'PDF', 'PPTX', 'DOCX', 'MP4', 'PNG'];
-const categories = ['Tất cả', 'Kỹ thuật Phần mềm', 'Giải thuật', 'Cơ sở Dữ liệu', 'Mạng Máy tính', 'Trí tuệ Nhân tạo', 'Hệ Điều hành'];
+const categories = [
+  'Tất cả', 
+  'Lập trình Web', 
+  'Trí tuệ nhân tạo (AI)', 
+  'Khoa học dữ liệu',
+  'Digital Marketing', 
+  'Quản trị kinh doanh',
+  'Luyện thi IELTS', 
+  'Thiết kế UI/UX (Figma)', 
+  'Quản lý thời gian',
+  'Toán cao cấp & Giải tích'
+];
 
 const getFileIcon = (type) => {
   switch (type) {
@@ -66,7 +122,7 @@ const SkeletonCard = () => (
 );
 
 // --- SUB-COMPONENTS ---
-const MaterialsTab = ({ isLoading: isTabLoading }) => {
+const MaterialsTab = ({ isLoading: isTabLoading, categoryParam, onClearCategory }) => {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('Tất cả');
   const [materials, setMaterials] = useState([]);
@@ -76,7 +132,7 @@ const MaterialsTab = ({ isLoading: isTabLoading }) => {
     const fetchMaterials = async () => {
       setIsLoading(true);
       try {
-        const res = await materialService.getAll({ search, status: 'published' });
+        const res = await materialService.getAll({ search, status: 'active' });
         setMaterials(res.data.materials || []);
       } catch (error) {
         console.error('Failed to fetch materials:', error);
@@ -87,15 +143,56 @@ const MaterialsTab = ({ isLoading: isTabLoading }) => {
     
     const delayDebounceFn = setTimeout(() => {
       fetchMaterials();
-    }, 500); // debounce search
+    }, 400); // debounce search
 
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
 
-  const filtered = materials.filter(m => filterType === 'Tất cả' || (m.file_type && m.file_type.toUpperCase() === filterType));
+  // Kết hợp tài liệu từ Backend và Fallback phong phú
+  const allMaterials = [...materials, ...FALLBACK_MATERIALS];
+  const uniqueMaterials = Array.from(new Map(allMaterials.map(item => [item.title, item])).values());
+
+  const filtered = uniqueMaterials.filter(m => {
+    // Lọc theo định dạng file (PDF, PPTX, MP4,...)
+    if (filterType !== 'Tất cả' && (!m.file_type || m.file_type.toUpperCase() !== filterType)) {
+      return false;
+    }
+
+    // Lọc theo danh mục học liệu từ Sidebar
+    if (categoryParam) {
+      const catName = m.category?.name?.toLowerCase() || '';
+      const subj = m.subject?.toLowerCase() || '';
+      const tit = m.title.toLowerCase();
+      const targetCat = categoryParam.toLowerCase();
+      const matchCat = catName.includes(targetCat) || tit.includes(targetCat) || subj.includes(targetCat);
+      if (!matchCat) return false;
+    }
+
+    // Lọc theo ô tìm kiếm
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const matchSearch = m.title.toLowerCase().includes(q) || 
+                          (m.subject && m.subject.toLowerCase().includes(q)) ||
+                          (m.category?.name && m.category.name.toLowerCase().includes(q));
+      if (!matchSearch) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div>
+      {categoryParam && (
+        <div className="active-cat-banner">
+          <div className="active-cat-text">
+            <span className="cat-pill">Danh mục học liệu:</span>
+            <span className="cat-highlight">{categoryParam}</span>
+          </div>
+          <button className="btn-clear-cat" onClick={onClearCategory}>
+            ✕ Bỏ lọc danh mục
+          </button>
+        </div>
+      )}
       <div className="materials-toolbar glass-card">
         <div className="search-box">
           <FiSearch className="search-icon" />
@@ -158,8 +255,8 @@ const MaterialsTab = ({ isLoading: isTabLoading }) => {
                   <span className="mat-stat"><FiStar /> 5.0</span>
                 </div>
                 <div className="mat-actions">
-                  <button className="btn-mat btn-preview"><FiEye /></button>
-                  <a href={mat.file_url} target="_blank" rel="noreferrer" className="btn-mat btn-download"><FiDownload /></a>
+                  <button className="btn-mat-action btn-mat-preview" title="Xem trước tài liệu"><FiEye /></button>
+                  <a href={mat.file_url} target="_blank" rel="noreferrer" className="btn-mat-action btn-mat-download" title="Tải tài liệu về máy"><FiDownload /></a>
                 </div>
                 </div>
               </div>
@@ -172,16 +269,44 @@ const MaterialsTab = ({ isLoading: isTabLoading }) => {
   );
 };
 
-const LibraryTab = ({ isLoading }) => {
+const LibraryTab = ({ isLoading, categoryParam, onClearCategory }) => {
   const [search, setSearch] = useState('');
-  const [filterCat, setFilterCat] = useState('Tất cả');
+  const [filterCat, setFilterCat] = useState(categoryParam || 'Tất cả');
+
+  useEffect(() => {
+    if (categoryParam) {
+      setFilterCat(categoryParam);
+    }
+  }, [categoryParam]);
 
   const filtered = mockBooks
-    .filter(b => filterCat === 'Tất cả' || b.category === filterCat)
+    .filter(b => {
+      if (filterCat !== 'Tất cả') {
+        const match = b.category.toLowerCase().includes(filterCat.toLowerCase()) || 
+                      filterCat.toLowerCase().includes(b.category.toLowerCase());
+        if (!match) return false;
+      }
+      return true;
+    })
     .filter(b => b.title.toLowerCase().includes(search.toLowerCase()) || b.author.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div>
+      {categoryParam && (
+        <div className="active-cat-banner">
+          <div className="active-cat-text">
+            <span className="cat-pill">Danh mục sách đang chọn:</span>
+            <span className="cat-highlight">{categoryParam}</span>
+          </div>
+          <button className="btn-clear-cat" onClick={() => {
+            setFilterCat('Tất cả');
+            onClearCategory();
+          }}>
+            ✕ Bỏ lọc danh mục
+          </button>
+        </div>
+      )}
+
       <div className="library-stats" style={{ marginTop: 0 }}>
         <div className="lib-stat glass-card">
           <FiBook className="lib-stat-icon" style={{ color: '#3b82f6' }} />
@@ -222,7 +347,10 @@ const LibraryTab = ({ isLoading }) => {
             <button
               key={c}
               className={`lib-filter-btn ${filterCat === c ? 'active' : ''}`}
-              onClick={() => setFilterCat(c)}
+              onClick={() => {
+                setFilterCat(c);
+                if (c === 'Tất cả' && categoryParam) onClearCategory();
+              }}
             >
               {c}
             </button>
@@ -233,6 +361,10 @@ const LibraryTab = ({ isLoading }) => {
       <div className="books-grid">
         {isLoading ? (
           Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1', color: 'var(--gray-500)' }}>
+            Không có sách nào trong danh mục này.
+          </div>
         ) : (
           filtered.map(book => (
             <div key={book.id} className="book-card glass-card">
@@ -347,6 +479,14 @@ const DownloadsTab = ({ isLoading }) => {
 
 // --- MAIN COMPONENT ---
 const ResourceCenter = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+
+  const handleClearCategory = () => {
+    searchParams.delete('category');
+    setSearchParams(searchParams);
+  };
+
   const [activeTab, setActiveTab] = useState('materials');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -354,9 +494,9 @@ const ResourceCenter = () => {
     setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 600); // Giả lập độ trễ mạng 600ms
+    }, 400);
     return () => clearTimeout(timer);
-  }, [activeTab]);
+  }, [activeTab, categoryParam]);
 
   return (
     <div className="resource-page">
@@ -389,8 +529,20 @@ const ResourceCenter = () => {
       </div>
 
       <div className="resource-content">
-        {activeTab === 'materials' && <MaterialsTab isLoading={isLoading} />}
-        {activeTab === 'library' && <LibraryTab isLoading={isLoading} />}
+        {activeTab === 'materials' && (
+          <MaterialsTab 
+            isLoading={isLoading} 
+            categoryParam={categoryParam} 
+            onClearCategory={handleClearCategory} 
+          />
+        )}
+        {activeTab === 'library' && (
+          <LibraryTab 
+            isLoading={isLoading} 
+            categoryParam={categoryParam} 
+            onClearCategory={handleClearCategory} 
+          />
+        )}
         {activeTab === 'downloads' && <DownloadsTab isLoading={isLoading} />}
       </div>
     </div>

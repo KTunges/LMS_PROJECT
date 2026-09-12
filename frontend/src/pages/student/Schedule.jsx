@@ -129,16 +129,48 @@ const Schedule = () => {
               shift: timeInfo.shift,
               room: cls.room,
               teacher: cls.teacher?.full_name || 'N/A',
-              type: course.name.toLowerCase().includes('thực hành') ? 'lab' : 'lecture',
+              type: 'lecture', // Lịch học thường
               color: COLORS[index % COLORS.length]
             });
           }
+        });
+
+        // Mock Thêm Deadlines / Live Class theo luồng E-learning
+        events.push({
+          id: 991,
+          name: 'Bài thi trắc nghiệm Ôn tập',
+          day: 'T5',
+          shift: 4,
+          room: 'Làm bài Online',
+          teacher: 'Hạn chót: 17:45',
+          type: 'deadline', // Hạn chót
+          color: 'red'
+        });
+
+        events.push({
+          id: 992,
+          name: 'Live: Giải đáp thắc mắc',
+          day: 'T7',
+          shift: 3,
+          room: 'Phòng Zoom 123',
+          teacher: 'TS. Nguyễn Văn A',
+          type: 'live', // Lớp học Live
+          color: 'purple'
         });
 
         setScheduleData(events);
         setTimeout(() => setIsLoading(false), 500);
       } catch (error) {
         console.error('Failed to fetch schedule:', error);
+        
+        // Fallback to mock data if API fails
+        const mockEvents = [
+          { id: 1, name: 'Lập trình Web Nâng cao', day: 'T3', shift: 1, room: 'Phòng 201', teacher: 'TS. Nguyễn Văn A', type: 'lecture', color: 'blue' },
+          { id: 2, name: 'Hệ quản trị CSDL', day: 'T4', shift: 3, room: 'Phòng 202', teacher: 'ThS. Trần Thị B', type: 'lecture', color: 'green' },
+          { id: 3, name: 'Bài thi trắc nghiệm Ôn tập', day: 'T5', shift: 4, room: 'Làm bài Online', teacher: 'Hạn chót: 17:45', type: 'deadline', color: 'red' },
+          { id: 4, name: 'Live: Giải đáp thắc mắc', day: 'T7', shift: 3, room: 'Phòng Zoom 123', teacher: 'TS. Nguyễn Văn A', type: 'live', color: 'purple' }
+        ];
+        setScheduleData(mockEvents);
         setIsLoading(false);
       }
     };
@@ -304,8 +336,11 @@ const Schedule = () => {
                               border: event.type === 'exam' ? '1px solid #fde047' : undefined
                             }}
                           >
-                            <div className="course-type-badge" style={{ background: event.type === 'exam' ? '#ca8a04' : undefined, color: event.type === 'exam' ? '#fff' : undefined }}>
-                              {event.type === 'lab' ? 'Thực hành' : event.type === 'exam' ? 'Lịch thi' : 'Lý thuyết'}
+                            <div className="course-type-badge" style={{ 
+                              background: event.type === 'exam' ? '#ca8a04' : event.type === 'deadline' ? '#dc2626' : event.type === 'live' ? '#9333ea' : undefined, 
+                              color: (event.type === 'exam' || event.type === 'deadline' || event.type === 'live') ? '#fff' : undefined 
+                            }}>
+                              {event.type === 'deadline' ? 'Hạn chót' : event.type === 'live' ? 'Học Live' : event.type === 'lab' ? 'Thực hành' : event.type === 'exam' ? 'Lịch thi' : 'Bài giảng'}
                             </div>
                             <h4 className="course-name">{event.name}</h4>
                             <div className="course-details">
@@ -328,20 +363,20 @@ const Schedule = () => {
 
       <div className="schedule-legend glass-card">
         <div className="legend-item">
-          <div className="legend-color" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1' }}></div>
-          <span>Lịch học lý thuyết</span>
+          <div className="legend-color" style={{ background: '#3b82f6' }}></div>
+          <span>Bài giảng / Khóa học</span>
         </div>
         <div className="legend-item">
-          <div className="legend-color" style={{ background: '#84cc16' }}></div>
-          <span>Lịch học thực hành</span>
+          <div className="legend-color" style={{ background: '#a855f7' }}></div>
+          <span>Lịch học Live (Zoom)</span>
         </div>
         <div className="legend-item">
-          <div className="legend-color" style={{ background: '#7dd3fc' }}></div>
-          <span>Lịch học trực tuyến</span>
+          <div className="legend-color" style={{ background: '#ef4444' }}></div>
+          <span>Hạn chót (Deadlines)</span>
         </div>
         <div className="legend-item">
           <div className="legend-color" style={{ background: '#fef08a', border: '1px solid #fde047' }}></div>
-          <span>Lịch thi</span>
+          <span>Lịch thi cuối kỳ</span>
         </div>
       </div>
 

@@ -8,15 +8,17 @@ import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/auth/AuthPage';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/student/Profile';
-import Registration from './pages/student/Registration';
 import Schedule from './pages/student/Schedule';
 import Results from './pages/student/Results';
-import Curriculum from './pages/student/Curriculum';
 import ResourceCenter from './pages/student/ResourceCenter';
-import OnlineCourses from './pages/student/OnlineCourses';
+import CourseCatalog from './pages/student/CourseCatalog';
 import MyClasses from './pages/student/MyClasses';
 import Classroom from './pages/student/Classroom';
 import PinSetupModal from './components/common/PinSetupModal';
+import Leaderboard from './pages/student/Leaderboard';
+import Quiz from './pages/student/Quiz';
+import Achievements from './pages/student/Achievements';
+import Transactions from './pages/student/Transactions';
 
 function App() {
   return (
@@ -66,14 +68,16 @@ function App() {
             <Route index element={<Dashboard />} />
             {/* TÀI NGUYÊN HỌC TẬP */}
             <Route path="resource-center" element={<ResourceCenter />} />
-            <Route path="online-courses" element={<OnlineCourses />} />
+            <Route path="catalog" element={<CourseCatalog />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="registration" element={<Registration />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="results" element={<Results />} />
-            <Route path="curriculum" element={<Curriculum />} />
             <Route path="my-classes" element={<MyClasses />} />
             <Route path="classroom/:classId" element={<Classroom />} />
+            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="quiz/:quizId" element={<Quiz />} />
+            <Route path="achievements" element={<Achievements />} />
+            <Route path="transactions" element={<Transactions />} />
           </Route>
 
           {/* Public Login page */}

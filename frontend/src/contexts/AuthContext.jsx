@@ -37,14 +37,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const response = await authService.login({ email, password });
     const { token, user: userData, require_pin_setup } = response.data;
-    
+
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('requirePinSetup', require_pin_setup ? 'true' : 'false');
-    
+
     setUser(userData);
     setRequirePinSetup(require_pin_setup);
-    
+
     return { require_pin_setup, user: userData };
   };
 

@@ -7,28 +7,38 @@ import {
   FiFileText, FiClock, FiStar, FiBell, FiDownload
 } from 'react-icons/fi';
 import { SkeletonCard, SkeletonProfile } from '../components/common/SkeletonLoaders';
+import { studentService } from '../services';
 
 const Dashboard = () => {
-  // Dummy user data
+  const [statsData, setStatsData] = useState({
+    activeClasses: 0,
+    completedClasses: 0,
+    gpa: '0.0',
+    unreadNotifications: 0
+  });
+  
+  const [activeCourses, setActiveCourses] = useState([]);
+
+  // Mock user if auth context not fully ready
   const user = {
-    name: 'Tùng Nguyễn',
-    role: 'Sinh viên',
+    name: 'Lê Minh Phan',
+    role: 'Sinh viên CNTT',
   };
 
   const stats = [
-    { label: 'GPA Tích lũy', value: '3.75', subtext: 'vs học kỳ trước', subvalue: '+0.15', positive: true },
-    { label: 'GPA Học kỳ hiện tại', value: '3.95', subtext: 'Tuyệt vời! Tiếp tục phát huy', subvalue: '', positive: true },
-    { label: 'Tổng số Tín chỉ', value: '112', subtext: 'Cần 38 tín chỉ nữa để tốt nghiệp', subvalue: '', positive: true },
-    { label: 'Tín chỉ Học kỳ này', value: '14', subtext: 'Tối đa 24 tín chỉ được phép', subvalue: '', positive: true },
+    { label: 'Môn học đang học', value: statsData.activeClasses, subtext: 'Cần hoàn thành', subvalue: '', positive: true },
+    { label: 'Điểm trung bình (GPA)', value: statsData.gpa, subtext: 'Hệ 4.0', subvalue: '', positive: true },
+    { label: 'Lớp đã hoàn thành', value: statsData.completedClasses, subtext: 'Chứng chỉ e-learning', subvalue: '', positive: true },
+    { label: 'Thông báo mới', value: statsData.unreadNotifications, subtext: 'Cần xem ngay', subvalue: '', positive: true },
   ];
 
   const quickLinks = [
-    { icon: <FiBookOpen size={18} />, label: 'Đăng ký học phần' },
-    { icon: <FiGrades size={18} />, label: 'Xem điểm' },
-    { icon: <FiCalendar size={18} />, label: 'Thời khóa biểu' },
-    { icon: <FiCreditCard size={18} />, label: 'Học phí' },
-    { icon: <FiPrinter size={18} />, label: 'In kế hoạch' },
-    { icon: <FiGlobe size={18} />, label: 'Tin tức' },
+    { icon: <FiBookOpen size={18} />, label: 'Vào học ngay' },
+    { icon: <FiGrades size={18} />, label: 'Bảng điểm' },
+    { icon: <FiCalendar size={18} />, label: 'Lịch học online' },
+    { icon: <FiFileText size={18} />, label: 'Tài liệu VIP' },
+    { icon: <FiPrinter size={18} />, label: 'Chứng chỉ' },
+    { icon: <FiGlobe size={18} />, label: 'Diễn đàn' },
   ];
 
   const schedule = [
@@ -55,23 +65,44 @@ const Dashboard = () => {
     { id: 3, title: 'Bài giảng Kiến trúc máy tính', subject: 'Kiến trúc Máy tính', size: '1.2 MB', type: 'PPTX' },
   ];
 
-  const activeCourses = [
-    { id: 1, name: 'Lập trình Web', progress: 75, nextTask: 'Đồ án cuối kỳ' },
-    { id: 2, name: 'Hệ quản trị CSDL', progress: 40, nextTask: 'Bài tập tuần 5' },
-    { id: 3, name: 'Kiến trúc Máy tính', progress: 60, nextTask: 'Quiz 2' },
-  ];
+
 
   // Calculate progress percentage
-  const totalCredits = 150;
-  const earnedCredits = 112;
-  const progressPercent = Math.round((earnedCredits / totalCredits) * 100);
+  const totalLessons = 150;
+  const completedLessons = 112;
+  const progressPercent = Math.round((completedLessons / totalLessons) * 100);
 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
+    const fetchDashboard = async () => {
+      try {
+        const [statsRes, classesRes] = await Promise.all([
+          studentService.getDashboardStats(),
+          studentService.getMyClasses()
+        ]);
+        
+        if (statsRes.data && statsRes.data.success) {
+          setStatsData(statsRes.data.data);
+        }
+        
+        if (classesRes.data && classesRes.data.success) {
+          const courses = classesRes.data.data.map(c => ({
+            id: c.id,
+            name: c.course_name,
+            progress: c.progress || 0,
+            nextTask: 'Tiếp tục bài học'
+          }));
+          setActiveCourses(courses.slice(0, 3)); // Only take top 3 for dashboard
+        }
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboard();
   }, []);
 
   if (isLoading) {
@@ -110,7 +141,7 @@ const Dashboard = () => {
         <h1 className="dashboard__greeting-title">
           Xin chào, <span className="gradient-text">{user.name}</span> <span className="wave">👋</span>
         </h1>
-        <p className="dashboard__greeting-subtitle">Chào mừng bạn quay trở lại với Hệ thống Quản lý Học liệu số</p>
+        <p className="dashboard__greeting-subtitle">Sẵn sàng để tiếp tục chuỗi ngày học tập tuyệt vời của bạn chưa?</p>
       </div>
 
       {/* STATS ROW */}
@@ -140,7 +171,7 @@ const Dashboard = () => {
           <div className="dashboard__top-row">
             {/* Progress Chart Widget */}
             <div className="card dashboard-card widget-progress">
-              <h3 className="card__title">Tiến độ Tốt nghiệp</h3>
+              <h3 className="card__title">Tiến trình Môn học</h3>
               <div className="progress-container">
                 <div className="circular-progress" style={{ '--progress': `${progressPercent}%` }}>
                   <div className="ring-outer"></div>
@@ -148,16 +179,16 @@ const Dashboard = () => {
                   <div className="progress-value">
                     <div className="value-completed">
                       <span className="percent">{progressPercent}%</span>
-                      <span className="credits">{earnedCredits}/{totalCredits} TC</span>
+                      <span className="credits">{completedLessons}/{totalLessons} Bài</span>
                     </div>
                     <div className="value-total">
-                      <span className="credits">Tổng: {totalCredits} tín chỉ</span>
+                      <span className="credits">Tổng: {totalLessons} bài</span>
                       <span className="percent text-blue">100%</span>
                     </div>
                   </div>
                 </div>
                 <div className="progress-info">
-                  <p>Bạn đã hoàn thành <strong>{earnedCredits}</strong> tín chỉ. Cố gắng lên nhé!</p>
+                  <p>Bạn đã hoàn thành <strong>{completedLessons}</strong> bài học. Cố gắng lên nhé!</p>
                 </div>
               </div>
             </div>
@@ -203,7 +234,7 @@ const Dashboard = () => {
 
           {/* Active Courses Widget */}
           <div className="card dashboard-card">
-            <h3 className="card__title">Khóa học đang tham gia</h3>
+            <h3 className="card__title">Môn học đang tham gia</h3>
             <div className="active-courses">
               {activeCourses.map(course => (
                 <div key={course.id} className="course-progress-card">

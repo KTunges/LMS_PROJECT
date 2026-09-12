@@ -1,7 +1,8 @@
 const { 
   sequelize, User, Category, Material, Course, Class, 
   Enrollment, Grade, Semester, Assignment, Submission, 
-  ExamSchedule, TuitionFee, Notification, Major, Curriculum
+  ExamSchedule, TuitionFee, Notification, Major, Curriculum,
+  Lesson, Quiz, Question, Answer, LessonProgress
 } = require('./src/models');
 const bcrypt = require('bcryptjs');
 
@@ -258,6 +259,55 @@ async function seed() {
       }
     }
     console.log('Created materials.');
+
+    // 6.5 Create Lessons, Quizzes and Progress
+    const courseIt306Id = courseMap['IT306'];
+    
+    // 4 standard lessons for the course
+    const l1 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 1: Giới thiệu khóa học', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', duration: '5:30', order_index: 1 });
+    const l2 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 2: Cài đặt môi trường', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/M7lc1UVf-VE', duration: '12:45', order_index: 2 });
+    const l3 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 3: Cấu trúc cơ bản', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/tgbNymZ7vqY', duration: '18:20', order_index: 3 });
+    const l4 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Bài 4: Các thành phần (Components)', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/bHQqvYy5KYo', duration: '22:15', order_index: 4 });
+    
+    // 1 quiz lesson for the course
+    // First create quiz without lesson_id, then link them
+    const quiz1 = await Quiz.create({ lesson_id: 1, time_limit: 15, total_marks: 10 }); // Temp lesson_id
+    
+    const l5 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Quiz 1: Kiểm tra kiến thức', lesson_type: 'quiz', content_url: quiz1.id.toString(), duration: '3 câu - 15 phút', order_index: 5 });
+    
+    quiz1.lesson_id = l5.id;
+    await quiz1.save();
+    
+    const q1 = await Question.create({ quiz_id: quiz1.id, content: 'ReactJS là gì?', question_type: 'single_choice', marks: 3.3 });
+    await Answer.create({ question_id: q1.id, content: 'Một ngôn ngữ lập trình', is_correct: false });
+    await Answer.create({ question_id: q1.id, content: 'Một thư viện JavaScript để xây dựng giao diện người dùng', is_correct: true });
+    await Answer.create({ question_id: q1.id, content: 'Một framework CSS', is_correct: false });
+    await Answer.create({ question_id: q1.id, content: 'Một cơ sở dữ liệu', is_correct: false });
+
+    const q2 = await Question.create({ quiz_id: quiz1.id, content: 'Hook nào được sử dụng để quản lý state trong Functional Component?', question_type: 'single_choice', marks: 3.3 });
+    await Answer.create({ question_id: q2.id, content: 'useEffect', is_correct: false });
+    await Answer.create({ question_id: q2.id, content: 'useContext', is_correct: false });
+    await Answer.create({ question_id: q2.id, content: 'useState', is_correct: true });
+    await Answer.create({ question_id: q2.id, content: 'useReducer', is_correct: false });
+
+    const q3 = await Question.create({ quiz_id: quiz1.id, content: 'Virtual DOM trong React hoạt động như thế nào?', question_type: 'single_choice', marks: 3.4 });
+    await Answer.create({ question_id: q3.id, content: 'Cập nhật toàn bộ trang web mỗi khi có thay đổi', is_correct: false });
+    await Answer.create({ question_id: q3.id, content: 'Là bản sao của DOM thật, giúp tối ưu hóa việc cập nhật giao diện', is_correct: true });
+    await Answer.create({ question_id: q3.id, content: 'Chỉ lưu trữ dữ liệu người dùng', is_correct: false });
+    await Answer.create({ question_id: q3.id, content: 'Thay thế hoàn toàn HTML', is_correct: false });
+    
+    // 1 document lesson for the course
+    const l6 = await Lesson.create({ course_id: courseIt306Id, class_id: null, title: 'Tài liệu ôn tập chương 1', lesson_type: 'document', content_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', duration: 'PDF - 2.5MB', order_index: 6 });
+    
+    // 1 supplementary lesson ONLY for classIt306
+    const l7 = await Lesson.create({ course_id: null, class_id: classIt306.id, title: '[Bonus] Luyện tập React Hooks với dự án thực tế', lesson_type: 'video', content_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', duration: '45:00', order_index: 7 });
+
+    // Progress for student
+    await LessonProgress.create({ student_id: student.id, lesson_id: l1.id, is_completed: true });
+    await LessonProgress.create({ student_id: student.id, lesson_id: l2.id, is_completed: true });
+    // Lesson 3, 4, etc. not completed yet.
+    
+    console.log('Created lessons & quizzes.');
 
     // 7. Create Assignments & Submissions
     const assignment1 = await Assignment.create({

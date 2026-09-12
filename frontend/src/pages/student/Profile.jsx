@@ -182,7 +182,7 @@ const Profile = () => {
               <div className="stat-icon bg-blue-light"><FiBookOpen /></div>
               <div className="stat-details">
                 <span className="stat-value">{profileStats.enrolled}</span>
-                <span className="stat-label">Khóa học</span>
+                <span className="stat-label">Môn học</span>
               </div>
             </div>
             <div className="stat-item">
