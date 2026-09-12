@@ -5,6 +5,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherClasses from './pages/teacher/TeacherClasses';
 import AuthPage from './pages/auth/AuthPage';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/student/Profile';
@@ -19,6 +21,7 @@ import Leaderboard from './pages/student/Leaderboard';
 import Quiz from './pages/student/Quiz';
 import Achievements from './pages/student/Achievements';
 import Transactions from './pages/student/Transactions';
+import Curriculum from './pages/student/Curriculum';
 
 function App() {
   return (
@@ -51,9 +54,10 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
-            <Route path="materials" element={<Dashboard />} />
-            <Route path="upload" element={<Dashboard />} />
+            <Route index element={<TeacherDashboard />} />
+            <Route path="materials" element={<TeacherDashboard />} />
+            <Route path="upload" element={<TeacherDashboard />} />
+            <Route path="classes" element={<TeacherClasses />} />
           </Route>
 
           {/* Student routes */}
@@ -74,6 +78,7 @@ function App() {
             <Route path="results" element={<Results />} />
             <Route path="my-classes" element={<MyClasses />} />
             <Route path="classroom/:classId" element={<Classroom />} />
+            <Route path="curriculum" element={<Curriculum />} />
             <Route path="leaderboard" element={<Leaderboard />} />
             <Route path="quiz/:quizId" element={<Quiz />} />
             <Route path="achievements" element={<Achievements />} />

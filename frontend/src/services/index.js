@@ -4,6 +4,10 @@ import api from './api';
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
+  verifyOtp: (data) => api.post('/auth/verify-otp', data),
+  completeRegistration: (data) => api.post('/auth/complete-registration', data),
+  googleLogin: (token) => api.post('/auth/google', { token }),
+  facebookLogin: (accessToken) => api.post('/auth/facebook', { accessToken }),
   setupPin: (pin) => api.post('/auth/setup-pin', { pin }),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token, newPassword) => api.post('/auth/reset-password', { token, newPassword }),
@@ -63,6 +67,8 @@ export const studentService = {
   getMaterials: () => api.get('/student/materials'),
   getCatalog: () => api.get('/student/catalog'),
   enrollCourse: (courseId) => api.post(`/student/courses/${courseId}/enroll`),
+  getExams: () => api.get('/student/exams'),
+  getLeaderboard: () => api.get('/student/leaderboard'),
 };
 
 // Class services
@@ -79,4 +85,10 @@ export const lessonService = {
 export const quizService = {
   getQuiz: (quizId) => api.get(`/quizzes/${quizId}`),
   submitQuiz: (quizId, answers) => api.post(`/quizzes/${quizId}/submit`, { answers }),
+};
+
+// Teacher services
+export const teacherService = {
+  getDashboardStats: () => api.get('/teacher/dashboard'),
+  getMyClasses: () => api.get('/teacher/classes'),
 };

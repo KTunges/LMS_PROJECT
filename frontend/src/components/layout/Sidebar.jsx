@@ -159,6 +159,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const teacherMenu = [
     { to: '/teacher', icon: <FiHome />, label: 'Dashboard' },
+    { to: '/teacher/classes', icon: <FiUsers />, label: 'Lớp học của tôi' },
     { to: '/teacher/materials', icon: <FiBook />, label: 'Học liệu của tôi' },
     { to: '/teacher/upload', icon: <FiUpload />, label: 'Tải lên học liệu' },
   ];
@@ -171,6 +172,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: <FiMonitor />,
       children: [
         { to: '/student/my-classes', label: 'Khóa học đang tham gia' },
+        { to: '/student/curriculum', label: 'Chương trình khung' },
         { to: '/student/results', label: 'Kết quả học tập' },
       ],
     },

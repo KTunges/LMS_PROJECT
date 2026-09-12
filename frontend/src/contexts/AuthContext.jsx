@@ -54,12 +54,56 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    const response = await authService.register(userData);
-    const { token, user: newUser } = response.data;
+    // Register only creates unverified account, doesn't login yet
+    await authService.register(userData);
+  };
+
+  const verifyOtp = async (email, otp) => {
+    // Only verifies OTP, doesn't log in
+    await authService.verifyOtp({ email, otp });
+    return true;
+  };
+
+  const completeRegistration = async (email, fullName, password) => {
+    const response = await authService.completeRegistration({ email, full_name: fullName, password });
+    const { token, user: userData, require_pin_setup } = response.data;
+
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setUser(newUser);
-    return { require_pin_setup: false, user: newUser };
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('requirePinSetup', require_pin_setup ? 'true' : 'false');
+
+    setUser(userData);
+    setRequirePinSetup(require_pin_setup);
+
+    return { require_pin_setup, user: userData };
+  };
+
+  const googleLogin = async (googleToken) => {
+    const response = await authService.googleLogin(googleToken);
+    const { token, user: userData, require_pin_setup } = response.data;
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('requirePinSetup', require_pin_setup ? 'true' : 'false');
+
+    setUser(userData);
+    setRequirePinSetup(require_pin_setup);
+
+    return { require_pin_setup, user: userData };
+  };
+
+  const facebookLogin = async (accessToken) => {
+    const response = await authService.facebookLogin(accessToken);
+    const { token, user: userData, require_pin_setup } = response.data;
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('requirePinSetup', require_pin_setup ? 'true' : 'false');
+
+    setUser(userData);
+    setRequirePinSetup(require_pin_setup);
+
+    return { require_pin_setup, user: userData };
   };
 
   const logout = () => {
@@ -81,6 +125,10 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    verifyOtp,
+    completeRegistration,
+    googleLogin,
+    facebookLogin,
     completePinSetup,
     requirePinSetup,
     logout,

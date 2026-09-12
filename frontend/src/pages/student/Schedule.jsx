@@ -5,7 +5,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { vi } from 'date-fns/locale/vi';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { SkeletonTable } from '../../components/common/SkeletonLoaders';
-import { courseService } from '../../services';
+import { courseService, studentService } from '../../services';
 import 'react-datepicker/dist/react-datepicker.css';
 import './Schedule.css';
 
@@ -21,57 +21,7 @@ const shifts = [
 
 const COLORS = ['blue', 'green', 'purple', 'orange', 'pink', 'indigo'];
 
-// Mock exam data for now (to be integrated with backend later)
-const examData = [
-  {
-    id: 1,
-    code: 'IT306',
-    name: 'Lập trình Web Nâng cao',
-    type: 'Cuối kỳ',
-    format: 'Tự luận + Thực hành',
-    date: '2026-08-25',
-    time: '08:00 - 10:00',
-    room: 'Phòng thi A301',
-    note: 'Được sử dụng tài liệu',
-    semester: 'HK2 - 2026',
-  },
-  {
-    id: 2,
-    code: 'IT307',
-    name: 'Hệ quản trị CSDL Nâng cao',
-    type: 'Cuối kỳ',
-    format: 'Trắc nghiệm + Thực hành',
-    date: '2026-08-27',
-    time: '13:00 - 15:00',
-    room: 'Lab B2-05',
-    note: 'Thi trên máy tính',
-    semester: 'HK2 - 2026',
-  },
-  {
-    id: 3,
-    code: 'IT308',
-    name: 'Điện toán Đám mây',
-    type: 'Cuối kỳ',
-    format: 'Vấn đáp + Demo',
-    date: '2026-08-30',
-    time: '09:00 - 11:00',
-    room: 'Phòng thi A205',
-    note: 'Chuẩn bị slide thuyết trình',
-    semester: 'HK2 - 2026',
-  },
-  {
-    id: 4,
-    code: 'IT309',
-    name: 'Kiểm thử Phần mềm',
-    type: 'Cuối kỳ',
-    format: 'Trắc nghiệm',
-    date: '2026-09-02',
-    time: '08:00 - 09:30',
-    room: 'Phòng thi C102',
-    note: '',
-    semester: 'HK2 - 2026',
-  }
-];
+
 
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
   <div className="date-input-wrapper glass-card" onClick={onClick} ref={ref} style={{ cursor: 'pointer' }}>
@@ -106,6 +56,7 @@ const Schedule = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [scheduleData, setScheduleData] = useState([]);
+  const [examData, setExamData] = useState([]);
   const [viewMode, setViewMode] = useState('all'); // 'all', 'study', 'exam'
 
   useEffect(() => {
@@ -129,11 +80,13 @@ const Schedule = () => {
               shift: timeInfo.shift,
               room: cls.room,
               teacher: cls.teacher?.full_name || 'N/A',
-              type: 'lecture', // Lịch học thường
+              type: 'lecture',
               color: COLORS[index % COLORS.length]
             });
           }
         });
+
+        setScheduleData(events);
 
         // Mock Thêm Deadlines / Live Class theo luồng E-learning
         events.push({
@@ -158,7 +111,15 @@ const Schedule = () => {
           color: 'purple'
         });
 
-        setScheduleData(events);
+        // Fetch exam data from API
+        try {
+          const examRes = await studentService.getExams();
+          if (examRes.data && examRes.data.success) {
+            setExamData(examRes.data.data);
+          }
+        } catch (examErr) {
+          console.error('Failed to fetch exams:', examErr);
+        }
         setTimeout(() => setIsLoading(false), 500);
       } catch (error) {
         console.error('Failed to fetch schedule:', error);

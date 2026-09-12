@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar } = require('../controllers/authController');
+const { register, verifyOtp, completeRegistration, login, googleLogin, facebookLogin, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
@@ -54,6 +54,42 @@ const upload = require('../middleware/upload');
  *         description: Email đã được sử dụng
  */
 router.post('/register', register);
+
+/**
+ * @swagger
+ * /api/auth/verify-otp:
+ *   post:
+ *     summary: Xác thực OTP để kích hoạt tài khoản
+ *     tags: [Xác thực]
+ */
+router.post('/verify-otp', verifyOtp);
+
+/**
+ * @swagger
+ * /api/auth/complete-registration:
+ *   post:
+ *     summary: Hoàn tất đăng ký (Nhập họ tên, mật khẩu)
+ *     tags: [Xác thực]
+ */
+router.post('/complete-registration', completeRegistration);
+
+/**
+ * @swagger
+ * /api/auth/google:
+ *   post:
+ *     summary: Đăng nhập bằng Google
+ *     tags: [Xác thực]
+ */
+router.post('/google', googleLogin);
+
+/**
+ * @swagger
+ * /api/auth/facebook:
+ *   post:
+ *     summary: Đăng nhập bằng Facebook
+ *     tags: [Xác thực]
+ */
+router.post('/facebook', facebookLogin);
 
 /**
  * @swagger

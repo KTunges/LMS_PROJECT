@@ -12,4 +12,7 @@ router.get('/grades', studentController.getGrades);
 router.get('/materials', studentController.getMaterials);
 router.get('/catalog', studentController.getCatalog);
 router.post('/courses/:courseId/enroll', studentController.enrollInCourse);
+router.get('/exams', studentController.getExams);
+router.get('/leaderboard', studentController.getLeaderboard);
+
 module.exports = router;

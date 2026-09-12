@@ -40,12 +40,34 @@ const Profile = () => {
     }
   }, [user]);
 
-  // Mock stats for now
-  const profileStats = {
-    enrolled: 12,
-    downloads: 45,
-    gpa: 3.8
-  };
+  const [profileStats, setProfileStats] = useState({
+    enrolled: 0,
+    downloads: 0,
+    gpa: 0
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [classesRes, gradesRes] = await Promise.all([
+          import('../../services').then(m => m.studentService.getMyClasses()),
+          import('../../services').then(m => m.studentService.getGrades())
+        ]);
+        const classes = classesRes.data?.success ? classesRes.data.data : [];
+        const grades = gradesRes.data?.success ? gradesRes.data.data : [];
+        let totalScore = 0, count = 0;
+        grades.forEach(g => { if (g.total > 0) { totalScore += g.total; count++; } });
+        setProfileStats({
+          enrolled: classes.length,
+          downloads: 0,
+          gpa: count > 0 ? (totalScore / count).toFixed(1) : '0.0'
+        });
+      } catch (err) {
+        console.error('Failed to fetch profile stats:', err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const handleInfoChange = (e) => {
     setFormData({

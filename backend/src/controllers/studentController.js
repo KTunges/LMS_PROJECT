@@ -63,6 +63,57 @@ exports.getDashboardStats = async (req, res, next) => {
       order: [['due_date', 'ASC']]
     });
 
+    // Schedule (Active Classes)
+    const enrollments = await Enrollment.findAll({
+      where: { student_id: studentId, status: 'enrolled' },
+      include: [{
+        model: Class,
+        as: 'class',
+        include: [
+          { model: Course, as: 'course' },
+          { model: User, as: 'teacher', attributes: ['full_name'] }
+        ]
+      }],
+      limit: 5
+    });
+
+    const schedule = enrollments.map(enr => ({
+      subject: enr.class.course.name,
+      teacher: enr.class.teacher.full_name,
+      time: enr.class.schedule_time || 'Chưa xếp lịch',
+      room: enr.class.room || 'Chưa xếp phòng',
+      color: ['blue', 'green', 'purple', 'orange', 'red'][Math.floor(Math.random() * 5)]
+    }));
+
+    // Announcements (Notifications)
+    const announcementsList = await Notification.findAll({
+      where: { user_id: studentId },
+      order: [['created_at', 'DESC']],
+      limit: 3
+    });
+
+    const announcements = announcementsList.map(n => ({
+      title: n.title,
+      date: n.createdAt ? n.createdAt.toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
+      tag: n.type || 'Chung',
+      urgent: !n.is_read
+    }));
+
+    // Suggested Materials
+    const suggestedMaterialsList = await Material.findAll({
+      where: { status: 'active' },
+      limit: 3,
+      order: [['created_at', 'DESC']]
+    });
+
+    const suggestedMaterials = suggestedMaterialsList.map(m => ({
+      id: m.id,
+      title: m.title,
+      subject: 'Tài liệu chung', // Can be derived from category or course later
+      size: m.file_size ? `${(m.file_size / 1024 / 1024).toFixed(1)} MB` : '1.0 MB',
+      type: m.file_type || 'PDF'
+    }));
+
     res.json({
       success: true,
       data: {
@@ -70,7 +121,10 @@ exports.getDashboardStats = async (req, res, next) => {
         completedClasses: completedEnrollments,
         avgScore: avgScore,
         unreadNotifications,
-        upcomingAssignments
+        upcomingAssignments,
+        schedule,
+        announcements,
+        suggestedMaterials
       }
     });
 
@@ -97,20 +151,54 @@ exports.getMyClasses = async (req, res, next) => {
       }]
     });
 
+    // We need LessonProgress for these classes to calculate progress
+    const { Lesson, LessonProgress } = require('../models');
+    
+    // Get all lesson progresses for this student
+    const allProgresses = await LessonProgress.findAll({
+      where: { student_id: studentId, is_completed: true }
+    });
+    
+    // Create a set of completed lesson IDs
+    const completedLessonIds = new Set(allProgresses.map(p => p.lesson_id));
+
+    // For each course, count total lessons and compare with completed
+    // Since this is a bit heavy to do per-request in a loop without complex joins, we do it in code for now
+    const courseIds = enrollments.map(e => e.class.course_id);
+    const classIds = enrollments.map(e => e.class.id);
+    
+    const { Op } = require('sequelize');
+    const allLessons = await Lesson.findAll({
+      where: {
+        [Op.or]: [
+          { course_id: { [Op.in]: courseIds } },
+          { class_id: { [Op.in]: classIds } }
+        ]
+      }
+    });
+
     // Format response
     const formattedClasses = enrollments.map(enr => {
       const cls = enr.class;
+      
+      // Calculate progress
+      const classLessons = allLessons.filter(l => l.course_id === cls.course_id || l.class_id === cls.id);
+      const totalClassLessons = classLessons.length;
+      const completedClassLessons = classLessons.filter(l => completedLessonIds.has(l.id)).length;
+      
+      const progressPercent = totalClassLessons > 0 ? Math.round((completedClassLessons / totalClassLessons) * 100) : 0;
+
       return {
         id: cls.id,
         course_id: cls.course.id,
         course_code: cls.course.code,
         course_name: cls.course.name,
-        teacher_name: cls.teacher.full_name,
-        semester_name: cls.semester.name,
+        teacher_name: cls.teacher?.full_name || 'N/A',
+        semester_name: cls.semester?.name || 'N/A',
         schedule_time: cls.schedule_time,
         room: cls.room,
         status: cls.status,
-        progress: 50 // Mock progress for now, will calculate later if needed
+        progress: progressPercent
       };
     });
 
@@ -275,6 +363,126 @@ exports.enrollInCourse = async (req, res, next) => {
     });
 
     res.json({ success: true, message: 'Đăng ký khóa học thành công' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/student/exams
+exports.getExams = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
+    // Lấy các lớp sinh viên đang học
+    const enrollments = await require('../models').Enrollment.findAll({
+      where: { student_id: studentId },
+      attributes: ['class_id']
+    });
+    const classIds = enrollments.map(e => e.class_id);
+
+    // Lấy lịch thi của các lớp đó
+    const exams = await require('../models').ExamSchedule.findAll({
+      where: { class_id: { [require('sequelize').Op.in]: classIds } },
+      include: [
+        {
+          model: require('../models').Class,
+          as: 'class',
+          include: [{ model: require('../models').Course, as: 'course' }, { model: require('../models').Semester, as: 'semester' }]
+        }
+      ]
+    });
+
+    const formattedExams = exams.map(exam => ({
+      id: exam.id,
+      code: exam.class.course.code,
+      name: exam.class.course.name,
+      type: exam.exam_type,
+      format: exam.format || 'Trắc nghiệm',
+      date: exam.exam_date,
+      time: exam.exam_time || '08:00 - 10:00',
+      room: exam.room || 'Phòng thi',
+      note: exam.note || '',
+      semester: exam.class.semester?.name
+    }));
+
+    res.json({ success: true, data: formattedExams });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/student/leaderboard
+exports.getLeaderboard = async (req, res, next) => {
+  try {
+    const { Enrollment, Grade, Class, Course, User } = require('../models');
+    const { Op } = require('sequelize');
+
+    // Fetch all students who have grades
+    const students = await User.findAll({
+      where: { role: 'student' },
+      attributes: ['id', 'full_name'],
+      include: [{
+        model: Enrollment,
+        as: 'enrollments',
+        include: [{
+          model: Grade,
+          as: 'grade'
+        }]
+      }]
+    });
+
+    // Calculate XP for each student based on grades
+    // XP formula: sum of (overall_score * 100) for each completed course + bonus for high grades
+    const leaderboard = students.map(student => {
+      let totalXp = 0;
+      let completedCourses = 0;
+
+      if (student.enrollments) {
+        student.enrollments.forEach(enr => {
+          if (enr.grade && enr.grade.overall_score !== null && enr.grade.overall_score !== undefined) {
+            const score = Number(enr.grade.overall_score);
+            totalXp += Math.round(score * 100); // Base XP
+            if (score >= 8.5) totalXp += 500; // Bonus for A
+            else if (score >= 7.0) totalXp += 200; // Bonus for B
+            completedCourses++;
+          }
+        });
+      }
+
+      return {
+        id: student.id,
+        name: student.full_name,
+        xp: totalXp,
+        avatar: student.full_name ? student.full_name.charAt(0).toUpperCase() : '?',
+        completedCourses
+      };
+    }).filter(s => s.xp > 0); // Only show students with XP
+
+    // Sort by XP descending
+    leaderboard.sort((a, b) => b.xp - a.xp);
+
+    // Add ranks
+    leaderboard.forEach((student, index) => {
+      student.rank = index + 1;
+      student.change = 'same'; // We don't track historical changes yet
+    });
+
+    // Mark the requesting user
+    const currentUserId = req.user.id;
+    leaderboard.forEach(s => {
+      if (s.id === currentUserId) s.isCurrentUser = true;
+    });
+
+    // Assign titles based on rank
+    leaderboard.forEach(s => {
+      if (s.xp >= 10000) s.title = 'Học giả uyên bác';
+      else if (s.xp >= 8000) s.title = 'Thợ săn điểm';
+      else if (s.xp >= 6000) s.title = 'Thần đồng';
+      else if (s.xp >= 4000) s.title = 'Chăm chỉ';
+      else if (s.xp >= 2000) s.title = 'Kiên trì';
+      else s.title = 'Tân binh';
+    });
+
+    res.json({ success: true, data: leaderboard });
   } catch (error) {
     next(error);
   }

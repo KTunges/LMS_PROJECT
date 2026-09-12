@@ -25,7 +25,7 @@ const User = sequelize.define('User', {
   },
   password: {
     type: DataTypes.STRING(255),
-    allowNull: false,
+    allowNull: true,
     validate: {
       len: {
         args: [6, 255],
@@ -73,6 +73,26 @@ const User = sequelize.define('User', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  google_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  facebook_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  is_verified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  otp_code: {
+    type: DataTypes.STRING(255), // Will store hashed OTP
+    allowNull: true,
+  },
+  otp_expires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   hooks: {
@@ -83,13 +103,19 @@ const User = sequelize.define('User', {
       if (user.pin_code) {
         user.pin_code = await bcrypt.hash(user.pin_code, 10);
       }
+      if (user.otp_code) {
+        user.otp_code = await bcrypt.hash(user.otp_code, 10);
+      }
     },
     beforeUpdate: async (user) => {
-      if (user.changed('password')) {
+      if (user.changed('password') && user.password) {
         user.password = await bcrypt.hash(user.password, 10);
       }
-      if (user.changed('pin_code')) {
+      if (user.changed('pin_code') && user.pin_code) {
         user.pin_code = await bcrypt.hash(user.pin_code, 10);
+      }
+      if (user.changed('otp_code') && user.otp_code) {
+        user.otp_code = await bcrypt.hash(user.otp_code, 10);
       }
     },
   },
@@ -113,6 +139,8 @@ User.prototype.toJSON = function () {
   delete values.pin_code;
   delete values.reset_password_token;
   delete values.reset_password_expires;
+  delete values.otp_code;
+  delete values.otp_expires;
   return values;
 };
 

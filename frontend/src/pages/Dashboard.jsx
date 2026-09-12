@@ -8,22 +8,23 @@ import {
 } from 'react-icons/fi';
 import { SkeletonCard, SkeletonProfile } from '../components/common/SkeletonLoaders';
 import { studentService } from '../services';
+import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
   const [statsData, setStatsData] = useState({
     activeClasses: 0,
     completedClasses: 0,
     gpa: '0.0',
-    unreadNotifications: 0
+    unreadNotifications: 0,
+    schedule: [],
+    announcements: [],
+    suggestedMaterials: [],
+    upcomingAssignments: []
   });
   
   const [activeCourses, setActiveCourses] = useState([]);
 
-  // Mock user if auth context not fully ready
-  const user = {
-    name: 'Lê Minh Phan',
-    role: 'Sinh viên CNTT',
-  };
+  const { user } = useAuth();
 
   const stats = [
     { label: 'Môn học đang học', value: statsData.activeClasses, subtext: 'Cần hoàn thành', subvalue: '', positive: true },
@@ -41,29 +42,23 @@ const Dashboard = () => {
     { icon: <FiGlobe size={18} />, label: 'Diễn đàn' },
   ];
 
-  const schedule = [
-    { icon: <FiMonitor size={20} />, subject: 'Lập trình Web', teacher: 'ThS. Nguyễn Văn A', time: 'Hôm nay, 08:00-10:00', room: 'Phòng 203', color: 'blue' },
-    { icon: <FiCpu size={20} />, subject: 'Kiến trúc Máy tính', teacher: 'PGS. TS. Trần B', time: 'Hôm nay, 10:15-12:15', room: 'Lab B1', color: 'green' },
-    { icon: <FiDatabase size={20} />, subject: 'Hệ quản trị CSDL', teacher: 'ThS. Lê Thị C', time: 'Hôm nay, 13:00-15:00', room: 'Phòng 105', color: 'purple' },
-  ];
+  const schedule = statsData.schedule || [];
 
-  const deadlines = [
-    { title: 'Phân tích dữ liệu với Python', category: 'Khoa học dữ liệu', date: '29 Thg 5, 2025 - 17:00', daysLeft: '1 ngày tới', urgent: true },
-    { title: 'Bài tập 2 Lên kế hoạch UX', category: 'Nghiên cứu UX', date: '30 Thg 5, 2025 - 09:00', daysLeft: '2 ngày tới', urgent: true },
-    { title: 'Báo cáo Đồ án cuối kỳ', category: 'Quản lý dự án', date: '1 Thg 6, 2025 - 13:00', daysLeft: '4 ngày tới', urgent: false },
-  ];
+  const deadlines = (statsData.upcomingAssignments || []).map(assignment => {
+    const dueDate = new Date(assignment.due_date);
+    const diffTime = dueDate - new Date();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return {
+      title: assignment.title,
+      category: assignment.class?.course?.name || 'Chung',
+      date: dueDate.toLocaleString('vi-VN'),
+      daysLeft: diffDays > 0 ? `${diffDays} ngày tới` : 'Quá hạn',
+      urgent: diffDays <= 2
+    };
+  });
 
-  const announcements = [
-    { title: 'Thông báo: Lịch nghỉ lễ Quốc khánh 2/9', date: '25 Thg 8, 2025', tag: 'Chung' },
-    { title: 'Cảnh báo: Hạn chót đóng học phí HK1', date: '20 Thg 8, 2025', tag: 'Tài chính', urgent: true },
-    { title: 'Mở đăng ký chuyên ngành Khóa 20', date: '15 Thg 8, 2025', tag: 'Đào tạo' },
-  ];
-
-  const suggestedMaterials = [
-    { id: 1, title: 'ReactJS Fundamentals 2025', subject: 'Lập trình Web', size: '2.4 MB', type: 'PDF' },
-    { id: 2, title: 'Giáo trình Cơ sở dữ liệu nâng cao', subject: 'Hệ quản trị CSDL', size: '5.1 MB', type: 'PDF' },
-    { id: 3, title: 'Bài giảng Kiến trúc máy tính', subject: 'Kiến trúc Máy tính', size: '1.2 MB', type: 'PPTX' },
-  ];
+  const announcements = statsData.announcements || [];
+  const suggestedMaterials = statsData.suggestedMaterials || [];
 
 
 
@@ -139,7 +134,7 @@ const Dashboard = () => {
       {/* HEADER */}
       <div className="dashboard__greeting">
         <h1 className="dashboard__greeting-title">
-          Xin chào, <span className="gradient-text">{user.name}</span> <span className="wave">👋</span>
+          Xin chào, <span className="gradient-text">{user?.full_name || 'Học viên'}</span> <span className="wave">👋</span>
         </h1>
         <p className="dashboard__greeting-subtitle">Sẵn sàng để tiếp tục chuỗi ngày học tập tuyệt vời của bạn chưa?</p>
       </div>
@@ -268,8 +263,8 @@ const Dashboard = () => {
             <div className="schedule-list">
               {schedule.map((item, idx) => (
                 <div key={idx} className="schedule-item">
-                  <div className={`schedule-item__icon bg-${item.color}-light text-${item.color}`}>
-                    {item.icon}
+                  <div className={`schedule-item__icon bg-${item.color || 'blue'}-light text-${item.color || 'blue'}`}>
+                    <FiMonitor size={20} />
                   </div>
                   <div className="schedule-item__content">
                     <h4 className="schedule-item__subject">{item.subject}</h4>
