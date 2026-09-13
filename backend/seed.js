@@ -137,9 +137,26 @@ async function seed() {
     }
     console.log('Created categories & courses.');
 
-    // 3.5 Create Curriculum (skipped for non-university)
-    console.log('Skipped curriculums.');
-
+    // 3.5 Create Curriculum (Learning Paths)
+    const curriculumsData = [
+      // Frontend Master
+      { major_id: majorIT.id, course_id: courseMap['UIUX101'], semester_number: 1, required: true },
+      { major_id: majorIT.id, course_id: courseMap['WEB101'], semester_number: 2, required: true },
+      { major_id: majorIT.id, course_id: courseMap['WEB201'], semester_number: 3, required: true },
+      
+      // Tiếng Anh & Business
+      { major_id: majorBA.id, course_id: courseMap['ENG101'], semester_number: 1, required: true },
+      { major_id: majorBA.id, course_id: courseMap['ENG201'], semester_number: 2, required: true },
+      
+      // Marketing Thực chiến
+      { major_id: majorMKT.id, course_id: courseMap['MKT101'], semester_number: 1, required: true },
+      { major_id: majorMKT.id, course_id: courseMap['ENG101'], semester_number: 2, required: true },
+    ];
+    
+    for (const curr of curriculumsData) {
+      await Curriculum.create(curr);
+    }
+    console.log('Created curriculums.');
     // 4. Create Classes
     const classIt306 = await Class.create({
       course_id: courseMap['WEB101'],

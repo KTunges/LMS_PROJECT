@@ -10,6 +10,7 @@ router.get('/dashboard', studentController.getDashboardStats);
 router.get('/classes', studentController.getMyClasses);
 router.get('/grades', studentController.getGrades);
 router.get('/materials', studentController.getMaterials);
+router.get('/materials/:id/download', studentController.downloadMaterial);
 router.get('/catalog', studentController.getCatalog);
 router.post('/courses/:courseId/enroll', studentController.enrollInCourse);
 router.get('/exams', studentController.getExams);

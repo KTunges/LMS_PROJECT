@@ -208,6 +208,11 @@ const Schedule = () => {
           <h1>Thời khóa biểu</h1>
         </div>
         
+        <div style={{ backgroundColor: '#e3f2fd', color: '#1565c0', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <FiAlertTriangle style={{ fontSize: '1.2rem', minWidth: '1.2rem' }} />
+          <span><b>Lưu ý:</b> Các khóa học E-learning tự do (như Lập trình Web, Tiếng Anh, Thiết kế) có thể học 24/7 và <b>sẽ không hiển thị</b> trên lịch học cố định này. Vui lòng vào mục <a href="/student/my-classes" style={{ color: '#1565c0', textDecoration: 'underline', fontWeight: 'bold' }}>Khóa học của tôi</a> để bắt đầu học!</span>
+        </div>
+        
         <div className="schedule-controls">
           <div className="view-mode-toggle glass-card" style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '0 20px', height: '42px', borderRadius: '12px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>

@@ -795,3 +795,50 @@ exports.checkInteractiveAnswer = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.downloadMaterial = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { Material } = require('../models');
+    const axios = require('axios');
+
+    const material = await Material.findByPk(id);
+    if (!material) {
+      return res.status(404).json({ success: false, message: 'Material not found' });
+    }
+
+    const fileUrl = material.file_url;
+    const fileType = material.file_type ? material.file_type.toUpperCase() : '';
+
+    // If it is a video (MP4) from YouTube, or any non-direct download, redirect
+    if (fileType === 'MP4' || fileUrl.includes('youtube.com') || fileUrl.includes('youtu.be')) {
+      return res.redirect(fileUrl);
+    }
+
+    // Proxy the download to bypass CORS and force download
+    try {
+      const response = await axios.get(fileUrl, { responseType: 'stream' });
+      
+      // Determine filename
+      const ext = fileType ? `.${fileType.toLowerCase()}` : '.pdf';
+      // Sanitize filename to avoid header issues
+      let filename = (material.title || 'document').replace(/[^a-zA-Z0-9_-]/g, '_');
+      filename = `${filename}${ext}`;
+
+      // Set headers for forced download
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream');
+      
+      // Pipe the stream to response
+      response.data.pipe(res);
+    } catch (downloadError) {
+      console.error('Error proxying download:', downloadError.message);
+      // Fallback: If proxy fails (e.g. site blocks server IPs), just redirect
+      return res.redirect(fileUrl);
+    }
+    
+  } catch (error) {
+    console.error('Download material error:', error);
+    next(error);
+  }
+};

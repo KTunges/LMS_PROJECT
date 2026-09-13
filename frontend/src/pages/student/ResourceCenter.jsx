@@ -73,6 +73,42 @@ const ResourceCenter = () => {
     fetchMaterials();
   }, []);
 
+  const handleDownload = async (e, mat) => {
+    e.preventDefault();
+    
+    // MP4/YouTube links cannot be downloaded via blob, so open directly
+    const type = mat.file_type ? mat.file_type.toUpperCase() : '';
+    if (type === 'MP4' || (mat.file_url && mat.file_url.includes('youtu'))) {
+      window.open(mat.file_url, '_blank');
+      return;
+    }
+
+    try {
+      const res = await studentService.downloadMaterial(mat.id);
+      const blob = new Blob([res.data], { type: res.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+      
+      let filename = `${mat.title || 'document'}.${mat.file_type ? mat.file_type.toLowerCase() : 'pdf'}`;
+      const contentDisposition = res.headers['content-disposition'];
+      if (contentDisposition && contentDisposition.includes('attachment')) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      alert('Không thể tải tài liệu lúc này. Xin vui lòng thử lại.');
+    }
+  };
+
   const handleClearCategory = () => {
     searchParams.delete('category');
     setSearchParams(searchParams);
@@ -208,8 +244,8 @@ const ResourceCenter = () => {
                     <span className="mat-stat"><FiStar style={{color: '#f59e0b'}}/> {(Math.random() * 1 + 4).toFixed(1)}</span>
                   </div>
                   <div className="mat-actions">
-                    <button className="btn-mat-action btn-mat-preview" title="Xem trước tài liệu"><FiEye /></button>
-                    <a href={mat.file_url} target="_blank" rel="noreferrer" className="btn-mat-action btn-mat-download" title="Tải tài liệu về máy"><FiDownload /></a>
+                    <a href={mat.file_url} target="_blank" rel="noreferrer" className="btn-mat-action btn-mat-preview" title="Xem trước tài liệu"><FiEye /></a>
+                    <a href="#" onClick={(e) => handleDownload(e, mat)} className="btn-mat-action btn-mat-download" title="Tải tài liệu về máy"><FiDownload /></a>
                   </div>
                   </div>
                 </div>
