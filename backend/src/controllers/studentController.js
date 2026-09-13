@@ -138,8 +138,12 @@ exports.getMyClasses = async (req, res, next) => {
   try {
     const studentId = req.user.id;
 
+    const { Op } = require('sequelize');
     const enrollments = await Enrollment.findAll({
-      where: { student_id: studentId, status: 'enrolled' },
+      where: { 
+        student_id: studentId,
+        status: { [Op.in]: ['enrolled', 'completed'] }
+      },
       include: [{
         model: Class,
         as: 'class',
@@ -167,7 +171,6 @@ exports.getMyClasses = async (req, res, next) => {
     const courseIds = enrollments.map(e => e.class.course_id);
     const classIds = enrollments.map(e => e.class.id);
     
-    const { Op } = require('sequelize');
     const allLessons = await Lesson.findAll({
       where: {
         [Op.or]: [
@@ -186,7 +189,9 @@ exports.getMyClasses = async (req, res, next) => {
       const totalClassLessons = classLessons.length;
       const completedClassLessons = classLessons.filter(l => completedLessonIds.has(l.id)).length;
       
-      const progressPercent = totalClassLessons > 0 ? Math.round((completedClassLessons / totalClassLessons) * 100) : 0;
+      const progressPercent = (enr.status === 'completed' || cls.status === 'completed') 
+        ? 100 
+        : (totalClassLessons > 0 ? Math.round((completedClassLessons / totalClassLessons) * 100) : 0);
 
       return {
         id: cls.id,
@@ -231,28 +236,70 @@ exports.getGrades = async (req, res, next) => {
       ]
     });
 
+    // Get lessons and progresses
+    const { Lesson, LessonProgress } = require('../models');
+    const allProgresses = await LessonProgress.findAll({
+      where: { student_id: studentId, is_completed: true }
+    });
+    const completedLessonIds = new Set(allProgresses.map(p => p.lesson_id));
+
+    const courseIds = enrollments.map(e => e.class.course_id);
+    const classIds = enrollments.map(e => e.class.id);
+    
+    const { Op } = require('sequelize');
+    const allLessons = await Lesson.findAll({
+      where: {
+        [Op.or]: [
+          { course_id: { [Op.in]: courseIds } },
+          { class_id: { [Op.in]: classIds } }
+        ]
+      }
+    });
+
     const formattedGrades = enrollments.map(enr => {
       const cls = enr.class;
       const grade = enr.grade || {};
       
-      let letter = 'F';
-      if (grade.overall_score !== null) {
-        if (grade.overall_score >= 8.5) letter = 'A';
-        else if (grade.overall_score >= 8.0) letter = 'B+';
-        else if (grade.overall_score >= 7.0) letter = 'B';
-        else if (grade.overall_score >= 6.5) letter = 'C+';
-        else if (grade.overall_score >= 5.5) letter = 'C';
-        else if (grade.overall_score >= 5.0) letter = 'D+';
-        else if (grade.overall_score >= 4.0) letter = 'D';
+      // Calculate progress
+      const classLessons = allLessons.filter(l => l.course_id === cls.course_id || l.class_id === cls.id);
+      const totalClassLessons = classLessons.length;
+      const completedClassLessons = classLessons.filter(l => completedLessonIds.has(l.id)).length;
+      
+      let progressPercent = (enr.status === 'completed' || cls.status === 'completed') 
+        ? 100 
+        : (totalClassLessons > 0 ? Math.round((completedClassLessons / totalClassLessons) * 100) : 0);
+
+      // Apply scoring logic: midterm_score = progress, final_score = quiz/assignment
+      let midterm = progressPercent / 10; // Convert to scale 10
+      let final = Number(grade.final_score) || 0;
+      let total = (midterm * 0.3) + (final * 0.7);
+
+      // If it's a mocked completed course from seed, use its original score if we want,
+      // but let's override total if we actually want to show the logic working,
+      // or keep the mocked total for older courses.
+      if (enr.status === 'completed' && grade.overall_score) {
+        total = Number(grade.overall_score);
+        midterm = Number(grade.midterm_score) || 10;
+        final = Number(grade.final_score) || total;
       }
+
+      let letter = 'F';
+      if (total >= 8.5) letter = 'A';
+      else if (total >= 8.0) letter = 'B+';
+      else if (total >= 7.0) letter = 'B';
+      else if (total >= 6.5) letter = 'C+';
+      else if (total >= 5.5) letter = 'C';
+      else if (total >= 5.0) letter = 'D+';
+      else if (total >= 4.0) letter = 'D';
 
       return {
         id: cls.course.code,
         name: cls.course.name,
-        process: Number(grade.midterm_score) || 0,
-        midterm: Number(grade.midterm_score) || 0, // Using midterm for process in this simplified model
-        final: Number(grade.final_score) || 0,
-        total: Number(grade.overall_score) || 0,
+        progress: progressPercent,
+        process: midterm,
+        midterm: midterm,
+        final: final,
+        total: total,
         letter: letter,
         semester: cls.semester.name
       };

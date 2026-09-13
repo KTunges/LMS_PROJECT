@@ -1,10 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FiAward, FiDownload, FiCheckCircle, FiBookOpen } from 'react-icons/fi';
 import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import { studentService } from '../../services';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import CertificateTemplate from '../../components/common/CertificateTemplate';
+import { useAuth } from '../../contexts/AuthContext';
 import './Results.css';
 
 const Results = () => {
+  const { user } = useAuth();
   const [filter, setFilter] = useState('Tất cả');
   const [isGradesLoading, setIsGradesLoading] = useState(true);
   const [grades, setGrades] = useState([]);
@@ -12,6 +17,8 @@ const Results = () => {
     avgScore: 0,
     completedCourses: 0,
   });
+  const [downloadingCert, setDownloadingCert] = useState(null);
+  const certificateRef = useRef(null);
 
   // Fetch Grades Data
   useEffect(() => {
@@ -53,6 +60,26 @@ const Results = () => {
     };
     fetchGrades();
   }, []);
+
+  const handleDownloadCertificate = async (grade) => {
+    setDownloadingCert(grade);
+    
+    // Đợi render component template
+    setTimeout(async () => {
+      if (certificateRef.current) {
+        try {
+          const canvas = await html2canvas(certificateRef.current, { scale: 2 });
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF('landscape', 'px', [800, 600]);
+          pdf.addImage(imgData, 'PNG', 0, 0, 800, 600);
+          pdf.save(`Chung_Nhan_${grade.name.replace(/\\s+/g, '_')}.pdf`);
+        } catch (error) {
+          console.error("Lỗi khi tạo PDF:", error);
+        }
+      }
+      setDownloadingCert(null);
+    }, 100);
+  };
 
   const filteredGrades = filter === 'Tất cả' 
     ? grades 
@@ -146,8 +173,25 @@ const Results = () => {
                     <td className="text-center text-gray">{grade.passed ? grade.date : '-'}</td>
                     <td className="text-center">
                       {grade.passed ? (
-                        <button className="btn-icon" style={{background: '#eff6ff', color: '#3b82f6', padding: '6px 12px', borderRadius: '6px', border: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer'}}>
-                          <FiDownload /> Tải về
+                        <button 
+                          className="btn-icon" 
+                          onClick={() => handleDownloadCertificate(grade)}
+                          disabled={downloadingCert?.id === grade.id}
+                          style={{
+                            background: '#eff6ff', 
+                            color: '#3b82f6', 
+                            padding: '6px 12px', 
+                            borderRadius: '6px', 
+                            border: 'none', 
+                            fontWeight: 600, 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            cursor: downloadingCert?.id === grade.id ? 'not-allowed' : 'pointer',
+                            opacity: downloadingCert?.id === grade.id ? 0.7 : 1
+                          }}
+                        >
+                          <FiDownload /> {downloadingCert?.id === grade.id ? 'Đang tạo PDF...' : 'Tải về'}
                         </button>
                       ) : (
                         <span style={{color: '#94a3b8', fontSize: '13px'}}>Chưa đạt</span>
@@ -166,6 +210,17 @@ const Results = () => {
             </table>
           </div>
         )}
+      </div>
+      
+      {/* Hidden Certificate Container for PDF generation */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+        <CertificateTemplate
+          ref={certificateRef}
+          studentName={user?.full_name || 'Học Viên'}
+          courseName={downloadingCert ? downloadingCert.name : ''}
+          score={downloadingCert ? downloadingCert.assessmentScore : 0}
+          issueDate={downloadingCert ? downloadingCert.date : ''}
+        />
       </div>
     </div>
   );

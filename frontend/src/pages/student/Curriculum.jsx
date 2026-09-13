@@ -66,10 +66,10 @@ const Curriculum = () => {
         ) : (
           paths.map((path, pIndex) => (
             <div key={path.id} className="semester-card glass-card" style={{ marginBottom: '24px' }}>
-              <div className="semester-header" onClick={() => togglePath(pIndex)} style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)', color: 'white' }}>
+              <div className="semester-header" onClick={() => togglePath(pIndex)}>
                 <div className="semester-info">
-                  <h2 style={{ color: 'white' }}>{path.title}</h2>
-                  <span className="total-credits" style={{ color: '#e0e7ff' }}>Lộ trình chuyên nghiệp</span>
+                  <h2>{path.title}</h2>
+                  <span className="total-credits">Lộ trình chuyên nghiệp</span>
                 </div>
                 <div className="semester-toggle">
                   {path.isOpen ? <FiChevronUp size={24} /> : <FiChevronDown size={24} />}

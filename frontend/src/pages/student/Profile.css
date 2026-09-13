@@ -4,6 +4,7 @@
   gap: var(--spacing-6);
   max-width: 1200px;
   margin: 0 auto;
+  padding-top: var(--spacing-6);
 }
 
 .glass-card {
@@ -24,7 +25,7 @@
 }
 
 .profile-header__bg {
-  height: 160px;
+  height: 200px;
   background: linear-gradient(135deg, #1d4ed8, #3b82f6, #60a5fa, #3b82f6);
   background-size: 300% 300%;
   animation: gradientBG 8s ease infinite;
@@ -48,16 +49,18 @@
 .profile-header__content {
   padding: 0 var(--spacing-6) var(--spacing-6);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--spacing-6);
-  margin-top: -50px;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
 }
 
 .profile-avatar-container {
   position: relative;
   width: 130px;
   height: 130px;
+  margin-top: -65px;
   border-radius: 50%;
   padding: 6px;
   background: rgba(255, 255, 255, 0.8);
@@ -65,7 +68,7 @@
   box-shadow: 
     0 8px 32px rgba(37, 99, 235, 0.25),
     inset 0 2px 4px rgba(255, 255, 255, 0.5);
-  z-index: 2;
+  z-index: 3;
   transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -113,7 +116,7 @@
 .profile-info {
   flex: 1;
   min-width: 250px;
-  padding-bottom: var(--spacing-2);
+  padding-top: var(--spacing-2);
 }
 
 .profile-name {

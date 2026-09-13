@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiCheckCircle, FiPlayCircle, FiFileText, FiAward } from 'react-icons/fi';
+import { FiArrowLeft, FiCheckCircle, FiPlayCircle, FiFileText, FiAward, FiExternalLink, FiEye } from 'react-icons/fi';
 import { classService, studentService } from '../../services';
 import CustomVideoPlayer from '../../components/common/VideoPlayer/CustomVideoPlayer';
 import './Classroom.css';
@@ -75,6 +75,25 @@ const Classroom = () => {
     }
   };
 
+  const handleDownload = async (e, url, filename) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename || 'document.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(objectUrl);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Lỗi khi tải file:', error);
+      window.open(url, '_blank'); // fallback
+    }
+  };
+
   if (isLoading) return <div className="learning-room" style={{padding: 40}}>Đang tải...</div>;
   if (!activeLesson) return <div className="learning-room" style={{padding: 40}}>Lớp học này chưa có bài học nào.</div>;
 
@@ -115,21 +134,30 @@ const Classroom = () => {
             </div>
           ) : activeLesson.type === 'document' ? (
             <div className="document-viewer-container">
-              <embed 
+              <iframe 
                 src={activeLesson.content_url} 
-                type="application/pdf" 
+                title="Document Viewer"
                 className="document-embed"
+                frameBorder="0"
               />
-              <div className="document-actions">
+              <div className="document-actions" style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', width: '100%', maxWidth: '1000px' }}>
                 <a 
                   href={activeLesson.content_url} 
-                  download 
                   target="_blank" 
                   rel="noreferrer" 
                   className="btn-download-doc"
+                  style={{ backgroundColor: '#64748B' }}
+                >
+                  <FiExternalLink size={18} />
+                  Mở tab mới
+                </a>
+                <a 
+                  href={activeLesson.content_url} 
+                  onClick={(e) => handleDownload(e, activeLesson.content_url, `${activeLesson.title}.pdf`)}
+                  className="btn-download-doc"
                 >
                   <FiFileText size={18} />
-                  Tải xuống tài liệu
+                  Tải xuống
                 </a>
               </div>
             </div>
