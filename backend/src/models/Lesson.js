@@ -31,6 +31,10 @@ const Lesson = sequelize.define('Lesson', {
     type: DataTypes.ENUM('video', 'document', 'quiz'),
     allowNull: false,
   },
+  section_title: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
   content_url: {
     type: DataTypes.STRING(500),
     allowNull: true, // Can be null for quiz if quiz details are stored elsewhere, or hold Quiz ID

@@ -21,7 +21,22 @@ const Question = sequelize.define('Question', {
   },
   question_type: {
     type: DataTypes.STRING(50),
-    defaultValue: 'single_choice', // can be single_choice, multiple_choice, or coding
+    defaultValue: 'single_choice', // single_choice, multiple_choice, coding
+  },
+  video_timestamp: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Timestamp in seconds where the video should pause to ask this question'
+  },
+  options: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    comment: 'Array of choices for multiple/single choice questions'
+  },
+  correct_answer: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'The correct answer for the question'
   },
   marks: {
     type: DataTypes.FLOAT,

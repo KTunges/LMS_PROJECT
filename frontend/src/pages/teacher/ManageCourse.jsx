@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiImage, FiUploadCloud, FiPlusCircle, FiTrash2, FiSave, FiCheckCircle } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { teacherService } from '../../services';
+import InteractiveQuestionModal from './InteractiveQuestionModal';
 
 const ManageCourse = () => {
   const { id } = useParams();
@@ -13,42 +14,53 @@ const ManageCourse = () => {
     title: '',
     subtitle: '',
     price: 499000,
-    category: 'Lập trình',
-    description: ''
+    category_id: '',
+    description: '',
+    image_url: ''
   });
 
+  const [categories, setCategories] = useState([]);
   const [curriculum, setCurriculum] = useState([]);
+  const [selectedLessonForQuestions, setSelectedLessonForQuestions] = useState(null);
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
+    const fetchData = async () => {
       try {
-        const res = await teacherService.getCourseDetails(id);
-        if (res.data && res.data.success) {
-          const { course, lessons } = res.data.data;
-          
-          setCourseData({
-            title: course.name || '',
-            subtitle: course.description || '',
-            price: course.price || 0,
-            category: 'Lập trình', // Mock for now
-          });
-          
-          // Since we flattened the lessons without a real Section model,
-          // we can just put all lessons into one default Section for editing,
-          // or parse the title if it contains " - " to rebuild sections.
-          // For simplicity, let's group them by parsing or just put in one list.
-          
-          const defaultSection = {
-            id: 1,
-            title: 'Chương trình học',
-            lectures: lessons.map(l => ({
-              id: l.id,
-              title: l.title,
-              url: l.content_url
-            }))
-          };
-          
-          setCurriculum([defaultSection]);
+        const catRes = await teacherService.getCategories();
+        if (catRes.data && catRes.data.success) {
+          setCategories(catRes.data.data);
+        }
+
+        if (id) {
+          const res = await teacherService.getCourseDetails(id);
+          if (res.data && res.data.success) {
+            const { course, lessons } = res.data.data;
+            
+            setCourseData({
+              title: course.name || '',
+              subtitle: course.description || '',
+              price: course.price || 0,
+              category_id: course.category_id || '',
+              image_url: course.image_url || ''
+            });
+            
+            const sectionsMap = {};
+            lessons.forEach(l => {
+              const stitle = l.section_title || 'Chương trình học';
+              if (!sectionsMap[stitle]) sectionsMap[stitle] = [];
+              sectionsMap[stitle].push({ id: l.id, title: l.title, url: l.content_url });
+            });
+
+            const loadedCurriculum = Object.keys(sectionsMap).map((title, i) => ({
+              id: Date.now() + i, // Just for React key
+              title,
+              lectures: sectionsMap[title]
+            }));
+
+            setCurriculum(loadedCurriculum.length > 0 ? loadedCurriculum : [
+              { id: Date.now(), title: 'Chương trình học', lectures: [] }
+            ]);
+          }
         }
       } catch (error) {
         console.error(error);
@@ -58,9 +70,7 @@ const ManageCourse = () => {
       }
     };
     
-    if (id) {
-      fetchCourseDetails();
-    }
+    fetchData();
   }, [id]);
 
   const handleAddSection = () => {
@@ -105,7 +115,39 @@ const ManageCourse = () => {
       return sec;
     }));
   };
+  const handleUpdateSectionTitle = (sectionId, title) => {
+    setCurriculum(curriculum.map(sec => sec.id === sectionId ? { ...sec, title } : sec));
+  };
 
+  const handleRemoveSection = (sectionId) => {
+    if (window.confirm('Xóa chương này và tất cả bài giảng bên trong?')) {
+      setCurriculum(curriculum.filter(sec => sec.id !== sectionId));
+    }
+  };
+
+  const handleRemoveLecture = (sectionId, lectureId) => {
+    setCurriculum(curriculum.map(sec => {
+      if (sec.id === sectionId) {
+        return { ...sec, lectures: sec.lectures.filter(lec => lec.id !== lectureId) };
+      }
+      return sec;
+    }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.warning('Vui lòng chọn ảnh nhỏ hơn 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCourseData({ ...courseData, image_url: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   const handleSave = async () => {
     if (!courseData.title) {
       toast.warning('Vui lòng nhập tên khóa học!');
@@ -118,14 +160,18 @@ const ManageCourse = () => {
         name: courseData.title,
         description: courseData.subtitle,
         price: courseData.price,
+        image_url: courseData.image_url,
+        category_id: courseData.category_id,
       };
       
       const res = await teacherService.updateCourse(id, coursePayload);
       
       if (res.data && res.data.success) {
-        // 2. In a real app we would sync lessons (delete old, add new, or update)
-        // For now, let's just show success
-        toast.success('Cập nhật khóa học thành công!');
+        // 2. Sync Curriculum
+        const syncRes = await teacherService.syncCurriculum(id, { curriculum });
+        if (syncRes.data && syncRes.data.success) {
+          toast.success('Cập nhật khóa học và chương trình thành công!');
+        }
       }
     } catch (error) {
       console.error(error);
@@ -182,6 +228,20 @@ const ManageCourse = () => {
                   style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', resize: 'vertical' }}
                 />
               </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '8px', color: '#334155' }}>Danh mục</label>
+                <select 
+                  value={courseData.category_id}
+                  onChange={(e) => setCourseData({...courseData, category_id: e.target.value})}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', background: 'white' }}
+                >
+                  <option value="">-- Chọn danh mục --</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -195,10 +255,11 @@ const ManageCourse = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <input 
                       type="text"
-                      defaultValue={section.title}
+                      value={section.title}
+                      onChange={(e) => handleUpdateSectionTitle(section.id, e.target.value)}
                       style={{ fontSize: '16px', fontWeight: 'bold', padding: '8px', border: '1px solid transparent', background: 'transparent', width: '80%' }}
                     />
-                    <button style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><FiTrash2 size={18} /></button>
+                    <button onClick={() => handleRemoveSection(section.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><FiTrash2 size={18} /></button>
                   </div>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginLeft: '16px' }}>
@@ -215,17 +276,24 @@ const ManageCourse = () => {
                               placeholder="Tên bài giảng"
                             />
                           </div>
-                          <button style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><FiTrash2 size={16} /></button>
+                          <button onClick={() => handleRemoveLecture(section.id, lec.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><FiTrash2 size={16} /></button>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingLeft: '28px' }}>
-                          <span style={{ fontSize: '12px', color: '#64748b' }}>Video URL:</span>
+                          <span style={{ fontSize: '12px', color: 'var(--theme-text-muted)' }}>Video URL:</span>
                           <input 
                             type="text" 
                             value={lec.url || ''}
                             onChange={(e) => handleUpdateLectureUrl(section.id, lec.id, e.target.value)}
-                            style={{ border: '1px solid #e2e8f0', fontSize: '12px', padding: '4px 8px', borderRadius: '4px', flex: 1 }}
+                            style={{ border: '1px solid var(--theme-border-color)', fontSize: '12px', padding: '4px 8px', borderRadius: '4px', flex: 1, background: 'var(--theme-bg-main)', color: 'var(--theme-text-main)' }}
                             placeholder="https://..."
                           />
+                          {typeof lec.id !== 'string' && lec.id < 1000000000000 && (
+                            <button 
+                              onClick={() => setSelectedLessonForQuestions(lec)}
+                              style={{ padding: '4px 8px', fontSize: '12px', background: 'var(--theme-bg-grad-2)', border: '1px solid var(--theme-border-color)', borderRadius: '4px', color: '#3b82f6', cursor: 'pointer', fontWeight: 600 }}>
+                              Quản lý câu hỏi
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -254,10 +322,15 @@ const ManageCourse = () => {
           
           <div className="glass-card" style={{ padding: '24px', borderRadius: '16px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Hình ảnh Khóa học</h3>
-            <div style={{ width: '100%', aspectRatio: '16/9', background: '#f1f5f9', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed #cbd5e1', cursor: 'pointer', transition: 'all 0.2s' }}>
-              <FiImage size={32} color="#94a3b8" style={{ marginBottom: '8px' }} />
-              <span style={{ fontSize: '14px', color: '#64748b', fontWeight: 500 }}>Tải ảnh lên (1920x1080)</span>
-            </div>
+            <label style={{ width: '100%', aspectRatio: '16/9', background: courseData.image_url ? `url(${courseData.image_url}) center/cover` : '#f1f5f9', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed #cbd5e1', cursor: 'pointer', transition: 'all 0.2s', overflow: 'hidden' }}>
+              {!courseData.image_url && (
+                <>
+                  <FiImage size={32} color="#94a3b8" style={{ marginBottom: '8px' }} />
+                  <span style={{ fontSize: '14px', color: '#64748b', fontWeight: 500 }}>Tải ảnh lên (1920x1080)</span>
+                </>
+              )}
+              <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+            </label>
           </div>
 
           <div className="glass-card" style={{ padding: '24px', borderRadius: '16px' }}>
@@ -274,6 +347,13 @@ const ManageCourse = () => {
           </div>
         </div>
       </div>
+
+      {selectedLessonForQuestions && (
+        <InteractiveQuestionModal 
+          lesson={selectedLessonForQuestions} 
+          onClose={() => setSelectedLessonForQuestions(null)} 
+        />
+      )}
     </div>
   );
 };

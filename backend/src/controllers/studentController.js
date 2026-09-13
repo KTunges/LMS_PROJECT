@@ -724,3 +724,27 @@ exports.executeCode = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.checkInteractiveAnswer = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { answer } = req.body;
+    const { Question } = require('../models');
+
+    const question = await Question.findByPk(id);
+    if (!question) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    const isCorrect = (question.correct_answer === answer);
+    
+    res.json({
+      success: true,
+      data: {
+        isCorrect
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

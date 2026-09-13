@@ -6,3 +6,4 @@ export { materialService } from './materialService';
 export { categoryService } from './categoryService';
 export { userService } from './userService';
 export { courseService, classService, lessonService, quizService, curriculumService } from './courseService';
+export { liveService } from './liveService';

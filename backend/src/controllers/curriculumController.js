@@ -39,9 +39,15 @@ exports.getMyCurriculum = async (req, res, next) => {
       if (!enr.class) return;
       const courseId = enr.class.course_id;
       if (enr.grade && enr.grade.overall_score !== null) {
-        courseStatusMap[courseId] = enr.grade.overall_score >= 5.0 ? 'passed' : 'failed';
+        courseStatusMap[courseId] = {
+          status: enr.grade.overall_score >= 5.0 ? 'passed' : 'failed',
+          classId: enr.class_id
+        };
       } else {
-        courseStatusMap[courseId] = 'learning';
+        courseStatusMap[courseId] = {
+          status: 'learning',
+          classId: enr.class_id
+        };
       }
     });
 
@@ -71,12 +77,15 @@ exports.getMyCurriculum = async (req, res, next) => {
         };
       }
 
+      const mappedData = courseStatusMap[curr.course.id];
       paths[pathId].stages[stageIndex].courses.push({
         id: curr.course.code,
+        dbId: curr.course.id, // Need this for enrollment
         name: curr.course.name,
         level: 'Cơ bản',
-        status: courseStatusMap[curr.course.id] || 'unlearned',
-        passed: courseStatusMap[curr.course.id] === 'passed'
+        status: mappedData ? mappedData.status : 'unlearned',
+        passed: mappedData ? mappedData.status === 'passed' : false,
+        classId: mappedData ? mappedData.classId : null
       });
     });
 

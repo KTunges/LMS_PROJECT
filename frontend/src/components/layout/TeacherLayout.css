@@ -2,17 +2,18 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f8fafc; /* Nền xám nhạt chuyên nghiệp */
+  background-color: var(--theme-bg-main); /* Hỗ trợ dark mode */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--theme-text-main);
 }
 
 .teacher-navbar {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--theme-card-bg);
+  border-bottom: 1px solid var(--theme-border-color);
+  box-shadow: 0 1px 3px var(--theme-glass-shadow);
 }
 
 .teacher-navbar__container {
@@ -48,8 +49,8 @@
 }
 
 .teacher-navbar__logo .logo-badge {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--theme-bg-grad-2);
+  color: var(--theme-text-muted);
   font-size: 11px;
   font-weight: 600;
   padding: 4px 8px;
@@ -69,7 +70,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  color: #475569;
+  color: var(--theme-text-muted);
   font-weight: 500;
   font-size: 14px;
   border-radius: 8px;
@@ -78,13 +79,13 @@
 }
 
 .teacher-nav-link:hover {
-  background: #f1f5f9;
-  color: #1e293b;
+  background: var(--theme-bg-grad-2);
+  color: var(--theme-text-main);
 }
 
 .teacher-nav-link.active {
-  background: #eff6ff;
-  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  color: #3b82f6;
   font-weight: 600;
 }
 
@@ -99,13 +100,19 @@
   gap: 16px;
 }
 
-.teacher-icon-btn {
-  background: transparent;
-  border: none;
-  color: #64748b;
+.teacher-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teacher-navbar__icon-btn {
+  background: var(--theme-card-bg);
+  border: 1px solid var(--theme-border-color);
+  color: var(--theme-text-muted);
   cursor: pointer;
   padding: 8px;
-  border-radius: 50%;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -113,20 +120,20 @@
   position: relative;
 }
 
-.teacher-icon-btn:hover {
-  background: #f1f5f9;
-  color: #1e293b;
+.teacher-navbar__icon-btn:hover {
+  background: var(--theme-bg-grad-2);
+  color: var(--theme-text-main);
 }
 
 .notification-dot {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   width: 8px;
   height: 8px;
   background: #ef4444;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid #f1f5f9;
 }
 
 .teacher-user-menu {
@@ -144,7 +151,7 @@
 }
 
 .teacher-avatar-trigger:hover {
-  background: #f1f5f9;
+  background: var(--theme-bg-grad-2);
 }
 
 .teacher-avatar {
@@ -152,7 +159,7 @@
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--theme-border-color);
 }
 
 .teacher-info {
@@ -163,7 +170,7 @@
 .teacher-name {
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--theme-text-main);
 }
 
 .teacher-dropdown-menu {
@@ -171,10 +178,10 @@
   top: 110%;
   right: 0;
   width: 240px;
-  background: white;
+  background: var(--theme-card-bg);
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px var(--theme-glass-shadow);
+  border: 1px solid var(--theme-border-color);
   padding: 8px 0;
   z-index: 100;
   animation: slideDown 0.2s ease-out;
@@ -192,19 +199,19 @@
 }
 
 .teacher-dropdown-menu .dropdown-header strong {
-  color: #1e293b;
+  color: var(--theme-text-main);
   font-size: 14px;
 }
 
 .teacher-dropdown-menu .dropdown-header span {
-  color: #64748b;
+  color: var(--theme-text-muted);
   font-size: 12px;
   margin-top: 2px;
 }
 
 .teacher-dropdown-menu .dropdown-divider {
   height: 1px;
-  background: #f1f5f9;
+  background: var(--theme-border-color);
   margin: 4px 0;
 }
 
@@ -213,15 +220,15 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  color: #475569;
+  color: var(--theme-text-muted);
   font-size: 14px;
   text-decoration: none;
   transition: background 0.2s;
 }
 
 .teacher-dropdown-menu .dropdown-item:hover {
-  background: #f8fafc;
-  color: #1e293b;
+  background: var(--theme-bg-grad-2);
+  color: var(--theme-text-main);
 }
 
 .teacher-dropdown-menu .dropdown-item.text-danger {
@@ -229,7 +236,7 @@
 }
 
 .teacher-dropdown-menu .dropdown-item.text-danger:hover {
-  background: #fef2f2;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .teacher-main-content {

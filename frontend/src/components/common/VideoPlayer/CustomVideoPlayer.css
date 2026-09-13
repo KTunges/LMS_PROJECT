@@ -8,22 +8,58 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-.react-player {
+/* YouTube container — crops branding via overflow + scale */
+.yt-player-container {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
+/* Inner wrapper scales the iframe up to push YT title/watermark off-screen */
+.yt-player-inner {
+  position: absolute;
+  top: -60px;   /* crop top title bar */
+  left: -10px;
+  right: -10px;
+  bottom: -60px; /* crop bottom watermark */
+}
+
+.yt-player-inner iframe,
+.yt-player-inner > div {
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+}
+
+/* Invisible shield on top of iframe — blocks hover that triggers YT UI */
+.yt-shield {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  cursor: default;
+}
+
+/* Native video */
+.native-video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Big play button overlay */
 .player-overlay-center {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.35);
   cursor: pointer;
   z-index: 10;
   transition: opacity 0.3s ease;
@@ -37,7 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   transition: transform 0.2s, background 0.2s;
   box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
 }
@@ -47,14 +83,21 @@
   background: rgba(59, 130, 246, 1);
 }
 
-/* Controls */
+/* Invisible click area to toggle play/pause while playing */
+.player-click-area {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: 60px; /* leave room for controls */
+  z-index: 5;
+  cursor: pointer;
+}
+
+/* ── Controls Bar ── */
 .player-controls {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
-  padding: 20px 16px 12px;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+  padding: 24px 16px 12px;
   z-index: 20;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
@@ -79,7 +122,7 @@
   -webkit-appearance: none;
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 3px;
   outline: none;
   cursor: pointer;
@@ -88,7 +131,12 @@
   transition: height 0.1s;
 }
 
-.player-progress-slider:hover {
+.player-progress-slider.disabled-seek {
+  pointer-events: none;
+  cursor: default;
+}
+
+.player-progress-slider:not(.disabled-seek):hover {
   height: 8px;
 }
 
@@ -98,13 +146,31 @@
   width: 14px;
   border-radius: 50%;
   background: #3b82f6;
-  cursor: pointer;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   transition: transform 0.1s;
 }
 
-.player-progress-slider:hover::-webkit-slider-thumb {
-  transform: scale(1.2);
+.player-progress-slider:not(.disabled-seek)::-webkit-slider-thumb {
+  cursor: pointer;
+}
+
+.player-progress-slider.disabled-seek::-webkit-slider-thumb {
+  cursor: default;
+  /* Make thumb slightly smaller/subtler since it's just an indicator now */
+  transform: scale(0.8);
+}
+
+.player-progress-slider:not(.disabled-seek):hover::-webkit-slider-thumb {
+  transform: scale(1.3);
+}
+
+.player-progress-slider::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: none;
 }
 
 /* Bottom Controls */
@@ -194,16 +260,25 @@
   cursor: pointer;
 }
 
+.volume-slider::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+}
+
 /* Settings Menu */
 .settings-menu {
   position: absolute;
   bottom: 40px;
   right: 0;
-  background: rgba(15, 23, 42, 0.9);
-  backdrop-filter: blur(8px);
-  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 10px;
   padding: 8px 0;
-  min-width: 140px;
+  min-width: 150px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   border: 1px solid rgba(255,255,255,0.1);
   z-index: 30;

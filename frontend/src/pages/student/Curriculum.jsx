@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { FiCheckCircle, FiChevronDown, FiChevronUp, FiBookOpen } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiCheckCircle, FiChevronDown, FiChevronUp, FiBookOpen, FiArrowRight } from 'react-icons/fi';
 import api from '../../services/api';
 import './Curriculum.css';
 
 const Curriculum = () => {
+  const navigate = useNavigate();
   const [paths, setPaths] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -86,9 +88,10 @@ const Curriculum = () => {
                           <thead>
                             <tr>
                               <th width="15%">Mã KH</th>
-                              <th width="45%">Tên Khóa Học</th>
-                              <th width="20%">Cấp độ</th>
+                              <th width="35%">Tên Khóa Học</th>
+                              <th width="15%">Cấp độ</th>
                               <th width="20%" className="text-center">Trạng thái</th>
+                              <th width="15%" className="text-center">Thao tác</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -101,6 +104,25 @@ const Curriculum = () => {
                                 </td>
                                 <td>{course.level}</td>
                                 <td className="text-center">{getStatusBadge(course.status)}</td>
+                                <td className="text-center">
+                                  {course.status === 'unlearned' ? (
+                                    <button 
+                                      className="btn-outline-primary btn-sm"
+                                      onClick={() => navigate('/student/courses')}
+                                      style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #3b82f6', color: '#3b82f6', background: 'transparent', cursor: 'pointer', fontSize: '13px' }}
+                                    >
+                                      Tìm hiểu
+                                    </button>
+                                  ) : (
+                                    <button 
+                                      className="btn-primary btn-sm"
+                                      onClick={() => navigate(`/student/classroom/${course.classId}`)}
+                                      style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', color: '#fff', background: '#3b82f6', cursor: 'pointer', fontSize: '13px' }}
+                                    >
+                                      Vào lớp
+                                    </button>
+                                  )}
+                                </td>
                               </tr>
                             ))}
                           </tbody>

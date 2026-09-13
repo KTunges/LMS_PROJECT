@@ -23,6 +23,15 @@ exports.getClassLessons = async (req, res, next) => {
           { class_id: classId }
         ]
       },
+      include: [{
+        model: Quiz,
+        as: 'quiz',
+        include: [{
+          model: require('../models').Question,
+          as: 'questions',
+          attributes: ['id', 'content', 'options', 'video_timestamp', 'question_type'] // Do NOT expose correct_answer to student
+        }]
+      }],
       order: [['order_index', 'ASC']]
     });
 
@@ -48,7 +57,8 @@ exports.getClassLessons = async (req, res, next) => {
       duration: l.duration,
       content_url: l.content_url,
       order_index: l.order_index,
-      completed: !!progressMap[l.id]
+      completed: !!progressMap[l.id],
+      interactiveQuestions: (l.quiz && l.quiz.questions) ? l.quiz.questions.filter(q => q.video_timestamp !== null) : []
     }));
 
     res.json({

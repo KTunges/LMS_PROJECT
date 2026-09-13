@@ -1,4 +1,4 @@
-const { Class, Course, Semester, User, Enrollment, Grade, Assignment, Submission, Lesson } = require('../models');
+const { Class, Course, Semester, User, Enrollment, Grade, Assignment, Submission, Lesson, Quiz, Question, Category } = require('../models');
 const { Op } = require('sequelize');
 
 // GET /api/teacher/dashboard
@@ -146,10 +146,9 @@ exports.createCourse = async (req, res, next) => {
 exports.updateCourse = async (req, res, next) => {
   try {
     const courseId = req.params.id; // Note: In frontend we might send class.id, need to trace to course_id
-    // But let's assume it's course_id for now
-    const { name, price, description } = req.body;
+    const { name, price, description, image_url, category_id } = req.body;
     
-    await Course.update({ name, price, description }, { where: { id: courseId } });
+    await Course.update({ name, price, description, image_url, category_id }, { where: { id: courseId } });
     const updatedCourse = await Course.findByPk(courseId);
     
     res.json({ success: true, data: updatedCourse });
@@ -212,6 +211,108 @@ exports.deleteLesson = async (req, res, next) => {
     const lessonId = req.params.lessonId;
     await Lesson.destroy({ where: { id: lessonId } });
     res.json({ success: true, message: 'Đã xóa bài giảng' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/teacher/lessons/:lessonId/questions
+exports.getInteractiveQuestions = async (req, res, next) => {
+  try {
+    const { lessonId } = req.params;
+    const quiz = await Quiz.findOne({ where: { lesson_id: lessonId } });
+    if (!quiz) {
+      return res.json({ success: true, data: [] });
+    }
+    const questions = await Question.findAll({ 
+      where: { quiz_id: quiz.id },
+      order: [['video_timestamp', 'ASC']]
+    });
+    res.json({ success: true, data: questions });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/teacher/lessons/:lessonId/questions
+exports.addInteractiveQuestion = async (req, res, next) => {
+  try {
+    const { lessonId } = req.params;
+    const { content, video_timestamp, options, correct_answer } = req.body;
+
+    let quiz = await Quiz.findOne({ where: { lesson_id: lessonId } });
+    if (!quiz) {
+      quiz = await Quiz.create({ lesson_id: lessonId, time_limit: null, total_marks: 10 });
+    }
+
+    const question = await Question.create({
+      quiz_id: quiz.id,
+      content,
+      question_type: 'single_choice',
+      video_timestamp,
+      options,
+      correct_answer
+    });
+
+    res.json({ success: true, data: question });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE /api/teacher/questions/:questionId
+exports.deleteInteractiveQuestion = async (req, res, next) => {
+  try {
+    const { questionId } = req.params;
+    await Question.destroy({ where: { id: questionId } });
+    res.json({ success: true, message: 'Đã xóa câu hỏi' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/teacher/courses/:courseId/sync-curriculum
+exports.syncCurriculum = async (req, res, next) => {
+  try {
+    const courseId = req.params.courseId;
+    const { curriculum } = req.body; // array of sections
+
+    // Xóa tất cả lesson cũ của course này
+    await Lesson.destroy({ where: { course_id: courseId } });
+
+    // Thêm lại toàn bộ lesson mới
+    let order_index = 0;
+    const lessonsToInsert = [];
+    for (const section of curriculum) {
+      if (section.lectures && section.lectures.length > 0) {
+        for (const lec of section.lectures) {
+          lessonsToInsert.push({
+            course_id: courseId,
+            section_title: section.title,
+            title: lec.title || 'Bài giảng',
+            content_url: lec.url || '',
+            lesson_type: 'video',
+            order_index: order_index++
+          });
+        }
+      }
+    }
+
+    if (lessonsToInsert.length > 0) {
+      await Lesson.bulkCreate(lessonsToInsert);
+    }
+
+    res.json({ success: true, message: 'Đã đồng bộ chương trình học' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/teacher/categories
+exports.getCategories = async (req, res, next) => {
+  try {
+    const categories = await Category.findAll();
+    res.json({ success: true, data: categories });
   } catch (error) {
     next(error);
   }

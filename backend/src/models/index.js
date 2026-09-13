@@ -24,6 +24,8 @@ const Badge = require('./Badge');
 const UserBadge = require('./UserBadge');
 const Certificate = require('./Certificate');
 const TestCase = require('./TestCase');
+const LiveSession = require('./LiveSession');
+const ChatMessage = require('./ChatMessage');
 
 // ---- Associations ----
 
@@ -150,6 +152,19 @@ Certificate.belongsTo(User, { foreignKey: 'user_id', as: 'student' });
 Course.hasMany(Certificate, { foreignKey: 'course_id', as: 'certificates' });
 Certificate.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
 
+// Live Classroom associations
+Course.hasMany(LiveSession, { foreignKey: 'course_id', as: 'live_sessions' });
+LiveSession.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
+
+User.hasMany(LiveSession, { foreignKey: 'teacher_id', as: 'taught_sessions' });
+LiveSession.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
+
+LiveSession.hasMany(ChatMessage, { foreignKey: 'session_id', as: 'messages' });
+ChatMessage.belongsTo(LiveSession, { foreignKey: 'session_id', as: 'session' });
+
+User.hasMany(ChatMessage, { foreignKey: 'user_id', as: 'chat_messages' });
+ChatMessage.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -177,4 +192,6 @@ module.exports = {
   UserBadge,
   Certificate,
   TestCase,
+  LiveSession,
+  ChatMessage,
 };

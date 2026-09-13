@@ -13,6 +13,7 @@ const Classroom = () => {
   const [lessons, setLessons] = useState([]);
   const [activeLesson, setActiveLesson] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentVideoProgress, setCurrentVideoProgress] = useState(0);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -36,11 +37,17 @@ const Classroom = () => {
   }, [classId]);
 
   // Calculate progress
+  // Calculate overall progress including current video progress
   const completedCount = lessons.filter(l => l.completed).length;
-  const progressPercent = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
+  // If the active lesson is NOT completed yet, we add its partial progress (0 to 1) to the completed count.
+  const partialProgress = (activeLesson && !activeLesson.completed && activeLesson.type === 'video') ? currentVideoProgress : 0;
+  const progressPercent = lessons.length > 0 
+    ? Math.min(100, Math.round(((completedCount + partialProgress) / lessons.length) * 100))
+    : 0;
 
   const handleLessonClick = (lesson) => {
     setActiveLesson(lesson);
+    setCurrentVideoProgress(0);
   };
 
   const markAsCompleted = async () => {
@@ -94,8 +101,14 @@ const Classroom = () => {
           {activeLesson.type === 'video' ? (
             <div className="video-player-container" style={{ aspectRatio: '16/9', width: '100%' }}>
               <CustomVideoPlayer 
+                key={activeLesson.id}
                 url={activeLesson.content_url}
+                interactiveQuestions={activeLesson.interactiveQuestions}
+                onProgress={(played) => {
+                  setCurrentVideoProgress(played);
+                }}
                 onEnded={() => {
+                  setCurrentVideoProgress(1);
                   if (!activeLesson.completed) markAsCompleted();
                 }}
               />
@@ -137,14 +150,21 @@ const Classroom = () => {
               <p>{activeLesson.duration}</p>
             </div>
             <div className="lesson-actions">
-              <button 
-                className={`btn-complete ${activeLesson.completed ? 'completed' : ''}`}
-                onClick={markAsCompleted}
-                disabled={activeLesson.completed}
-              >
-                <FiCheckCircle size={18} />
-                {activeLesson.completed ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}
-              </button>
+              {activeLesson.type === 'video' ? (
+                <div className={`video-status-badge ${activeLesson.completed ? 'completed' : 'learning'}`}>
+                  <FiCheckCircle size={18} />
+                  {activeLesson.completed ? 'Đã học xong' : 'Đang học (Xem hết video để hoàn thành)'}
+                </div>
+              ) : (
+                <button 
+                  className={`btn-complete ${activeLesson.completed ? 'completed' : ''}`}
+                  onClick={markAsCompleted}
+                  disabled={activeLesson.completed}
+                >
+                  <FiCheckCircle size={18} />
+                  {activeLesson.completed ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -156,27 +176,41 @@ const Classroom = () => {
             <span>{completedCount}/{lessons.length} bài</span>
           </div>
           <div className="playlist-items">
-            {lessons.map((lesson, idx) => (
-              <div 
-                key={lesson.id} 
-                className={`playlist-item ${activeLesson.id === lesson.id ? 'active' : ''} ${lesson.completed ? 'completed' : ''}`}
-                onClick={() => handleLessonClick(lesson)}
-              >
-                <div className="item-icon">
-                  {lesson.completed ? (
-                    <FiCheckCircle color="#10B981" size={18} />
-                  ) : lesson.type === 'video' ? (
-                    <FiPlayCircle color="#64748B" size={18} />
-                  ) : lesson.type === 'quiz' ? (
-                    <FiAward color="#64748B" size={18} />
-                  ) : (
-                    <FiFileText color="#64748B" size={18} />
-                  )}
+            {Object.entries(
+              lessons.reduce((acc, lesson) => {
+                const sec = lesson.section_title || 'Chương trình học';
+                if (!acc[sec]) acc[sec] = [];
+                acc[sec].push(lesson);
+                return acc;
+              }, {})
+            ).map(([sectionTitle, sectionLessons], sIdx) => (
+              <div key={sIdx} style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', padding: '0 16px 8px 16px' }}>
+                  {sectionTitle}
                 </div>
-                <div className="item-details">
-                  <div className="item-title">{idx + 1}. {lesson.title}</div>
-                  <div className="item-duration">{lesson.duration}</div>
-                </div>
+                {sectionLessons.map((lesson, idx) => (
+                  <div 
+                    key={lesson.id} 
+                    className={`playlist-item ${activeLesson.id === lesson.id ? 'active' : ''} ${lesson.completed ? 'completed' : ''}`}
+                    onClick={() => handleLessonClick(lesson)}
+                  >
+                    <div className="item-icon">
+                      {lesson.completed ? (
+                        <FiCheckCircle color="#10B981" size={18} />
+                      ) : lesson.type === 'video' ? (
+                        <FiPlayCircle color="#64748B" size={18} />
+                      ) : lesson.type === 'quiz' ? (
+                        <FiAward color="#64748B" size={18} />
+                      ) : (
+                        <FiFileText color="#64748B" size={18} />
+                      )}
+                    </div>
+                    <div className="item-details">
+                      <div className="item-title">{lesson.title}</div>
+                      <div className="item-duration">{lesson.duration || '00:00'}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
           </div>

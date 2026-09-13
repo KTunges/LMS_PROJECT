@@ -32,6 +32,8 @@ import Transactions from './pages/student/Transactions';
 import Curriculum from './pages/student/Curriculum';
 import NotFound from './components/common/NotFound';
 import { ThemeProvider } from './contexts/ThemeContext';
+import LiveClassroom from './pages/teacher/LiveClassroom/LiveClassroom';
+import StudentLiveClassroom from './pages/student/LiveClassroom/StudentLiveClassroom';
 
 function App() {
   return (
@@ -79,6 +81,16 @@ function App() {
               <Route path="settings" element={<TeacherSettings />} />
             </Route>
 
+            {/* Teacher Live Classroom (No Layout so it takes full screen) */}
+            <Route
+              path="/portal-giang-vien/live/:sessionId"
+              element={
+                <ProtectedRoute roles={['teacher']}>
+                  <LiveClassroom />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Student routes */}
             <Route
               path="/student"
@@ -103,6 +115,16 @@ function App() {
               <Route path="achievements" element={<Achievements />} />
               <Route path="transactions" element={<Transactions />} />
             </Route>
+
+            {/* Student Live Classroom (No Layout) */}
+            <Route
+              path="/student/live/:sessionId"
+              element={
+                <ProtectedRoute roles={['student']}>
+                  <StudentLiveClassroom />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Public Login page */}
             <Route path="/login" element={<AuthPage />} />

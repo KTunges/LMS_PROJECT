@@ -2,7 +2,10 @@ require('dotenv').config();
 const app = require('./src/app');
 const { sequelize } = require('./src/models');
 
-const PORT = process.env.PORT || 5000;
+const http = require('http');
+const initializeSocket = require('./src/socket');
+
+const PORT = process.env.PORT || 5005;
 
 const startServer = async () => {
   try {
@@ -16,7 +19,13 @@ const startServer = async () => {
       console.log('✅ Đồng bộ models thành công');
     }
 
-    app.listen(PORT, () => {
+    const server = http.createServer(app);
+    const io = initializeSocket(server);
+
+    // Make io accessible in routes if needed
+    app.set('io', io);
+
+    server.listen(PORT, () => {
       console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
       console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

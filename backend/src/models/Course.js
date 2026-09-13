@@ -22,7 +22,7 @@ const Course = sequelize.define('Course', {
     defaultValue: 0,
   },
   image_url: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT,
     allowNull: true,
   },
   level: {

@@ -220,6 +220,33 @@
   background-color: #2563EB;
 }
 
+.btn-complete:disabled {
+  opacity: 0.8;
+  cursor: default;
+}
+
+.video-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.video-status-badge.learning {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.video-status-badge.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 .btn-complete.completed {
   background-color: #10B981;
   cursor: not-allowed;

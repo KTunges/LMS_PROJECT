@@ -22,4 +22,7 @@ router.get('/gamification', studentController.getGamificationStatus);
 // Code Execution
 router.post('/code/execute', studentController.executeCode);
 
+// Interactive Questions
+router.post('/questions/:id/check', studentController.checkInteractiveAnswer);
+
 module.exports = router;
