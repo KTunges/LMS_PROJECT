@@ -16,8 +16,11 @@ const StudentLiveClassroom = () => {
   const [messages, setMessages] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [streamActive, setStreamActive] = useState(false);
   
   const messagesEndRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const teacherVideoRef = useRef(null);
 
   useEffect(() => {
     // 1. Fetch initial chat history
@@ -75,7 +78,56 @@ const StudentLiveClassroom = () => {
       navigate('/student');
     });
 
+    // --- WebRTC Student Side ---
+    newSocket.on('webrtc-offer', async (data) => {
+      console.log('Received WebRTC offer from teacher');
+      setStreamActive(true);
+      
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      peerConnectionRef.current = pc;
+      
+      pc.ontrack = (event) => {
+        console.log('Received remote track');
+        if (teacherVideoRef.current) {
+          teacherVideoRef.current.srcObject = event.streams[0];
+        }
+      };
+      
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          newSocket.emit('ice-candidate', {
+            targetSocketId: data.senderSocketId,
+            candidate: event.candidate
+          });
+        }
+      };
+      
+      await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      
+      newSocket.emit('webrtc-answer', {
+        targetSocketId: data.senderSocketId,
+        sdp: answer
+      });
+    });
+
+    newSocket.on('ice-candidate', async (data) => {
+      if (peerConnectionRef.current) {
+        try {
+          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } catch (e) {
+          console.error('Error adding received ice candidate', e);
+        }
+      }
+    });
+
     return () => {
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+      }
       newSocket.disconnect();
     };
   }, [sessionId, user, navigate]);
@@ -111,10 +163,19 @@ const StudentLiveClassroom = () => {
       {/* LEFT: Video/Screen Sharing Area (Mockup for now) */}
       <div className="live-main-area">
         <div className="live-video-container">
-          <div className="video-placeholder">
-            <FiVideoOff size={48} />
-            <p>Đang chờ Giảng viên chia sẻ màn hình...</p>
-          </div>
+          {streamActive ? (
+            <video 
+              ref={teacherVideoRef} 
+              autoPlay 
+              playsInline 
+              style={{ width: '100%', height: '100%', backgroundColor: '#000', objectFit: 'contain' }}
+            />
+          ) : (
+            <div className="video-placeholder">
+              <FiVideoOff size={48} />
+              <p>Đang chờ Giảng viên chia sẻ màn hình...</p>
+            </div>
+          )}
 
           {/* Student Controls */}
           <div className="live-controls">

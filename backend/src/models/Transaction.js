@@ -1,0 +1,39 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const Transaction = sequelize.define('Transaction', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  student_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  course_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    defaultValue: 0,
+  },
+  payment_method: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    defaultValue: 'internal',
+  },
+  status: {
+    type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),
+    defaultValue: 'completed',
+  },
+}, {
+  tableName: 'transactions',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+});
+
+module.exports = Transaction;

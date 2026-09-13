@@ -25,6 +25,7 @@ const UserBadge = require('./UserBadge');
 const Certificate = require('./Certificate');
 const TestCase = require('./TestCase');
 const LiveSession = require('./LiveSession');
+const Transaction = require('./Transaction');
 const ChatMessage = require('./ChatMessage');
 
 // ---- Associations ----
@@ -159,6 +160,10 @@ LiveSession.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
 User.hasMany(LiveSession, { foreignKey: 'teacher_id', as: 'taught_sessions' });
 LiveSession.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
 
+User.hasMany(Transaction, { foreignKey: 'student_id', as: 'transactions' });
+Transaction.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+Transaction.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
+
 LiveSession.hasMany(ChatMessage, { foreignKey: 'session_id', as: 'messages' });
 ChatMessage.belongsTo(LiveSession, { foreignKey: 'session_id', as: 'session' });
 
@@ -193,5 +198,6 @@ module.exports = {
   Certificate,
   TestCase,
   LiveSession,
+  Transaction,
   ChatMessage,
 };

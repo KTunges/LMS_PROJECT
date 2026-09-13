@@ -57,6 +57,7 @@ const Schedule = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [scheduleData, setScheduleData] = useState([]);
   const [examData, setExamData] = useState([]);
+  const [specialEvents, setSpecialEvents] = useState([]);
   const [viewMode, setViewMode] = useState('all'); // 'all', 'study', 'exam'
 
   useEffect(() => {
@@ -88,28 +89,15 @@ const Schedule = () => {
 
         setScheduleData(events);
 
-        // Mock Thêm Deadlines / Live Class theo luồng E-learning
-        events.push({
-          id: 991,
-          name: 'Bài thi trắc nghiệm Ôn tập',
-          day: 'T5',
-          shift: 4,
-          room: 'Làm bài Online',
-          teacher: 'Hạn chót: 17:45',
-          type: 'deadline', // Hạn chót
-          color: 'red'
-        });
-
-        events.push({
-          id: 992,
-          name: 'Live: Giải đáp thắc mắc',
-          day: 'T7',
-          shift: 3,
-          room: 'Phòng Zoom 123',
-          teacher: 'TS. Nguyễn Văn A',
-          type: 'live', // Lớp học Live
-          color: 'purple'
-        });
+        // Fetch special events from API (deadlines, live sessions)
+        try {
+          const scheduleRes = await studentService.getSchedule();
+          if (scheduleRes.data) {
+            setSpecialEvents(scheduleRes.data);
+          }
+        } catch (err) {
+          console.error("Lỗi lấy lịch sự kiện", err);
+        }
 
         // Fetch exam data from API
         try {
@@ -198,7 +186,40 @@ const Schedule = () => {
       }));
     }
 
-    return [...classes, ...exams][0]; // Return the first event for the slot
+    // 3. Special Events (Deadlines, Live sessions) from new API
+    let specials = [];
+    if (viewMode === 'all') {
+      const dayIndex = days.indexOf(day);
+      const cellDate = addDays(currentMonday, dayIndex);
+      const cellDateStr = format(cellDate, 'yyyy-MM-dd');
+
+      specials = specialEvents.filter(event => {
+        if (!event.date) return false;
+        const eventDateStr = event.date.substring(0, 10); // get YYYY-MM-DD
+        if (eventDateStr !== cellDateStr) return false;
+        
+        // Parse time to shift (Assuming we map hour to shift)
+        const eventDateObj = new Date(event.date);
+        const startHour = eventDateObj.getHours();
+        let evShift = 1;
+        if (startHour >= 7 && startHour <= 10) evShift = 1;
+        else if (startHour >= 10 && startHour <= 12) evShift = 2;
+        else if (startHour >= 13 && startHour <= 15) evShift = 3;
+        else if (startHour >= 15 && startHour <= 18) evShift = 4;
+        else evShift = shiftId; // fallback to randomly display if time is weird
+        
+        return evShift === shiftId;
+      }).map(event => ({
+        id: event.id,
+        name: event.title,
+        type: event.type,
+        room: event.type === 'deadline' ? 'Online' : 'Phòng Live',
+        teacher: event.className, 
+        color: event.type === 'deadline' ? 'red' : 'purple'
+      }));
+    }
+
+    return [...classes, ...exams, ...specials][0]; // Return the first event for the slot
   };
 
   return (

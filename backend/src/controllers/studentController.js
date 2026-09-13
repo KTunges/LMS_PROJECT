@@ -1,4 +1,4 @@
-const { Class, Course, Enrollment, Grade, Semester, User, Notification, Assignment, Submission, Material, Category } = require('../models');
+const { Class, Course, Enrollment, Grade, Semester, User, Notification, Assignment, Submission, Material, Category, Transaction } = require('../models');
 
 // GET /api/student/dashboard
 exports.getDashboardStats = async (req, res, next) => {
@@ -408,6 +408,18 @@ exports.enrollInCourse = async (req, res, next) => {
       total_score: 0,
       note: 'Mới đăng ký'
     });
+
+    // Tạo bản ghi giao dịch (Transaction)
+    const course = await Course.findByPk(courseId);
+    if (course) {
+      await Transaction.create({
+        student_id: studentId,
+        course_id: courseId,
+        amount: course.price || 0,
+        payment_method: 'internal',
+        status: 'completed'
+      });
+    }
 
     res.json({ success: true, message: 'Đăng ký khóa học thành công' });
   } catch (error) {

@@ -12,4 +12,7 @@ export const studentService = {
   completeLesson: (lessonId) => api.post(`/student/lessons/${lessonId}/complete`),
   getGamification: () => api.get('/student/gamification'),
   downloadMaterial: (id) => api.get(`/student/materials/${id}/download`, { responseType: 'blob' }),
+  getSchedule: () => api.get('/student/schedule'),
+  getTransactions: () => api.get('/student/transactions'),
+  getAchievements: () => api.get('/student/achievements'),
 };

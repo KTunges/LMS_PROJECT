@@ -1,52 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiDownload, FiCheckCircle, FiClock, FiXCircle, FiCreditCard } from 'react-icons/fi';
+import { studentService } from '../../services';
 import './Transactions.css';
-
-const MOCK_TRANSACTIONS = [
-  {
-    id: 'TXN-88192',
-    courseName: 'Luyện thi IELTS Target 7.0+',
-    amount: 599000,
-    date: '10/09/2026',
-    status: 'success',
-    method: 'VNPay'
-  },
-  {
-    id: 'TXN-88145',
-    courseName: 'Trí tuệ nhân tạo (AI) Thực chiến',
-    amount: 899000,
-    date: '05/09/2026',
-    status: 'success',
-    method: 'Momo'
-  },
-  {
-    id: 'TXN-88102',
-    courseName: 'Làm chủ Figma trong 7 ngày',
-    amount: 0,
-    date: '01/09/2026',
-    status: 'success',
-    method: 'Miễn phí'
-  },
-  {
-    id: 'TXN-88099',
-    courseName: 'Hệ quản trị Cơ sở dữ liệu',
-    amount: 299000,
-    date: '30/08/2026',
-    status: 'failed',
-    method: 'VNPay'
-  }
-];
 
 const Transactions = () => {
   const [filter, setFilter] = useState('all');
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const res = await studentService.getTransactions();
+        if (res.data) {
+          setTransactions(res.data);
+        }
+      } catch (error) {
+        console.error("Lỗi lấy lịch sử giao dịch:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, []);
 
   const filteredTxns = filter === 'all' 
-    ? MOCK_TRANSACTIONS 
-    : MOCK_TRANSACTIONS.filter(t => t.status === filter);
+    ? transactions 
+    : transactions.filter(t => t.status === filter);
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'success':
+      case 'completed':
         return <span className="badge success"><FiCheckCircle /> Thành công</span>;
       case 'pending':
         return <span className="badge warning"><FiClock /> Đang xử lý</span>;
@@ -71,55 +55,58 @@ const Transactions = () => {
 
       <div className="transactions-content glass-card">
         <div className="transactions-filters">
-          <button className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Tất cả</button>
-          <button className={`filter-tab ${filter === 'success' ? 'active' : ''}`} onClick={() => setFilter('success')}>Thành công</button>
-          <button className={`filter-tab ${filter === 'failed' ? 'active' : ''}`} onClick={() => setFilter('failed')}>Thất bại</button>
+          <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Tất cả</button>
+          <button className={`filter-btn ${filter === 'completed' ? 'active' : ''}`} onClick={() => setFilter('completed')}>Thành công</button>
+          <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Đang xử lý</button>
+          <button className={`filter-btn ${filter === 'failed' ? 'active' : ''}`} onClick={() => setFilter('failed')}>Thất bại</button>
         </div>
 
-        <div className="table-responsive">
-          <table className="transactions-table">
-            <thead>
-              <tr>
-                <th>Mã giao dịch</th>
-                <th>Khóa học</th>
-                <th>Số tiền</th>
-                <th>Phương thức</th>
-                <th>Ngày giao dịch</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTxns.map(txn => (
-                <tr key={txn.id}>
-                  <td className="fw-bold">{txn.id}</td>
-                  <td>{txn.courseName}</td>
-                  <td className={txn.amount === 0 ? 'text-green fw-bold' : 'fw-bold'}>
-                    {txn.amount === 0 ? 'Miễn phí' : `${txn.amount.toLocaleString()}đ`}
-                  </td>
-                  <td>{txn.method}</td>
-                  <td>{txn.date}</td>
-                  <td>{getStatusBadge(txn.status)}</td>
-                  <td>
-                    {txn.status === 'success' && (
-                      <button className="btn-icon" title="Tải biên lai">
-                        <FiDownload /> Biên lai
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              
-              {filteredTxns.length === 0 && (
+        {isLoading ? (
+          <div style={{ padding: '40px', textAlign: 'center' }}>Đang tải lịch sử giao dịch...</div>
+        ) : filteredTxns.length === 0 ? (
+          <div className="empty-transactions">
+            <FiCreditCard size={48} color="#cbd5e1" />
+            <p>Không có giao dịch nào.</p>
+          </div>
+        ) : (
+          <div className="transactions-table-wrapper glass-card">
+            <table className="transactions-table">
+              <thead>
                 <tr>
-                  <td colSpan="7" className="text-center py-4 text-muted">
-                    Không có giao dịch nào phù hợp.
-                  </td>
+                  <th>Mã giao dịch</th>
+                  <th>Khóa học</th>
+                  <th>Số tiền</th>
+                  <th>Phương thức</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredTxns.map(txn => (
+                  <tr key={txn.id}>
+                    <td>TXN-{txn.id}</td>
+                    <td>
+                      <div className="txn-course-name">{txn.description}</div>
+                      <div className="txn-date">{new Date(txn.date).toLocaleDateString('vi-VN')}</div>
+                    </td>
+                    <td className="txn-amount">{Number(txn.amount).toLocaleString()}đ</td>
+                    <td>
+                      <span className="payment-method">{txn.paymentMethod === 'internal' ? 'Nội bộ / Mặc định' : txn.paymentMethod}</span>
+                    </td>
+                    <td>{getStatusBadge(txn.status)}</td>
+                    <td>
+                      {txn.status === 'completed' && (
+                        <button className="btn-icon" title="Tải biên lai">
+                          <FiDownload /> Biên lai
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

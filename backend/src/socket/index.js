@@ -106,6 +106,31 @@ module.exports = function initializeSocket(server) {
         }
       }
     });
+
+    // --- WebRTC Signaling ---
+    socket.on('webrtc-offer', (data) => {
+      // Teacher sends offer to a specific student (or broadcast to room)
+      socket.to(data.targetSocketId).emit('webrtc-offer', {
+        sdp: data.sdp,
+        senderSocketId: socket.id
+      });
+    });
+
+    socket.on('webrtc-answer', (data) => {
+      // Student sends answer back to teacher
+      socket.to(data.targetSocketId).emit('webrtc-answer', {
+        sdp: data.sdp,
+        senderSocketId: socket.id
+      });
+    });
+
+    socket.on('ice-candidate', (data) => {
+      // Send ICE candidates to peers
+      socket.to(data.targetSocketId).emit('ice-candidate', {
+        candidate: data.candidate,
+        senderSocketId: socket.id
+      });
+    });
   });
 
   return io;

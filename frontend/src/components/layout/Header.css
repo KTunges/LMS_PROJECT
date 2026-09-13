@@ -255,3 +255,27 @@
     display: none;
   }
 }
+
+/* --- Dark Mode Overrides for Header --- */
+:root.dark-theme .header__search {
+  background: var(--theme-bg-grad-1);
+}
+:root.dark-theme .header__search-input,
+:root.dark-theme .header__search-item-content h4,
+:root.dark-theme .header__user-name {
+  color: #ffffff;
+}
+:root.dark-theme .header__search-item-content span {
+  color: var(--theme-text-muted);
+}
+:root.dark-theme .header__search-dropdown {
+  background: var(--theme-card-bg);
+}
+:root.dark-theme .header__search-item:hover,
+:root.dark-theme .header__search-item.active {
+  background: #334155;
+}
+:root.dark-theme .header__search-kbd {
+  background: var(--theme-bg-main);
+  color: #94a3b8;
+}

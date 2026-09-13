@@ -1,340 +1,293 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../../../styles/shared.css';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
-  FiTrendingUp, FiCheckCircle, FiBookOpen, FiAward as FiGrades, 
-  FiCalendar, FiCreditCard, FiPrinter, FiGlobe, FiMessageCircle,
-  FiMonitor, FiDatabase, FiCpu, FiLock, FiSmartphone,
-  FiFileText, FiClock, FiStar, FiBell, FiDownload
+  FiBookOpen, FiAward, FiCalendar, FiCompass, FiCreditCard,
+  FiTrendingUp, FiActivity, FiClock, FiStar, FiChevronRight,
+  FiZap, FiTarget, FiFileText, FiVideo, FiPlayCircle
 } from 'react-icons/fi';
-import { SkeletonCard, SkeletonProfile } from '../../../components/common/SkeletonLoaders';
 import { studentService } from '../../../services';
 import { useAuth } from '../../../contexts/AuthContext';
+import './Dashboard.css';
+import './DashboardExtensions.css';
 
 const Dashboard = () => {
-  const [statsData, setStatsData] = useState({
-    activeClasses: 0,
-    completedClasses: 0,
-    gpa: 0,
-    unreadNotifications: 0,
-    schedule: [],
-    announcements: [],
-    suggestedMaterials: [],
-    upcomingAssignments: []
-  });
-  const [activeCourses, setActiveCourses] = useState([]);
-  const [gamification, setGamification] = useState({
-    xp: 0,
-    level: 1,
-    badges: [],
-    certificates: []
-  });
-  const navigate = useNavigate();
-
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const [statsData, setStatsData] = useState({});
+  const [activeCourses, setActiveCourses] = useState([]);
+  const [gamification, setGamification] = useState({ xp: 0, level: 1, badges: [] });
+  const [featuredCourses, setFeaturedCourses] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const stats = [
-    { label: 'Khóa học đang học', value: statsData.activeClasses, subtext: 'Cần hoàn thành', subvalue: '', positive: true },
-    { label: 'Điểm đánh giá', value: `${Math.round(statsData.gpa * 10)}/100`, subtext: 'Dựa trên kết quả', subvalue: '', positive: true },
-    { label: 'Khóa đã hoàn thành', value: statsData.completedClasses, subtext: 'Chứng chỉ e-learning', subvalue: '', positive: true },
-    { label: 'Thông báo mới', value: statsData.unreadNotifications, subtext: 'Cần xem ngay', subvalue: '', positive: true },
-  ];
+  // Mock heatmap data (36 cells for last 36 days)
+  const heatmapData = Array.from({ length: 36 }).map(() => Math.floor(Math.random() * 5));
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const [statsRes, classesRes, gamiRes, catalogRes, leaderRes, materialRes] = await Promise.all([
+          studentService.getDashboardStats(),
+          studentService.getMyClasses(),
+          studentService.getGamification(),
+          studentService.getCatalog(),
+          studentService.getLeaderboard(),
+          studentService.getMaterials()
+        ]);
+        
+        if (statsRes.data?.success) setStatsData(statsRes.data.data || {});
+        if (classesRes.data?.success) setActiveCourses(classesRes.data.data || []);
+        if (gamiRes.data?.success) setGamification(gamiRes.data.data || { xp: 0, level: 1, badges: [] });
+        if (catalogRes.data?.success) {
+          setFeaturedCourses((catalogRes.data.data || []).slice(0, 4)); // Show 4 for better grid
+        }
+        if (leaderRes.data?.success) {
+          setLeaderboard((leaderRes.data.data || []).slice(0, 5));
+        }
+        if (materialRes.data?.success) {
+          setMaterials((materialRes.data.data || []).slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAllData();
+  }, []);
 
   const quickLinks = [
-    { icon: <FiBookOpen size={18} />, label: 'Vào học ngay', path: '/student/my-classes' },
-    { icon: <FiGrades size={18} />, label: 'Bảng xếp hạng', path: '/student/leaderboard' },
-    { icon: <FiCalendar size={18} />, label: 'Lịch trình', path: '/student/schedule' },
-    { icon: <FiFileText size={18} />, label: 'Khám phá', path: '/student/catalog' },
-    { icon: <FiPrinter size={18} />, label: 'Chứng nhận', path: '/student/results' },
-    { icon: <FiCreditCard size={18} />, label: 'Giao dịch', path: '/student/transactions' },
+    { icon: <FiBookOpen />, label: 'Vào học ngay', path: '/student/my-classes' },
+    { icon: <FiCompass />, label: 'Khám phá', path: '/student/catalog' },
+    { icon: <FiCalendar />, label: 'Lịch trình', path: '/student/schedule' },
+    { icon: <FiAward />, label: 'Thành tựu', path: '/student/achievements' },
   ];
-
-  const schedule = statsData.schedule || [];
 
   const deadlines = (statsData.upcomingAssignments || []).map(assignment => {
     const dueDate = new Date(assignment.due_date);
     const diffTime = dueDate - new Date();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return {
+      id: assignment.id,
       title: assignment.title,
-      category: assignment.class?.course?.name || 'Chung',
-      date: dueDate.toLocaleString('vi-VN'),
-      daysLeft: diffDays > 0 ? `${diffDays} ngày tới` : 'Quá hạn',
+      courseName: assignment.class?.course?.name || 'Chung',
+      dueDate,
       urgent: diffDays <= 2
     };
-  });
-
-  const announcements = statsData.announcements || [];
-  const suggestedMaterials = statsData.suggestedMaterials || [];
-
-
-
-  // Calculate progress percentage
-  const totalLessons = 150;
-  const completedLessons = 112;
-  const progressPercent = Math.round((completedLessons / totalLessons) * 100);
-
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const [statsRes, classesRes, gamificationRes] = await Promise.all([
-          studentService.getDashboardStats(),
-          studentService.getMyClasses(),
-          studentService.getGamification()
-        ]);
-        
-        if (statsRes.data && statsRes.data.success) {
-          setStatsData(statsRes.data.data);
-        }
-        
-        if (classesRes.data && classesRes.data.success) {
-          const courses = classesRes.data.data.map(c => ({
-            id: c.id,
-            name: c.course_name,
-            progress: c.progress || 0,
-            nextTask: 'Tiếp tục bài học'
-          }));
-          setActiveCourses(courses.slice(0, 3)); // Only take top 3 for dashboard
-        }
-
-        if (gamificationRes.data?.success) {
-          setGamification(gamificationRes.data.data);
-        }
-      } catch (error) {
-        console.error("Dashboard fetch error:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboard();
-  }, []);
+  }).slice(0, 4);
 
   if (isLoading) {
-    return (
-      <div className="dashboard">
-        <div style={{ marginBottom: '32px' }}>
-          <div className="skeleton skeleton-title" style={{ width: '300px', height: '40px' }}></div>
-          <div className="skeleton skeleton-text" style={{ width: '400px' }}></div>
-        </div>
-        <div className="dashboard__stats-row" style={{ marginBottom: '24px' }}>
-          {Array(4).fill(0).map((_, i) => (
-            <div key={i} className="student-stat-card glass-card">
-              <div className="skeleton skeleton-text" style={{ width: '60%' }}></div>
-              <div className="skeleton skeleton-title" style={{ width: '40%', height: '36px', marginTop: '12px' }}></div>
-            </div>
-          ))}
-        </div>
-        <div className="dashboard__grid">
-          <div className="dashboard__col-left">
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-          <div className="dashboard__col-right">
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        </div>
-      </div>
-    );
+    return <div style={{ padding: '40px', textAlign: 'center' }}>Đang tải bảng điều khiển...</div>;
   }
 
+  const currentLearning = activeCourses.length > 0 ? activeCourses[0] : null;
+
   return (
-    <div className="dashboard">
-      {/* HEADER */}
-      <div className="dashboard__greeting">
-        <h1 className="dashboard__greeting-title">
-          Xin chào, <span className="gradient-text">{user?.full_name || 'Học viên'}</span> <span className="wave">👋</span>
-        </h1>
-        <p className="dashboard__greeting-subtitle">Sẵn sàng để tiếp tục chuỗi ngày học tập tuyệt vời của bạn chưa?</p>
+    <div className="dashboard-page-premium fade-in">
+      
+      {/* --- BANNER WELCOME --- */}
+      <div className="welcome-banner">
+        <div className="welcome-text">
+          <h1>Chào mừng trở lại, {user?.full_name ? user.full_name.split(' ').pop() : 'Sinh viên'}! 👋</h1>
+          <p>Hôm nay là một ngày tuyệt vời để học một điều mới.</p>
+          <div className="quote-container">
+            "Học tập là hạt giống của kiến thức, kiến thức là hạt giống của hạnh phúc."
+          </div>
+        </div>
+        
+        <div className="welcome-stats">
+          <div className="stat-item">
+            <span className="stat-value">Lv. {gamification?.level || 1}</span>
+            <span className="stat-label">Cấp độ</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{(gamification?.xp || 0).toLocaleString()}</span>
+            <span className="stat-label">Điểm XP</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{gamification?.badges?.length || 0}</span>
+            <span className="stat-label">Huy hiệu</span>
+          </div>
+        </div>
       </div>
 
-      {/* STATS ROW */}
-      <div className="dashboard__stats-row">
-        {stats.map((stat, idx) => (
-          <div key={idx} className="student-stat-card glass-card">
-            <div className="stat-card__label">{stat.label}</div>
-            <div className="stat-card__value-row">
-              <span className="stat-card__value">{stat.value}</span>
-              {stat.subvalue && (
-                <span className={`stat-card__subvalue ${stat.positive ? 'positive' : 'negative'}`}>
-                  {stat.positive ? <FiTrendingUp size={14} /> : null} {stat.subvalue}
-                </span>
+      {/* --- RESTRUCTURED 2-COLUMN GRID --- */}
+      <div className="dashboard-grid">
+        
+        {/* LEFT COLUMN: MAIN CONTENT (2fr) */}
+        <div className="main-column">
+          
+          {/* Continue Learning */}
+          <div className="premium-card">
+            <div className="section-header">
+              <h2><FiTarget /> Đang học dở</h2>
+            </div>
+            {currentLearning ? (
+              <div className="active-learning-card">
+                <img src={currentLearning.course?.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=300&auto=format&fit=crop'} alt="course" className="alc-image" />
+                <div className="alc-content">
+                  <div className="alc-title">{currentLearning.course?.name}</div>
+                  <div className="alc-subtitle">Tiến độ khóa học của bạn rất tốt!</div>
+                  <div className="alc-progress">
+                    <div className="alc-bar-bg">
+                      <div className="alc-bar-fill" style={{ width: `${currentLearning.progress || 10}%` }}></div>
+                    </div>
+                    <span className="alc-percent">{currentLearning.progress || 10}%</span>
+                  </div>
+                  <button className="alc-btn" onClick={() => navigate(`/student/classroom/${currentLearning.course_id}`)}>
+                    Tiếp tục học ngay
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state">Bạn chưa đăng ký khóa học nào.</div>
+            )}
+          </div>
+
+          {/* Featured Courses */}
+          <div className="premium-card">
+            <div className="section-header">
+              <h2><FiStar /> Khóa học nổi bật</h2>
+              <Link to="/student/catalog" className="view-all">Xem tất cả <FiChevronRight/></Link>
+            </div>
+            <div className="featured-courses">
+              {featuredCourses.map(course => (
+                <div key={course.id} className="course-premium-card" onClick={() => navigate(`/student/course/${course.id}`)}>
+                  <div className="cpc-image">
+                    <img src={course.thumbnail_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop'} alt={course.name} />
+                    <span className="cpc-tag">{course.level || 'Beginner'}</span>
+                  </div>
+                  <div className="cpc-content">
+                    <h3 className="cpc-title">{course.name}</h3>
+                    <div className="cpc-teacher">
+                      <FiBookOpen /> {course.lessons?.length || 10} bài học
+                    </div>
+                    <div className="cpc-footer">
+                      <span className="cpc-price">{!course.price || Number(course.price) === 0 ? 'Miễn phí' : `${Number(course.price).toLocaleString()}đ`}</span>
+                      <button className="cpc-btn">Xem chi tiết</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Activity Heatmap */}
+          <div className="premium-card activity-card">
+            <div className="section-header" style={{ marginBottom: '1rem' }}>
+              <h2><FiActivity /> Biểu đồ học tập (36 ngày qua)</h2>
+            </div>
+            <div className="heatmap-grid">
+              {heatmapData.map((level, i) => (
+                <div key={i} className={`heatmap-cell level-${level}`} title={`Hoạt động ngày ${36-i} trước`} />
+              ))}
+            </div>
+            <div className="activity-legend">
+              Ít <div className="legend-box" style={{ background: '#f1f5f9' }}></div>
+              <div className="legend-box level-1"></div>
+              <div className="legend-box level-2"></div>
+              <div className="legend-box level-3"></div>
+              <div className="legend-box level-4"></div> Nhiều
+            </div>
+          </div>
+
+        </div>
+
+        {/* RIGHT COLUMN: SIDEBAR (1fr) */}
+        <div className="side-column">
+          
+          {/* Quick Links */}
+          <div className="premium-card">
+            <div className="section-header">
+              <h2><FiZap /> Truy cập nhanh</h2>
+            </div>
+            <div className="quick-links-grid">
+              {quickLinks.map((link, idx) => (
+                <Link to={link.path} key={idx} className="quick-link-btn">
+                  <div className="ql-icon">{link.icon}</div>
+                  <span>{link.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Leaderboard */}
+          <div className="premium-card">
+            <div className="section-header">
+              <h2><FiTrendingUp /> Bảng xếp hạng XP</h2>
+              <Link to="/student/leaderboard" className="view-all">Chi tiết</Link>
+            </div>
+            <div className="mini-leaderboard">
+              {leaderboard.length > 0 ? (
+                leaderboard.map((student, idx) => (
+                  <div key={student.id} className="ml-item">
+                    <div className={`ml-rank top-${idx + 1}`}>{idx + 1}</div>
+                    <img src={student.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.full_name)}&background=random`} alt="avatar" className="ml-avatar" />
+                    <div className="ml-info">
+                      <div className="ml-name">{student.full_name}</div>
+                      <div className="ml-xp">{(student.xp || 0).toLocaleString()} XP</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">Chưa có dữ liệu xếp hạng</div>
               )}
             </div>
-            <div className="stat-card__subtext">{stat.subtext}</div>
           </div>
-        ))}
-      </div>
 
-      {/* MAIN GRID */}
-      <div className="dashboard__grid">
-        {/* LEFT COLUMN */}
-        <div className="dashboard__col-left">
-          
-          {/* Top Row: Progress & Quick Links */}
-          <div className="dashboard__top-row">
-            {/* Gamification Widget */}
-            <div className="card dashboard-card widget-progress">
-              <h3 className="card__title">Hành trình Level <span style={{color: '#f59e0b'}}>🔥 {gamification.level}</span></h3>
-              <div className="progress-container">
-                <div className="circular-progress" style={{ '--progress': `${(gamification.xp % 500) / 5}%` }}>
-                  <div className="ring-outer"></div>
-                  <div className="ring-inner"></div>
-                  <div className="progress-value">
-                    <div className="value-completed">
-                      <span className="percent">{gamification.xp}</span>
-                      <span className="credits">XP</span>
+          {/* Schedule / Deadlines */}
+          <div className="premium-card">
+            <div className="section-header">
+              <h2><FiClock /> Sắp tới hạn</h2>
+              <Link to="/student/schedule" className="view-all">Lịch học</Link>
+            </div>
+            <div className="mini-deadlines">
+              {deadlines.length > 0 ? (
+                deadlines.map((dl, idx) => (
+                  <div key={idx} className="md-item">
+                    <div className={`md-icon ${dl.urgent ? 'urgent' : 'normal'}`}>
+                      <FiActivity />
                     </div>
-                    <div className="value-total">
-                      <span>Cần {500 - (gamification.xp % 500)} XP nữa để lên cấp</span>
+                    <div className="md-info">
+                      <h4>{dl.title}</h4>
+                      <p>{dl.courseName}</p>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Links Widget */}
-            <div className="card dashboard-card widget-quick-links">
-              <h3 className="card__title">Truy cập nhanh</h3>
-              <div className="quick-links">
-                {quickLinks.map((link, idx) => (
-                  <button key={idx} className="quick-link-btn" onClick={() => navigate(link.path)}>
-                    <span className="quick-link-icon">{link.icon}</span>
-                    <span className="quick-link-label">{link.label}</span>
-                  </button>
-                ))}
-              </div>
+                ))
+              ) : (
+                <div className="empty-state">Không có sự kiện nào sắp tới. Tuyệt vời!</div>
+              )}
             </div>
           </div>
 
-          {/* Suggested Materials Widget */}
-          <div className="card dashboard-card">
-            <h3 className="card__title">Tài liệu học tập đề xuất</h3>
+          {/* Suggested Materials */}
+          <div className="premium-card">
+            <div className="section-header">
+              <h2><FiFileText /> Tài nguyên mới</h2>
+              <Link to="/student/resource-center" className="view-all">Tất cả</Link>
+            </div>
             <div className="suggested-materials">
-              {suggestedMaterials.map(mat => (
-                <div key={mat.id} className="material-card">
-                  <div className="material-icon">
-                    <FiFileText size={24} />
+              {materials.map((mat, idx) => (
+                <div key={idx} className="material-item">
+                  <div className={`material-icon ${mat.file_url?.endsWith('pdf') ? 'pdf' : 'video'}`}>
+                    {mat.file_url?.endsWith('pdf') ? <FiFileText /> : <FiPlayCircle />}
                   </div>
                   <div className="material-info">
-                    <h4 className="material-title">{mat.title}</h4>
-                    <p className="material-subject">{mat.subject}</p>
-                    <div className="material-meta">
-                      <span className="material-type">{mat.type}</span>
-                      <span className="material-size">{mat.size}</span>
-                    </div>
-                  </div>
-                  <button className="btn-download-icon">
-                    <FiDownload size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Active Courses Widget */}
-          <div className="card dashboard-card">
-            <h3 className="card__title">Khóa học đang tham gia</h3>
-            <div className="active-courses">
-              {activeCourses.map(course => (
-                <div key={course.id} className="course-progress-card">
-                  <div className="course-progress-header">
-                    <h4 className="course-progress-title">{course.name}</h4>
-                    <span className="course-progress-percent">{course.progress}%</span>
-                  </div>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: `${course.progress}%` }}></div>
-                  </div>
-                  <div className="course-progress-footer">
-                    <span className="next-task-label">Tiếp theo:</span>
-                    <span className="next-task-name">{course.nextTask}</span>
+                    <h4>{mat.title}</h4>
+                    <p>{mat.class?.course?.name || 'Tài liệu chung'}</p>
                   </div>
                 </div>
               ))}
+              {materials.length === 0 && (
+                <div className="empty-state">Chưa có tài nguyên nào.</div>
+              )}
             </div>
           </div>
 
         </div>
-
-        {/* RIGHT COLUMN */}
-        <div className="dashboard__col-right">
-          
-          {/* Schedule */}
-          <div className="card dashboard-card">
-            <div className="card__header">
-              <h3 className="card__title">Lịch học / Live Session</h3>
-              <button className="card__header-btn">Xem tất cả</button>
-            </div>
-            <div className="schedule-list">
-              {schedule.map((item, idx) => (
-                <div key={idx} className="schedule-item">
-                  <div className={`schedule-item__icon bg-${item.color || 'blue'}-light text-${item.color || 'blue'}`}>
-                    <FiMonitor size={20} />
-                  </div>
-                  <div className="schedule-item__content">
-                    <h4 className="schedule-item__subject">{item.subject}</h4>
-                    <p className="schedule-item__teacher">{item.teacher}</p>
-                  </div>
-                  <div className="schedule-item__meta">
-                    <div className="meta-time">
-                      <FiClock size={12} /> {item.time}
-                    </div>
-                    <div className="meta-room">
-                      <FiCheckCircle size={12} /> {item.room}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Announcements Widget */}
-          <div className="card dashboard-card">
-            <div className="card__header">
-              <h3 className="card__title">Thông báo hệ thống</h3>
-              <button className="card__header-btn">Xem tất cả</button>
-            </div>
-            <div className="announcement-list">
-              {announcements.map((ann, idx) => (
-                <div key={idx} className={`announcement-item ${ann.urgent ? 'urgent' : ''}`}>
-                  <div className="announcement-header">
-                    <span className="announcement-tag">{ann.tag}</span>
-                    <span className="announcement-date">{ann.date}</span>
-                  </div>
-                  <h4 className="announcement-title">
-                    {ann.urgent && <FiBell className="text-danger" style={{ marginRight: '6px' }} />}
-                    {ann.title}
-                  </h4>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Deadlines */}
-          <div className="card dashboard-card">
-            <div className="card__header">
-              <h3 className="card__title">Sắp đến hạn</h3>
-            </div>
-            <div className="deadline-list">
-              {deadlines.map((item, idx) => (
-                <div key={idx} className="deadline-item">
-                  <div className="deadline-item__content">
-                    <h4 className="deadline-item__title">{item.title}</h4>
-                    <p className="deadline-item__category">{item.category}</p>
-                    <p className="deadline-item__date">{item.date}</p>
-                  </div>
-                  <div className={`deadline-item__badge ${item.urgent ? 'badge-urgent' : 'badge-normal'}`}>
-                    {item.daysLeft}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
+        
       </div>
     </div>
   );
