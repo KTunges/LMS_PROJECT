@@ -34,4 +34,15 @@ router.get('/students', teacherController.getStudents);
 router.get('/qa', teacherController.getQA);
 router.post('/qa/:id/reply', teacherController.replyQA);
 
+// Email
+router.post('/email/broadcast', teacherController.broadcastEmail);
+
+// Materials
+router.get('/materials', teacherController.getMaterials);
+router.post('/materials', teacherController.uploadMaterial);
+router.delete('/materials/:id', teacherController.deleteMaterial);
+
+// Revenue
+router.get('/revenue', teacherController.getRevenue);
+
 module.exports = router;

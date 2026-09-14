@@ -77,13 +77,27 @@ const TeacherStudents = () => {
     return 'not-started';
   };
 
-  const handleSendEmail = () => {
-    const emails = filteredStudents.map(s => s.email).filter(Boolean).join(',');
-    if (emails) {
-      window.location.href = `mailto:?bcc=${emails}&subject=Thông báo lớp học`;
-      toast.success('Đã mở ứng dụng gửi Email!');
-    } else {
+  const handleSendEmail = async () => {
+    const emails = filteredStudents.map(s => s.email).filter(Boolean);
+    if (!emails.length) {
       toast.info('Không tìm thấy địa chỉ email của học viên nào.');
+      return;
+    }
+    
+    const subject = window.prompt('Nhập tiêu đề Email:', 'Thông báo lớp học');
+    if (!subject) return;
+    
+    const message = window.prompt('Nhập nội dung Email:');
+    if (!message) return;
+
+    try {
+      const res = await teacherService.broadcastEmail({ subject, message, emails });
+      if (res.data.success) {
+        toast.success(res.data.message || 'Đã gửi email thành công!');
+      }
+    } catch (err) {
+      toast.error('Có lỗi xảy ra khi gửi email!');
+      console.error(err);
     }
   };
 

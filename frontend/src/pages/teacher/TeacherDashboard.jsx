@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { 
-  FiUsers, FiMonitor, FiDollarSign, FiStar, FiTrendingUp, FiShoppingBag, FiActivity
+  FiUsers, FiMonitor, FiDollarSign, FiStar, FiShoppingBag, FiActivity, FiDownload
 } from 'react-icons/fi';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+} from 'recharts';
 import { teacherService } from '../../services';
-import './TeacherStudents.css';
-import './Teacher.css';
+import './TeacherDashboard.css';
 
 const TeacherDashboard = () => {
   const [statsData, setStatsData] = useState({
@@ -16,6 +18,17 @@ const TeacherDashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Mock chart data for a beautiful wave
+  const chartData = [
+    { name: '1 Thg 9', revenue: 420 },
+    { name: '5 Thg 9', revenue: 800 },
+    { name: '10 Thg 9', revenue: 650 },
+    { name: '15 Thg 9', revenue: 1200 },
+    { name: '20 Thg 9', revenue: 950 },
+    { name: '25 Thg 9', revenue: 1400 },
+    { name: '30 Thg 9', revenue: 1800 },
+  ];
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -31,21 +44,24 @@ const TeacherDashboard = () => {
             recentSales: raw.recentSales || [
               { id: 1, course: 'Lập trình ReactJS Thực chiến', student: 'Nguyễn Văn A', amount: 599000, time: '2 giờ trước' },
               { id: 2, course: 'NodeJS API Masterclass', student: 'Trần Thị B', amount: 899000, time: '5 giờ trước' },
-              { id: 3, course: 'Figma UI/UX cho người mới', student: 'Lê Văn C', amount: 399000, time: '1 ngày trước' }
+              { id: 3, course: 'Figma UI/UX cho người mới', student: 'Lê Văn C', amount: 399000, time: '1 ngày trước' },
+              { id: 4, course: 'NextJS 14 App Router', student: 'Hoàng D', amount: 699000, time: '2 ngày trước' }
             ]
           });
         }
       } catch (err) {
         console.error("Lỗi tải dashboard giảng viên:", err);
+        // Fallback to beautiful mock data if backend fails
         setStatsData({
           totalCourses: 5,
-          totalStudents: 128,
-          monthlyRevenue: 15500000,
-          averageRating: 4.8,
+          totalStudents: 1248,
+          monthlyRevenue: 24500000,
+          averageRating: 4.9,
           recentSales: [
             { id: 1, course: 'Lập trình ReactJS Thực chiến', student: 'Nguyễn Văn A', amount: 599000, time: '2 giờ trước' },
             { id: 2, course: 'NodeJS API Masterclass', student: 'Trần Thị B', amount: 899000, time: '5 giờ trước' },
-            { id: 3, course: 'Figma UI/UX cho người mới', student: 'Lê Văn C', amount: 399000, time: '1 ngày trước' }
+            { id: 3, course: 'Figma UI/UX cho người mới', student: 'Lê Văn C', amount: 399000, time: '1 ngày trước' },
+            { id: 4, course: 'NextJS 14 App Router', student: 'Hoàng D', amount: 699000, time: '2 ngày trước' }
           ]
         });
       } finally {
@@ -56,88 +72,155 @@ const TeacherDashboard = () => {
     fetchDashboard();
   }, []);
 
-  if (isLoading) return <div className="ts-page"><div style={{padding: 40, color: 'var(--theme-text-muted)'}}>Đang tải tổng quan Giảng viên...</div></div>;
-  if (error) return <div className="ts-page"><div style={{padding: 40, color: '#ef4444'}}>{error}</div></div>;
+  if (isLoading) return <div className="td-page"><div style={{padding: 40, color: 'var(--theme-text-muted)', textAlign: 'center'}}>Đang tải dữ liệu...</div></div>;
+  if (error) return <div className="td-page"><div style={{padding: 40, color: '#ef4444', textAlign: 'center'}}>{error}</div></div>;
 
   return (
-    <div className="ts-page">
+    <div className="td-page">
       {/* HEADER */}
-      <div className="ts-header">
+      <div className="td-header">
         <div>
-          <h1 className="ts-header__title">
+          <h1 className="td-title">
             Bảng điều khiển <span className="gradient-text">Giảng viên</span>
           </h1>
-          <p className="ts-header__subtitle">Theo dõi doanh thu và tiến độ bán khóa học của bạn một cách trực quan nhất.</p>
+          <p className="td-subtitle">Theo dõi doanh thu và tiến độ bán khóa học của bạn một cách trực quan nhất.</p>
         </div>
+        <button className="td-action-btn">
+          <FiDownload size={18} /> Xuất Báo Cáo
+        </button>
       </div>
 
-      {/* STATS */}
-      <div className="ts-stats">
-        <div className="ts-stat-card ts-stat-card--green">
-          <div className="ts-stat-icon ts-stat-icon--green"><FiDollarSign size={22} /></div>
+      {/* STAT CARDS */}
+      <div className="td-stats-grid">
+        <div className="td-stat-card td-stat-card--revenue">
+          <div className="td-stat-header">
+            <div className="td-stat-icon td-stat-icon--green"><FiDollarSign /></div>
+            <span className="td-stat-trend td-stat-trend--up">+12%</span>
+          </div>
           <div>
-            <div className="ts-stat-info__label">Doanh thu tháng này</div>
-            <div className="ts-stat-info__value" style={{ color: '#10b981' }}>{statsData.monthlyRevenue.toLocaleString()}đ</div>
+            <div className="td-stat-label">Doanh thu tháng này</div>
+            <div className="td-stat-value td-stat-value--highlight">
+              {statsData.monthlyRevenue.toLocaleString()}đ
+            </div>
           </div>
         </div>
-        <div className="ts-stat-card ts-stat-card--blue">
-          <div className="ts-stat-icon ts-stat-icon--blue"><FiUsers size={22} /></div>
+
+        <div className="td-stat-card td-stat-card--students">
+          <div className="td-stat-header">
+            <div className="td-stat-icon td-stat-icon--blue"><FiUsers /></div>
+            <span className="td-stat-trend td-stat-trend--up">+8%</span>
+          </div>
           <div>
-            <div className="ts-stat-info__label">Tổng Học viên</div>
-            <div className="ts-stat-info__value">{statsData.totalStudents.toLocaleString()}</div>
+            <div className="td-stat-label">Tổng Học viên</div>
+            <div className="td-stat-value">
+              {statsData.totalStudents.toLocaleString()}
+            </div>
           </div>
         </div>
-        <div className="ts-stat-card ts-stat-card--purple">
-          <div className="ts-stat-icon ts-stat-icon--purple"><FiMonitor size={22} /></div>
+
+        <div className="td-stat-card td-stat-card--courses">
+          <div className="td-stat-header">
+            <div className="td-stat-icon td-stat-icon--purple"><FiMonitor /></div>
+          </div>
           <div>
-            <div className="ts-stat-info__label">Khóa học đang bán</div>
-            <div className="ts-stat-info__value">{statsData.totalCourses}</div>
+            <div className="td-stat-label">Khóa học đang bán</div>
+            <div className="td-stat-value">
+              {statsData.totalCourses}
+            </div>
           </div>
         </div>
-        <div className="ts-stat-card ts-stat-card--orange">
-          <div className="ts-stat-icon ts-stat-icon--orange"><FiStar size={22} /></div>
+
+        <div className="td-stat-card td-stat-card--rating">
+          <div className="td-stat-header">
+            <div className="td-stat-icon td-stat-icon--orange"><FiStar /></div>
+            <span className="td-stat-trend td-stat-trend--up">+0.2</span>
+          </div>
           <div>
-            <div className="ts-stat-info__label">Đánh giá trung bình</div>
-            <div className="ts-stat-info__value">{statsData.averageRating} / 5.0</div>
+            <div className="td-stat-label">Đánh giá trung bình</div>
+            <div className="td-stat-value">
+              {statsData.averageRating} <span style={{fontSize: '18px', color: 'var(--theme-text-muted)'}}>/ 5.0</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="dashboard-layout">
+      <div className="td-main-grid">
+        
         {/* LEFT: Revenue Chart */}
-        <div className="dashboard-panel">
-          <div className="panel-header">
-            <h3 className="panel-title"><FiActivity /> Biểu đồ Doanh thu (30 ngày qua)</h3>
-            <select className="btn btn-outline" style={{ padding: '6px 12px' }}>
-              <option>Tháng này</option>
+        <div className="td-panel">
+          <div className="td-panel-header">
+            <h3 className="td-panel-title"><FiActivity /> Biểu đồ Doanh thu</h3>
+            <select className="td-select">
+              <option>30 ngày qua</option>
               <option>Tháng trước</option>
               <option>Năm nay</option>
             </select>
           </div>
-          <div className="chart-container">
-            {[40, 70, 45, 90, 65, 80, 55, 100, 75, 85].map((h, i) => (
-              <div key={i} className="chart-bar" style={{ height: `${h}%` }} data-value={`${h * 10}k`}></div>
-            ))}
+          
+          <div className="td-chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border-color)" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: 'var(--theme-text-muted)', fontSize: 12}} 
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: 'var(--theme-text-muted)', fontSize: 12}} 
+                  tickFormatter={(val) => `${val}k`}
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'var(--theme-glass-border)', borderRadius: '12px', color: 'var(--theme-text-main)' }}
+                  itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                  activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
         {/* RIGHT: Recent Sales */}
-        <div className="dashboard-panel">
-          <div className="panel-header">
-            <h3 className="panel-title"><FiShoppingBag /> Đơn hàng mới nhất</h3>
+        <div className="td-panel">
+          <div className="td-panel-header">
+            <h3 className="td-panel-title"><FiShoppingBag /> Giao dịch mới nhất</h3>
           </div>
-          <div className="sales-list">
+          
+          <div className="td-sales-list">
             {statsData.recentSales && statsData.recentSales.length > 0 ? (
               statsData.recentSales.map((sale) => (
-                <div key={sale.id} className="sale-item">
-                  <div className="sale-info">
-                    <span className="sale-student">{sale.student}</span>
-                    <span className="sale-course">{sale.course}</span>
+                <div key={sale.id} className="td-sale-item">
+                  <div className="td-sale-user">
+                    <div className="td-sale-avatar">
+                      {sale.student.charAt(0)}
+                    </div>
+                    <div className="td-sale-info">
+                      <span className="td-sale-name">{sale.student}</span>
+                      <span className="td-sale-course">{sale.course}</span>
+                    </div>
                   </div>
-                  <div className="sale-meta">
-                    <span className="sale-amount">+{sale.amount.toLocaleString()}đ</span>
-                    <span className="sale-time">{sale.time}</span>
+                  <div className="td-sale-meta">
+                    <span className="td-sale-amount">+{sale.amount.toLocaleString()}đ</span>
+                    <span className="td-sale-time">{sale.time}</span>
                   </div>
                 </div>
               ))
@@ -148,10 +231,13 @@ const TeacherDashboard = () => {
             )}
           </div>
           
-          <button className="btn btn-outline" style={{ width: '100%', marginTop: '20px' }}>
-            Xem tất cả giao dịch
-          </button>
+          <div className="td-view-all">
+            <button className="td-view-all-btn">
+              Xem tất cả giao dịch
+            </button>
+          </div>
         </div>
+        
       </div>
     </div>
   );

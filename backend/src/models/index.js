@@ -28,6 +28,7 @@ const LiveSession = require('./LiveSession');
 const Transaction = require('./Transaction');
 const ChatMessage = require('./ChatMessage');
 const CourseQA = require('./CourseQA');
+const Setting = require('./Setting');
 
 // ---- Associations ----
 
@@ -62,6 +63,9 @@ Download.belongsTo(Material, { foreignKey: 'material_id', as: 'material' });
 
 Category.hasMany(Course, { foreignKey: 'category_id', as: 'courses' });
 Course.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+
+Course.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
+User.hasMany(Course, { foreignKey: 'teacher_id', as: 'courses' });
 
 Course.hasMany(Class, { foreignKey: 'course_id', as: 'classes' });
 Class.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
@@ -216,4 +220,5 @@ module.exports = {
   Transaction,
   ChatMessage,
   CourseQA,
+  Setting,
 };

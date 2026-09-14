@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiBookOpen, FiDownload, FiStar, FiEdit2, FiLock, FiSave, FiCamera } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services';
@@ -9,7 +10,8 @@ import './Profile.css';
 
 const Profile = () => {
   const { user, updateUserLocal } = useAuth();
-  const [activeTab, setActiveTab] = useState('info');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.pathname.includes('settings') ? 'security' : 'info');
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -76,11 +78,21 @@ const Profile = () => {
           setGamification(gamificationRes.data.data);
         }
       } catch (err) {
-        console.error('Failed to fetch profile stats:', err);
+        toast.error('Lỗi tải thông tin cá nhân');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchStats();
-  }, []);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (location.pathname.includes('settings')) {
+      setActiveTab('security');
+    } else if (location.pathname.includes('profile')) {
+      setActiveTab('info');
+    }
+  }, [location.pathname]);
 
   const handleInfoChange = (e) => {
     setFormData({

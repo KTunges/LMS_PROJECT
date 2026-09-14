@@ -34,6 +34,13 @@ import NotFound from './components/common/NotFound';
 import { ThemeProvider } from './contexts/ThemeContext';
 import LiveClassroom from './pages/teacher/LiveClassroom/LiveClassroom';
 import StudentLiveClassroom from './pages/student/LiveClassroom/StudentLiveClassroom';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminLayout from './components/layout/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminCourses from './pages/admin/AdminCourses';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminFinance from './pages/admin/AdminFinance';
+import AdminSettings from './pages/admin/AdminSettings';
 
 function App() {
   return (
@@ -42,20 +49,23 @@ function App() {
         <BrowserRouter>
           <PinSetupModal />
           <Routes>
+            {/* Admin Login Route */}
+            <Route path="/portal-super-admin/login" element={<AdminLogin />} />
+
             {/* Admin routes */}
             <Route
-              path="/admin"
+              path="/portal-super-admin"
               element={
                 <ProtectedRoute roles={['admin']}>
-                  <MainLayout />
+                  <AdminLayout />
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Dashboard />} />
-              <Route path="materials" element={<Dashboard />} />
-              <Route path="categories" element={<Dashboard />} />
-              <Route path="users" element={<Dashboard />} />
-              <Route path="settings" element={<Dashboard />} />
+              <Route index element={<AdminDashboard />} />
+              <Route path="courses" element={<AdminCourses />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="finance" element={<AdminFinance />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
 
             {/* Teacher Login Route */}
@@ -78,7 +88,6 @@ function App() {
               <Route path="courses/new" element={<CreateCourse />} />
               <Route path="courses/:id/edit" element={<ManageCourse />} />
               <Route path="profile" element={<TeacherSettings />} />
-              <Route path="settings" element={<TeacherSettings />} />
             </Route>
 
             {/* Teacher Live Classroom (No Layout so it takes full screen) */}

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services';
+import { authService, socketService } from '../services';
 
 const AuthContext = createContext(null);
 
@@ -23,12 +23,15 @@ export const AuthProvider = ({ children }) => {
     const needsPin = localStorage.getItem('requirePinSetup') === 'true';
     if (token && savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
         setRequirePinSetup(needsPin);
+        socketService.connect(token, parsedUser.id);
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('requirePinSetup');
+        socketService.disconnect();
       }
     }
     setLoading(false);
@@ -44,6 +47,7 @@ export const AuthProvider = ({ children }) => {
 
     setUser(userData);
     setRequirePinSetup(require_pin_setup);
+    socketService.connect(token, userData.id);
 
     return { require_pin_setup, user: userData };
   };
@@ -112,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('requirePinSetup');
     setUser(null);
     setRequirePinSetup(false);
+    socketService.disconnect();
   };
 
   const updateUserLocal = (newData) => {

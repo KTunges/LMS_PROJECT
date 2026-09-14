@@ -15,6 +15,14 @@ module.exports = function initializeSocket(server) {
   io.on('connection', (socket) => {
     console.log(`🔌 Client connected: ${socket.id}`);
 
+    // Join personal room for notifications
+    socket.on('identify', (userId) => {
+      if (userId) {
+        socket.join(`user_${userId}`);
+        console.log(`👤 User ${userId} joined personal notification room`);
+      }
+    });
+
     // Join room
     socket.on('join-room', (data) => {
       const { sessionId, user } = data;

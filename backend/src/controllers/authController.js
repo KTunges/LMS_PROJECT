@@ -509,7 +509,7 @@ const uploadAvatar = async (req, res, next) => {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
-    const avatarUrl = `/uploads/${req.file.filename}`;
+    const avatarUrl = req.file.location ? req.file.location : `/uploads/${req.file.filename}`;
     user.avatar = avatarUrl;
     await user.save();
 

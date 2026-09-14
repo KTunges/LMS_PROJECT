@@ -11,6 +11,10 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  transaction_id: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
   course_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

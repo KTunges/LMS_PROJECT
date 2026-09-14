@@ -74,11 +74,13 @@ const create = async (req, res, next) => {
       return res.status(400).json({ message: 'Vui lòng chọn file để tải lên' });
     }
 
+    const fileUrl = file.location ? file.location : `/uploads/${file.filename}`;
+
     const material = await Material.create({
       title,
       description,
-      file_url: `/uploads/${file.filename}`,
-      file_type: path.extname(file.originalname).slice(1),
+      file_url: fileUrl,
+      file_type: file.mimetype,
       file_size: file.size,
       category_id: category_id || null,
       user_id: req.user.id,
