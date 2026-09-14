@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import './Header.css';
-import { FiMenu, FiBell, FiSearch, FiBook, FiFolder, FiUser } from 'react-icons/fi';
+import { FiMenu, FiSearch, FiBook, FiFolder, FiUser } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../common/ThemeToggle/ThemeToggle';
+import NotificationDropdown from '../common/NotificationDropdown/NotificationDropdown';
 
 const dummyResults = [
   { id: 1, title: 'Lập trình Web Căn bản', type: 'course', icon: <FiBook /> },
@@ -140,10 +141,7 @@ const Header = ({ onToggleSidebar }) => {
         <div style={{ marginRight: '12px', display: 'flex', alignItems: 'center' }}>
           <ThemeToggle />
         </div>
-        <button className="header__notification-btn" aria-label="Notifications">
-          <FiBell size={20} />
-          <span className="notification-dot"></span>
-        </button>
+        <NotificationDropdown />
       </div>
     </header>
   );

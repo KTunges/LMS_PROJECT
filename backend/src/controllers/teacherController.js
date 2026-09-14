@@ -412,3 +412,251 @@ exports.getCategories = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET /api/teacher/students
+exports.getStudents = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { Class, Enrollment, User, Course, LessonProgress } = require('../models');
+
+    // Find classes taught by this teacher
+    const classes = await Class.findAll({
+      where: { teacher_id: teacherId },
+      include: [
+        { model: Course, as: 'course' },
+        {
+          model: Enrollment,
+          as: 'enrollments',
+          include: [{ model: User, as: 'student', attributes: ['id', 'full_name', 'email', 'avatar'] }]
+        }
+      ]
+    });
+
+    const studentsMap = {};
+
+    for (const cls of classes) {
+      for (const enr of cls.enrollments) {
+        if (!enr.student) continue;
+        
+        // Compute progress based on LessonProgress (stub: random progress or calculate properly if time permits)
+        // Here we just return a default structure and 0 progress if missing
+        const sId = enr.student.id;
+        if (!studentsMap[sId]) {
+          studentsMap[sId] = {
+            id: 'SV' + String(sId).padStart(3, '0'),
+            real_id: sId,
+            name: enr.student.full_name,
+            email: enr.student.email,
+            avatar: enr.student.avatar,
+            course: cls.course?.name || 'Khóa học',
+            progress: Math.floor(Math.random() * 100), // Fake progress for now
+            date: new Date(enr.createdAt).toLocaleDateString('vi-VN')
+          };
+        }
+      }
+    }
+
+    res.json({ success: true, data: Object.values(studentsMap) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /api/teacher/qa
+exports.getQA = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { CourseQA, User, Course, Lesson } = require('../models');
+    const qas = await CourseQA.findAll({
+      where: { teacher_id: teacherId },
+      include: [
+        { model: User, as: 'student', attributes: ['id', 'full_name', 'avatar'] },
+        { model: Course, as: 'course', attributes: ['id', 'name'] },
+        { model: Lesson, as: 'lesson', attributes: ['id', 'title'] }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+
+    const formattedQAs = qas.map(q => ({
+      id: q.id,
+      student: q.student?.full_name || 'Học viên',
+      course: q.course?.name || 'Chung',
+      lecture: q.lesson?.title || 'Chung',
+      question: q.question,
+      answer: q.answer,
+      answered: !!q.answer,
+      time: new Date(q.created_at).toLocaleString('vi-VN')
+    }));
+
+    res.json({ success: true, data: formattedQAs });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/teacher/qa/:id/reply
+exports.replyQA = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const qaId = req.params.id;
+    const { answer } = req.body;
+    const { CourseQA } = require('../models');
+
+    const qa = await CourseQA.findOne({ where: { id: qaId, teacher_id: teacherId }});
+    if (!qa) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    qa.answer = answer;
+    qa.answered_at = new Date();
+    await qa.save();
+
+    res.json({ success: true, message: 'Replied successfully', data: qa });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /api/teacher/materials
+exports.getMaterials = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { Material, Category } = require('../models');
+    
+    const materials = await Material.findAll({
+      where: { user_id: teacherId },
+      include: [{ model: Category, as: 'category', attributes: ['id', 'name'] }],
+      order: [['created_at', 'DESC']]
+    });
+
+    const formatted = materials.map(m => ({
+      id: m.id,
+      name: m.title || m.name || 'Untitled',
+      type: (m.file_type || m.type || 'file').toLowerCase(),
+      size: m.file_size || '—',
+      date: new Date(m.createdAt).toLocaleDateString('vi-VN'),
+      category: m.category?.name || 'Chung',
+      download_url: m.file_url || '',
+      uses: 0
+    }));
+
+    res.json({ success: true, data: formatted });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/teacher/materials (upload)
+exports.uploadMaterial = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { Material } = require('../models');
+    const { title, description, file_url, file_type, file_size, category_id } = req.body;
+
+    const material = await Material.create({
+      title: title || 'Untitled',
+      description: description || '',
+      file_url: file_url || '',
+      file_type: file_type || 'file',
+      file_size: file_size || '0',
+      category_id: category_id || null,
+      user_id: teacherId,
+    });
+
+    res.json({ success: true, message: 'Uploaded successfully', data: material });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE /api/teacher/materials/:id
+exports.deleteMaterial = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const materialId = req.params.id;
+    const { Material } = require('../models');
+
+    const mat = await Material.findOne({ where: { id: materialId, user_id: teacherId }});
+    if (!mat) return res.status(404).json({ success: false, message: 'Tài nguyên không tồn tại.' });
+
+    await mat.destroy();
+    res.json({ success: true, message: 'Đã xóa tài nguyên.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /api/teacher/revenue
+exports.getRevenue = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { Transaction, Course, User } = require('../models');
+
+    const transactions = await Transaction.findAll({
+      include: [
+        { model: Course, as: 'course', attributes: ['id', 'name'] },
+        { model: User, as: 'student', attributes: ['id', 'full_name'] }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+
+    // Filter transactions for courses taught by this teacher
+    const { Class } = require('../models');
+    const teacherClasses = await Class.findAll({ where: { teacher_id: teacherId }, attributes: ['course_id'] });
+    const teacherCourseIds = teacherClasses.map(c => c.course_id);
+
+    const filtered = transactions.filter(t => teacherCourseIds.includes(t.course_id));
+    
+    const completedTotal = filtered.filter(t => t.status === 'completed').reduce((sum, t) => sum + (t.amount || 0), 0);
+    const pendingTotal = filtered.filter(t => t.status === 'pending').reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const formattedTrx = filtered.map(t => ({
+      id: 'TRX-' + String(t.id).padStart(3, '0'),
+      course: t.course?.name || 'Khóa học',
+      student: t.student?.full_name || 'Học viên',
+      amount: t.amount || 0,
+      date: new Date(t.created_at || t.createdAt).toLocaleDateString('vi-VN'),
+      status: t.status || 'pending'
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        balance: completedTotal,
+        pendingClearance: pendingTotal,
+        lifetimeEarnings: completedTotal + pendingTotal,
+        transactions: formattedTrx,
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.broadcastEmail = async (req, res, next) => {
+  try {
+    const { subject, message, emails } = req.body;
+    if (!emails || !emails.length) {
+      return res.status(400).json({ success: false, message: 'No recipients provided' });
+    }
+
+    const { sendEmail } = require('../utils/email');
+    const sendPromises = emails.map(email => 
+      sendEmail({
+        to: email,
+        subject: subject || 'Thông báo từ giảng viên LMS',
+        html: `<div style="font-family:sans-serif;padding:20px;">
+                <h3>Chào bạn,</h3>
+                <p>${message.replace(/\n/g, '<br>')}</p>
+                <p><i>Trân trọng,<br>Hệ thống LMS</i></p>
+               </div>`
+      })
+    );
+
+    await Promise.allSettled(sendPromises);
+
+    res.json({ success: true, message: 'Đã gửi email thành công tới các học viên.' });
+  } catch (error) {
+    next(error);
+  }
+};

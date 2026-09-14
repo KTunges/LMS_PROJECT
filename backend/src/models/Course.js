@@ -25,6 +25,19 @@ const Course = sequelize.define('Course', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  status: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    defaultValue: 'draft'
+  },
+  teacher_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+  },
   level: {
     type: DataTypes.STRING(50),
     allowNull: true,

@@ -26,12 +26,12 @@
 .leaderboard-header h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #1E293B;
+  color: var(--theme-text-main);
   margin: 0 0 8px 0;
 }
 
 .leaderboard-header p {
-  color: #64748B;
+  color: var(--theme-text-muted);
   margin: 0;
 }
 
@@ -42,8 +42,8 @@
 
 .leaderboard-tabs {
   display: flex;
-  border-bottom: 1px solid #E2E8F0;
-  background-color: #F8FAFC;
+  border-bottom: 1px solid var(--theme-border-color);
+  background-color: var(--theme-bg-main);
 }
 
 .leaderboard-tabs .tab {
@@ -53,7 +53,7 @@
   background: none;
   font-size: 16px;
   font-weight: 600;
-  color: #64748B;
+  color: var(--theme-text-muted);
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
@@ -61,7 +61,7 @@
 
 .leaderboard-tabs .tab:hover {
   color: #3B82F6;
-  background-color: #F1F5F9;
+  background-color: var(--theme-border-color);
 }
 
 .leaderboard-tabs .tab.active {
@@ -85,24 +85,24 @@
 .list-header {
   display: flex;
   padding: 12px 16px;
-  color: #94A3B8;
+  color: var(--theme-text-muted);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--theme-border-color);
 }
 
 .list-row {
   display: flex;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--theme-border-color);
   transition: background-color 0.2s;
 }
 
 .list-row:hover {
-  background-color: #F8FAFC;
+  background-color: var(--theme-bg-main);
 }
 
 .list-row.current-user {
@@ -139,7 +139,7 @@
   width: 32px;
   text-align: center;
   font-weight: 700;
-  color: #64748B;
+  color: var(--theme-text-muted);
   font-size: 18px;
 }
 
@@ -148,7 +148,7 @@
 }
 .trend-icon.up { color: #10B981; }
 .trend-icon.down { color: #EF4444; }
-.trend-icon.same { color: #94A3B8; }
+.trend-icon.same { color: var(--theme-text-muted); }
 
 .col-student {
   flex: 1;
@@ -202,7 +202,7 @@
 .list-row:nth-child(4) .avatar.glow { box-shadow: 0 0 15px rgba(205, 127, 50, 0.6); border-color: #CD7F32; }
 
 .rank-1 { background: linear-gradient(135deg, #FFD700, #F59E0B); }
-.rank-2 { background: linear-gradient(135deg, #E2E8F0, #94A3B8); color: #334155; }
+.rank-2 { background: linear-gradient(135deg, #E2E8F0, var(--theme-text-muted)); color: var(--theme-text-main); }
 .rank-3 { background: linear-gradient(135deg, #FDBA74, #EA580C); }
 
 .current-user .avatar {
@@ -211,7 +211,7 @@
 
 .student-name {
   font-weight: 600;
-  color: #1E293B;
+  color: var(--theme-text-main);
   font-size: 16px;
 }
 
@@ -222,10 +222,10 @@
 .col-xp {
   width: 120px;
   text-align: right;
-  color: #64748B;
+  color: var(--theme-text-muted);
 }
 
 .col-xp strong {
-  color: #1E293B;
+  color: var(--theme-text-main);
   font-size: 18px;
 }

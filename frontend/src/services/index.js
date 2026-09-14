@@ -8,3 +8,4 @@ export { userService } from './userService';
 export { courseService, classService, lessonService, quizService, curriculumService } from './courseService';
 export { liveService } from './liveService';
 export { paymentService } from './paymentService';
+export { default as socketService } from './socketService';

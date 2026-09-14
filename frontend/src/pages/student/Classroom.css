@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - 70px);
-  background-color: #F8FAFC;
+  background-color: var(--theme-bg-main);
   margin: -24px; /* Offset MainLayout padding if needed */
 }
 
@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  background-color: #1E293B;
+  background-color: var(--theme-text-main);
   color: white;
 }
 
@@ -21,7 +21,7 @@
   gap: 8px;
   background: none;
   border: none;
-  color: #CBD5E1;
+  color: var(--theme-border-color);
   font-weight: 600;
   cursor: pointer;
   transition: color 0.2s;
@@ -45,13 +45,13 @@
 .progress-text {
   font-size: 14px;
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--theme-text-muted);
 }
 
 .progress-bar-bg-small {
   width: 150px;
   height: 8px;
-  background-color: #334155;
+  background-color: var(--theme-text-main);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -72,13 +72,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #F1F5F9;
+  background-color: var(--theme-border-color);
   overflow-y: auto;
 }
 
 .video-player-container {
   padding: 24px;
-  background-color: #0F172A;
+  background-color: var(--theme-text-main);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -92,7 +92,7 @@
   aspect-ratio: 16/9;
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-  background-color: #000;
+  background-color: var(--theme-text-main);
 }
 
 .document-viewer-container {
@@ -101,7 +101,7 @@
   flex-direction: column;
   align-items: center;
   padding: 24px;
-  background-color: #F8FAFC;
+  background-color: var(--theme-bg-main);
   overflow: hidden;
 }
 
@@ -110,9 +110,9 @@
   max-width: 1000px;
   flex: 1;
   border-radius: 8px;
-  border: 1px solid #CBD5E1;
+  border: 1px solid var(--theme-border-color);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  background-color: white;
+  background-color: var(--theme-card-bg);
 }
 
 .document-actions {
@@ -147,7 +147,7 @@
   align-items: center;
   justify-content: center;
   padding: 40px;
-  background-color: white;
+  background-color: var(--theme-card-bg);
   margin: 24px;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -157,11 +157,11 @@
 .quiz-viewer h3 {
   margin: 20px 0 10px 0;
   font-size: 24px;
-  color: #1E293B;
+  color: var(--theme-text-main);
 }
 
 .quiz-viewer p {
-  color: #64748B;
+  color: var(--theme-text-muted);
   margin-bottom: 24px;
 }
 
@@ -186,18 +186,18 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 24px;
-  background-color: white;
-  border-top: 1px solid #E2E8F0;
+  background-color: var(--theme-card-bg);
+  border-top: 1px solid var(--theme-border-color);
 }
 
 .lesson-info h2 {
   margin: 0 0 8px 0;
-  color: #1E293B;
+  color: var(--theme-text-main);
 }
 
 .lesson-info p {
   margin: 0;
-  color: #64748B;
+  color: var(--theme-text-muted);
   font-size: 14px;
 }
 
@@ -254,15 +254,15 @@
 
 .learning-sidebar {
   width: 350px;
-  background-color: white;
-  border-left: 1px solid #E2E8F0;
+  background-color: var(--theme-card-bg);
+  border-left: 1px solid var(--theme-border-color);
   display: flex;
   flex-direction: column;
 }
 
 .playlist-header {
   padding: 20px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--theme-border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -271,12 +271,12 @@
 .playlist-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #1E293B;
+  color: var(--theme-text-main);
 }
 
 .playlist-header span {
   font-size: 14px;
-  color: #64748B;
+  color: var(--theme-text-muted);
   font-weight: 600;
 }
 
@@ -289,13 +289,13 @@
   display: flex;
   gap: 16px;
   padding: 16px 20px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--theme-border-color);
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .playlist-item:hover {
-  background-color: #F8FAFC;
+  background-color: var(--theme-bg-main);
 }
 
 .playlist-item.active {
@@ -304,7 +304,7 @@
 }
 
 .playlist-item.completed .item-title {
-  color: #64748B;
+  color: var(--theme-text-muted);
 }
 
 .item-icon {
@@ -317,7 +317,7 @@
 
 .item-title {
   font-weight: 600;
-  color: #1E293B;
+  color: var(--theme-text-main);
   font-size: 14px;
   margin-bottom: 4px;
   line-height: 1.4;
@@ -325,5 +325,5 @@
 
 .item-duration {
   font-size: 12px;
-  color: #94A3B8;
+  color: var(--theme-text-muted);
 }

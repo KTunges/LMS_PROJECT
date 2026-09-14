@@ -43,7 +43,7 @@ const CourseCatalog = () => {
   }, []);
 
   const filteredCourses = courses.filter(course => {
-    const matchSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchSearch = course.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         course.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchCategory = selectedCategory === 'all' || course.tags?.includes(selectedCategory);
@@ -65,7 +65,7 @@ const CourseCatalog = () => {
       if (course.price === 0) {
         const res = await studentService.enrollCourse(course.id);
         if (res.data && res.data.success) {
-          toast.success(`Đăng ký thành công khóa học: ${course.title}`);
+          toast.success(`Đăng ký thành công khóa học: ${course.name}`);
           navigate('/student/my-classes');
         }
       } else {
@@ -181,7 +181,7 @@ const CourseCatalog = () => {
                 ))}
               </div>
               
-              <h3 className="course-title">{course.title}</h3>
+              <h3 className="course-title">{course.name}</h3>
               <p className="course-instructor">{course.instructor}</p>
               
               <div className="course-stats">

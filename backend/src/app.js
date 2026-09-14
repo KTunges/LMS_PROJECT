@@ -19,6 +19,8 @@ const quizRoutes = require('./routes/quizRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 const liveRoutes = require('./routes/liveRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -47,6 +49,8 @@ app.use('/api/quizzes', quizRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/live', liveRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

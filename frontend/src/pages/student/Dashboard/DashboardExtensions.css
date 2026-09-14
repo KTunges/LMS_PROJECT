@@ -14,7 +14,7 @@
 .heatmap-cell {
   aspect-ratio: 1;
   border-radius: 4px;
-  background: #f1f5f9;
+  background: var(--theme-border-color);
 }
 
 .heatmap-cell.level-1 { background: #dbeafe; }
@@ -28,7 +28,7 @@
   justify-content: flex-end;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--theme-text-muted);
   margin-top: 0.5rem;
 }
 
@@ -50,7 +50,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: #f8fafc;
+  background: var(--theme-bg-main);
   border-radius: 10px;
   transition: transform 0.2s, background 0.2s;
   cursor: pointer;
@@ -58,8 +58,8 @@
 }
 
 .material-item:hover {
-  background: white;
-  border-color: #cbd5e1;
+  background: var(--theme-card-bg);
+  border-color: var(--theme-border-color);
   transform: translateX(4px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
@@ -83,12 +83,12 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 0.15rem;
-  color: #0f172a;
+  color: var(--theme-text-main);
 }
 
 .material-info p {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--theme-text-muted);
 }
 
 .quote-container {
@@ -101,16 +101,16 @@
 }
 
 /* --- Dark Mode Overrides --- */
-:root.dark-theme .heatmap-cell { background: #334155; }
+:root.dark-theme .heatmap-cell { background: var(--theme-text-main); }
 :root.dark-theme .heatmap-cell.level-1 { background: #1e3a8a; }
 :root.dark-theme .heatmap-cell.level-2 { background: #2563eb; }
 :root.dark-theme .heatmap-cell.level-3 { background: #3b82f6; }
 :root.dark-theme .heatmap-cell.level-4 { background: #60a5fa; }
-:root.dark-theme .legend-box[style*="background: #f1f5f9"] { background: #334155 !important; }
+:root.dark-theme .legend-box[style*="background: #f1f5f9"] { background: var(--theme-text-main) !important; }
 :root.dark-theme .activity-legend { color: var(--theme-text-muted); }
 :root.dark-theme .material-item { background: var(--theme-bg-grad-1); }
 :root.dark-theme .material-item:hover { background: var(--theme-card-bg); border-color: var(--theme-border-color); }
-:root.dark-theme .material-info h4 { color: #ffffff; }
+:root.dark-theme .material-info h4 { color: var(--theme-card-bg); }
 :root.dark-theme .material-info p { color: var(--theme-text-muted); }
 :root.dark-theme .material-icon { background: #1e3a8a; }
 :root.dark-theme .material-icon.pdf { background: #7f1d1d; color: #fca5a5; }

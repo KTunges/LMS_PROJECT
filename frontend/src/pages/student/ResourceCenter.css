@@ -86,7 +86,7 @@
 
 .filter-chip.active {
   background: var(--info);
-  color: #fff;
+  color: var(--theme-card-bg);
   border-color: var(--info);
 }
 
@@ -256,7 +256,7 @@
 
 .btn-mat-download:hover {
   background: #3b82f6;
-  color: #ffffff;
+  color: var(--theme-card-bg);
   border-color: #3b82f6;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
@@ -388,7 +388,7 @@
 
 .lib-filter-btn.active {
   background: var(--info);
-  color: #fff;
+  color: var(--theme-card-bg);
   border-color: var(--info);
 }
 
@@ -514,7 +514,7 @@
   font-weight: 600;
   cursor: pointer;
   background: var(--info);
-  color: #fff;
+  color: var(--theme-card-bg);
   margin-left: auto;
   transition: all var(--transition-fast);
 }
@@ -709,7 +709,7 @@
 
 .btn-redownload:hover {
   background: var(--info);
-  color: #fff;
+  color: var(--theme-card-bg);
 }
 
 .btn-delete {
@@ -719,7 +719,7 @@
 
 .btn-delete:hover {
   background: #ef4444;
-  color: #fff;
+  color: var(--theme-card-bg);
 }
 
 /* Empty */
@@ -796,7 +796,7 @@
 
 .rc-tab-btn.active {
   background: var(--info);
-  color: #fff;
+  color: var(--theme-card-bg);
   border-color: var(--info);
 }
 
@@ -857,7 +857,7 @@
 
 .btn-clear-cat:hover {
   background: #ef4444;
-  color: #fff;
+  color: var(--theme-card-bg);
   transform: translateY(-1px);
 }
 

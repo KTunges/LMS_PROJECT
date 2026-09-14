@@ -368,10 +368,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   </div>
                   <div className="dropdown-divider"></div>
                   <NavLink to={`/${user.role}/profile`} className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
-                    <FiUser className="dropdown-icon" /> Hồ sơ cá nhân
-                  </NavLink>
-                  <NavLink to={`/${user.role}/settings`} className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
-                    <FiSettings className="dropdown-icon" /> Cài đặt tài khoản
+                    <FiUser className="dropdown-icon" /> Hồ sơ & Cài đặt
                   </NavLink>
                   <div className="dropdown-divider"></div>
                   <button className="dropdown-item text-danger" onClick={handleLogout}>

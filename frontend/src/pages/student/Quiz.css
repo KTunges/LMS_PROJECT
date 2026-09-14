@@ -10,13 +10,13 @@
   justify-content: space-between;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--theme-border-color);
 }
 
 .btn-icon {
   background: none;
   border: none;
-  color: #64748B;
+  color: var(--theme-text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -27,15 +27,15 @@
 }
 
 .btn-icon:hover {
-  background-color: #F1F5F9;
-  color: #1E293B;
+  background-color: var(--theme-border-color);
+  color: var(--theme-text-main);
 }
 
 .quiz-title {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #1E293B;
+  color: var(--theme-text-main);
   flex: 1;
   text-align: center;
 }
@@ -82,7 +82,7 @@
 }
 
 .question-number {
-  color: #64748B;
+  color: var(--theme-text-muted);
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 12px;
@@ -93,7 +93,7 @@
 .question-text {
   font-size: 20px;
   font-weight: 600;
-  color: #1E293B;
+  color: var(--theme-text-main);
   margin-bottom: 32px;
   line-height: 1.5;
 }
@@ -109,16 +109,16 @@
   align-items: center;
   gap: 16px;
   padding: 16px 20px;
-  border: 2px solid #E2E8F0;
+  border: 2px solid var(--theme-border-color);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
-  background-color: white;
+  background-color: var(--theme-card-bg);
 }
 
 .option-item:hover {
-  border-color: #94A3B8;
-  background-color: #F8FAFC;
+  border-color: var(--theme-text-muted);
+  background-color: var(--theme-bg-main);
 }
 
 .option-item.selected {
@@ -130,7 +130,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid #CBD5E1;
+  border: 2px solid var(--theme-border-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,12 +150,12 @@
 
 .option-text {
   font-size: 16px;
-  color: #334155;
+  color: var(--theme-text-main);
   line-height: 1.5;
 }
 
 .option-item.selected .option-text {
-  color: #1E293B;
+  color: var(--theme-text-main);
   font-weight: 500;
 }
 
@@ -174,13 +174,13 @@
 }
 
 .btn-secondary {
-  background-color: white;
-  border: 1px solid #CBD5E1;
-  color: #475569;
+  background-color: var(--theme-card-bg);
+  border: 1px solid var(--theme-border-color);
+  color: var(--theme-text-muted);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #F1F5F9;
+  background-color: var(--theme-border-color);
 }
 
 .btn-secondary:disabled {
@@ -220,7 +220,7 @@
 .quiz-sidebar h3 {
   margin: 0 0 16px 0;
   font-size: 16px;
-  color: #1E293B;
+  color: var(--theme-text-main);
 }
 
 .question-grid {
@@ -233,9 +233,9 @@
 .grid-item {
   aspect-ratio: 1;
   border-radius: 8px;
-  border: 1px solid #E2E8F0;
-  background-color: white;
-  color: #64748B;
+  border: 1px solid var(--theme-border-color);
+  background-color: var(--theme-card-bg);
+  color: var(--theme-text-muted);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -246,7 +246,7 @@
 }
 
 .grid-item:hover {
-  background-color: #F8FAFC;
+  background-color: var(--theme-bg-main);
 }
 
 .grid-item.answered {
@@ -266,7 +266,7 @@
   gap: 8px;
   margin-bottom: 24px;
   font-size: 13px;
-  color: #64748B;
+  color: var(--theme-text-muted);
 }
 
 .legend-item {
@@ -283,7 +283,7 @@
 
 .color-box.answered { background-color: #10B981; }
 .color-box.current { border: 2px solid #3B82F6; }
-.color-box.unread { border: 1px solid #E2E8F0; }
+.color-box.unread { border: 1px solid var(--theme-border-color); }
 
 .btn-submit-sidebar {
   width: 100%;
@@ -316,7 +316,7 @@
 
 .quiz-result-card h2 {
   font-size: 28px;
-  color: #1E293B;
+  color: var(--theme-text-main);
   margin-bottom: 24px;
 }
 
@@ -332,18 +332,18 @@
   margin: 0 auto 24px auto;
   font-size: 48px;
   font-weight: 800;
-  color: #1E293B;
+  color: var(--theme-text-main);
 }
 
 .score-circle span {
   font-size: 16px;
-  color: #64748B;
+  color: var(--theme-text-muted);
   font-weight: 600;
 }
 
 .result-message {
   font-size: 16px;
-  color: #475569;
+  color: var(--theme-text-muted);
   margin-bottom: 32px;
 }
 
@@ -353,7 +353,7 @@
   gap: 40px;
   margin-bottom: 40px;
   padding: 20px;
-  background-color: #F8FAFC;
+  background-color: var(--theme-bg-main);
   border-radius: 12px;
 }
 
@@ -365,7 +365,7 @@
 
 .stat-label {
   font-size: 14px;
-  color: #64748B;
+  color: var(--theme-text-muted);
   text-transform: uppercase;
   font-weight: 600;
 }

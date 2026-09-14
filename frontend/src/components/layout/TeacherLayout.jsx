@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FiHome, FiMonitor, FiFolder, FiCreditCard, FiSettings, FiLogOut, FiUser, FiBell, FiUsers } from 'react-icons/fi';
+import { FiHome, FiMonitor, FiFolder, FiCreditCard, FiSettings, FiLogOut, FiUser, FiUsers } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import ThemeToggle from '../common/ThemeToggle/ThemeToggle';
+import NotificationDropdown from '../common/NotificationDropdown/NotificationDropdown';
 import './TeacherLayout.css';
 
 const TeacherLayout = () => {
@@ -23,7 +24,7 @@ const TeacherLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/portal-giang-vien/login');
   };
 
   const navLinks = [
@@ -64,10 +65,7 @@ const TeacherLayout = () => {
               <div style={{ marginRight: '16px', display: 'flex', alignItems: 'center' }}>
                 <ThemeToggle />
               </div>
-              <button className="teacher-navbar__icon-btn">
-                <FiBell size={20} />
-                <span className="notification-dot"></span>
-              </button>
+              <NotificationDropdown />
             </div>
             
             <div className="teacher-user-menu" ref={userMenuRef}>
@@ -89,10 +87,7 @@ const TeacherLayout = () => {
                   </div>
                   <div className="dropdown-divider"></div>
                   <NavLink to="/portal-giang-vien/profile" className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
-                    <FiUser className="dropdown-icon" /> Hồ sơ giảng viên
-                  </NavLink>
-                  <NavLink to="/portal-giang-vien/settings" className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
-                    <FiSettings className="dropdown-icon" /> Cài đặt tài khoản
+                    <FiUser className="dropdown-icon" /> Hồ sơ & Cài đặt
                   </NavLink>
                   <div className="dropdown-divider"></div>
                   <div 
