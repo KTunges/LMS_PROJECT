@@ -1,4 +1,4 @@
-const { Class, Course, Semester, User, Enrollment, Grade, Assignment, Submission, Lesson, Quiz, Question, Category } = require('../models');
+const { Class, Course, Semester, User, Enrollment, Grade, Assignment, Submission, Lesson, Quiz, Question, Category, Transaction } = require('../models');
 const { Op } = require('sequelize');
 
 // GET /api/teacher/dashboard
@@ -18,8 +18,45 @@ exports.getDashboardStats = async (req, res, next) => {
       where: { class_id: { [Op.in]: classIds }, status: 'enrolled' }
     });
 
-    // Mock revenue based on enrollments (e.g. 499,000 VND per enrollment)
-    const monthlyRevenue = totalStudents * 499000;
+    // Real monthly revenue from completed transactions for this teacher
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const monthlyCompletedTrx = await Transaction.findAll({
+      where: {
+        teacher_id: teacherId,
+        status: 'completed',
+        created_at: { [Op.gte]: startOfMonth }
+      }
+    });
+    const monthlyRevenue = monthlyCompletedTrx.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+    // Recent real sales
+    const recentTrx = await Transaction.findAll({
+      where: {
+        teacher_id: teacherId,
+        status: 'completed'
+      },
+      include: [
+        { model: Course, as: 'course', attributes: ['id', 'name'] },
+        { model: User, as: 'student', attributes: ['id', 'full_name', 'email'] }
+      ],
+      order: [['created_at', 'DESC']],
+      limit: 5
+    });
+
+    const recentSales = recentTrx.map(t => {
+      const diffMs = Date.now() - new Date(t.created_at).getTime();
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const timeStr = diffHours < 1 ? 'Vừa xong' : diffHours < 24 ? `${diffHours} giờ trước` : `${Math.floor(diffHours / 24)} ngày trước`;
+      return {
+        id: t.id,
+        course: t.course?.name || 'Khóa học',
+        student: t.student?.full_name || t.student?.email || 'Học viên',
+        amount: Number(t.amount || 0),
+        time: timeStr
+      };
+    });
 
     res.json({
       success: true,
@@ -28,10 +65,68 @@ exports.getDashboardStats = async (req, res, next) => {
         totalStudents,
         monthlyRevenue,
         averageRating: 4.8,
-        recentSales: [
-          { id: 1, course: classes[0]?.course?.name || 'Khóa học cơ bản', student: 'Nguyễn Văn A', amount: 499000, time: '2 giờ trước' },
-          { id: 2, course: classes[1]?.course?.name || 'Lập trình nâng cao', student: 'Trần Thị B', amount: 899000, time: '5 giờ trước' }
-        ]
+        recentSales
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/teacher/revenue
+exports.getRevenue = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+
+    // Lấy tất cả giao dịch thuộc về giảng viên này
+    const transactions = await Transaction.findAll({
+      where: { teacher_id: teacherId },
+      include: [
+        { model: Course, as: 'course', attributes: ['id', 'name'] },
+        { model: User, as: 'student', attributes: ['id', 'full_name', 'email'] }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let lifetimeEarnings = 0;
+    let pendingClearance = 0;
+    let monthlyRevenue = 0;
+
+    transactions.forEach(t => {
+      const amt = Number(t.amount || 0);
+      if (t.status === 'completed') {
+        lifetimeEarnings += amt;
+        if (new Date(t.created_at) >= startOfMonth) {
+          monthlyRevenue += amt;
+        }
+      } else if (t.status === 'pending') {
+        pendingClearance += amt;
+      }
+    });
+
+    const balance = lifetimeEarnings; // Số dư khả dụng
+
+    const formattedTransactions = transactions.map(t => ({
+      id: t.order_id || `TRX-${t.id}`,
+      course: t.course?.name || 'Khóa học',
+      student: t.student?.full_name || t.student?.email || 'Học viên',
+      amount: Number(t.amount || 0),
+      date: new Date(t.created_at).toLocaleDateString('vi-VN'),
+      status: t.status,
+      paymentMethod: t.payment_method === 'momo' ? 'Ví MoMo' : (t.payment_method || 'Thanh toán trực tuyến')
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        balance,
+        pendingClearance,
+        lifetimeEarnings,
+        monthlyRevenue,
+        transactions: formattedTransactions
       }
     });
   } catch (error) {

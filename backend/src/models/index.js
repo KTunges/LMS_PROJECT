@@ -162,6 +162,9 @@ LiveSession.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
 
 User.hasMany(Transaction, { foreignKey: 'student_id', as: 'transactions' });
 Transaction.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+User.hasMany(Transaction, { foreignKey: 'teacher_id', as: 'teacher_transactions' });
+Transaction.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
+Course.hasMany(Transaction, { foreignKey: 'course_id', as: 'transactions' });
 Transaction.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
 
 LiveSession.hasMany(ChatMessage, { foreignKey: 'session_id', as: 'messages' });

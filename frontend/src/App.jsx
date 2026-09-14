@@ -34,6 +34,7 @@ import NotFound from './components/common/NotFound';
 import { ThemeProvider } from './contexts/ThemeContext';
 import LiveClassroom from './pages/teacher/LiveClassroom/LiveClassroom';
 import StudentLiveClassroom from './pages/student/LiveClassroom/StudentLiveClassroom';
+import MomoReturn from './pages/student/MomoReturn';
 
 function App() {
   return (
@@ -125,6 +126,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* MoMo Payment Return Route */}
+            <Route path="/checkout/momo-return" element={<MomoReturn />} />
 
             {/* Public Login page */}
             <Route path="/login" element={<AuthPage />} />

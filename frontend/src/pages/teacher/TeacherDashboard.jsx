@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FiUsers, FiMonitor, FiDollarSign, FiStar, FiTrendingUp, FiShoppingBag, FiActivity
 } from 'react-icons/fi';
@@ -7,6 +8,7 @@ import './TeacherStudents.css';
 import './Teacher.css';
 
 const TeacherDashboard = () => {
+  const navigate = useNavigate();
   const [statsData, setStatsData] = useState({
     totalCourses: 0,
     totalStudents: 0,
@@ -26,27 +28,19 @@ const TeacherDashboard = () => {
           setStatsData({
             totalCourses: raw.activeClasses || raw.totalCourses || 0,
             totalStudents: raw.totalStudents || 0,
-            monthlyRevenue: raw.monthlyRevenue || 15500000,
+            monthlyRevenue: raw.monthlyRevenue !== undefined ? Number(raw.monthlyRevenue) : 0,
             averageRating: raw.averageRating || 4.8,
-            recentSales: raw.recentSales || [
-              { id: 1, course: 'Lập trình ReactJS Thực chiến', student: 'Nguyễn Văn A', amount: 599000, time: '2 giờ trước' },
-              { id: 2, course: 'NodeJS API Masterclass', student: 'Trần Thị B', amount: 899000, time: '5 giờ trước' },
-              { id: 3, course: 'Figma UI/UX cho người mới', student: 'Lê Văn C', amount: 399000, time: '1 ngày trước' }
-            ]
+            recentSales: Array.isArray(raw.recentSales) ? raw.recentSales : []
           });
         }
       } catch (err) {
         console.error("Lỗi tải dashboard giảng viên:", err);
         setStatsData({
-          totalCourses: 5,
-          totalStudents: 128,
-          monthlyRevenue: 15500000,
-          averageRating: 4.8,
-          recentSales: [
-            { id: 1, course: 'Lập trình ReactJS Thực chiến', student: 'Nguyễn Văn A', amount: 599000, time: '2 giờ trước' },
-            { id: 2, course: 'NodeJS API Masterclass', student: 'Trần Thị B', amount: 899000, time: '5 giờ trước' },
-            { id: 3, course: 'Figma UI/UX cho người mới', student: 'Lê Văn C', amount: 399000, time: '1 ngày trước' }
-          ]
+          totalCourses: 0,
+          totalStudents: 0,
+          monthlyRevenue: 0,
+          averageRating: 5.0,
+          recentSales: []
         });
       } finally {
         setIsLoading(false);
@@ -148,7 +142,11 @@ const TeacherDashboard = () => {
             )}
           </div>
           
-          <button className="btn btn-outline" style={{ width: '100%', marginTop: '20px' }}>
+          <button 
+            className="btn btn-outline" 
+            onClick={() => navigate('/portal-giang-vien/revenue')}
+            style={{ width: '100%', marginTop: '20px', cursor: 'pointer' }}
+          >
             Xem tất cả giao dịch
           </button>
         </div>

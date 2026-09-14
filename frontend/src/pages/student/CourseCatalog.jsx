@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiStar, FiClock, FiUsers, FiCheckCircle, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import './CourseCatalog.css';
-import { studentService } from '../../services';
+import { studentService, paymentService } from '../../services';
 
 const CourseCatalog = () => {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ const CourseCatalog = () => {
         }
       } catch (error) {
         console.error("Lỗi lấy danh mục môn học", error);
-        toast.error("Không thể tải danh mục khóa học");
+        toast.error("Không thể tải danh sách khóa học");
       } finally {
         setIsLoading(false);
       }
@@ -77,22 +77,21 @@ const CourseCatalog = () => {
     }
   };
 
-  const handlePaymentSubmit = async () => {
+  const handleMomoSubmit = async () => {
     if (!paymentModalData) return;
     setIsProcessing(true);
     try {
-      // Giả lập redirect qua VNPAY Sandbox
-      await new Promise(r => setTimeout(r, 1500));
-      const res = await studentService.enrollCourse(paymentModalData.id);
-      if (res.data && res.data.success) {
-        toast.success(`Thanh toán và đăng ký thành công: ${paymentModalData.title}`);
-        setPaymentModalData(null);
-        navigate('/student/my-classes');
+      const res = await paymentService.createMomoPayment(paymentModalData.id);
+      if (res.data && res.data.success && res.data.payUrl) {
+        toast.info('Đang chuyển hướng đến cổng thanh toán MoMo WebPay...');
+        window.location.href = res.data.payUrl;
+      } else {
+        toast.error(res.data?.message || 'Không thể tạo phiên thanh toán MoMo');
+        setIsProcessing(false);
       }
     } catch (error) {
-      console.error("Lỗi thanh toán khóa học", error);
-      toast.error(error.response?.data?.message || 'Lỗi thanh toán');
-    } finally {
+      console.error("Lỗi thanh toán MoMo", error);
+      toast.error(error.response?.data?.message || 'Lỗi kết nối cổng thanh toán MoMo');
       setIsProcessing(false);
     }
   };
@@ -249,22 +248,33 @@ const CourseCatalog = () => {
               </div>
             </div>
             
-            <div className="payment-method-section" style={{marginBottom: '24px'}}>
-              <p className="payment-label" style={{fontWeight: 600, marginBottom: '12px', fontSize: '14px'}}>Chọn phương thức thanh toán:</p>
-              <div className="payment-option selected" style={{display: 'flex', alignItems: 'center', padding: '12px', border: '2px solid #3b82f6', borderRadius: '12px', background: '#eff6ff'}}>
-                <div className="payment-option-logo" style={{width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#0ea5e9', marginRight: '12px'}}>
-                  VNPAY
+            {/* PHƯƠNG THỨC THANH TOÁN: DUY NHẤT CỔNG MOMO WEBPAY */}
+            <div className="payment-method-section" style={{marginBottom: '20px'}}>
+              <div 
+                style={{
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '14px', 
+                  padding: '14px 16px', 
+                  border: '2px solid #d82d8b', 
+                  borderRadius: '12px', 
+                  background: 'rgba(216, 45, 139, 0.04)'
+                }}
+              >
+                <div style={{width: '44px', height: '44px', background: '#a50064', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '13px', flexShrink: 0}}>
+                  momo
                 </div>
-                <div className="payment-option-text" style={{flex: 1}}>
-                  <strong style={{display: 'block', fontSize: '14px'}}>Ví VNPAY / Thẻ Ngân Hàng</strong>
-                  <span style={{fontSize: '12px', color: '#64748b'}}>Sandbox Testing</span>
+                <div>
+                  <strong style={{fontSize: '14px', display: 'block', color: '#0f172a'}}>Cổng thanh toán MoMo (WebPay)</strong>
+                  <span style={{fontSize: '12px', color: '#64748b'}}>Hỗ trợ thẻ ATM nội địa (Napas / NCB / Vietcombank / MB...)</span>
                 </div>
-                <div className="payment-option-radio" style={{width: '20px', height: '20px', borderRadius: '50%', border: '6px solid #3b82f6', background: 'white'}}></div>
               </div>
             </div>
 
+
             <div className="payment-actions" style={{display: 'flex', gap: '12px'}}>
               <button 
+                type="button"
                 onClick={() => setPaymentModalData(null)}
                 disabled={isProcessing}
                 style={{flex: 1, padding: '12px', borderRadius: '8px', background: '#f1f5f9', border: 'none', fontWeight: 600, color: '#475569', cursor: 'pointer'}}
@@ -272,11 +282,26 @@ const CourseCatalog = () => {
                 Hủy
               </button>
               <button 
-                onClick={handlePaymentSubmit}
+                type="button"
+                onClick={handleMomoSubmit}
                 disabled={isProcessing}
-                style={{flex: 2, padding: '12px', borderRadius: '8px', background: '#3b82f6', border: 'none', fontWeight: 600, color: 'white', cursor: isProcessing ? 'wait' : 'pointer'}}
+                style={{
+                  flex: 2, 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  background: 'linear-gradient(135deg, #d82d8b 0%, #a50064 100%)', 
+                  border: 'none', 
+                  fontWeight: 700, 
+                  color: 'white', 
+                  cursor: isProcessing ? 'wait' : 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(216, 45, 139, 0.35)'
+                }}
               >
-                {isProcessing ? 'Đang kết nối VNPAY...' : `Thanh toán ${paymentModalData.price.toLocaleString()}đ`}
+                {isProcessing ? 'Đang mở MoMo WebPay...' : `Thanh toán ${paymentModalData.price.toLocaleString()}đ`}
               </button>
             </div>
           </div>

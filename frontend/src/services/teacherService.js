@@ -12,4 +12,5 @@ export const teacherService = {
   deleteLesson: (lessonId) => api.delete(`/teacher/lessons/${lessonId}`),
   syncCurriculum: (courseId, data) => api.post(`/teacher/courses/${courseId}/sync-curriculum`, data),
   getCategories: () => api.get('/teacher/categories'),
+  getRevenue: () => api.get('/teacher/revenue'),
 };

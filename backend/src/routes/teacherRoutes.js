@@ -7,6 +7,7 @@ router.use(authenticate);
 router.use(authorize('teacher', 'admin'));
 
 router.get('/dashboard', teacherController.getDashboardStats);
+router.get('/revenue', teacherController.getRevenue);
 router.get('/classes', teacherController.getMyClasses);
 
 // Course Management (Teacher creating new courses/classes)
