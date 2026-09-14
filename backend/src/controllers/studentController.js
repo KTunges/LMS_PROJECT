@@ -833,12 +833,23 @@ exports.downloadMaterial = async (req, res, next) => {
       
       // Determine filename
       const ext = fileType ? `.${fileType.toLowerCase()}` : '.pdf';
-      // Sanitize filename to avoid header issues
-      let filename = (material.title || 'document').replace(/[^a-zA-Z0-9_-]/g, '_');
-      filename = `${filename}${ext}`;
+      const cleanTitle = (material.title || 'document').replace(/[\\/:*?"<>|]/g, ' ').trim();
+      
+      // Fallback ASCII name for older clients without diacritics
+      const asciiFallback = cleanTitle
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^a-zA-Z0-9_\- ]/g, '')
+        .trim()
+        .replace(/\s+/g, '_');
+      
+      const safeAsciiFilename = `${asciiFallback || 'document'}${ext}`;
+      const safeUtf8Filename = encodeURIComponent(`${cleanTitle}${ext}`);
 
-      // Set headers for forced download
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      // Set RFC 5987 / RFC 6266 headers: UTF-8 for modern browsers, ASCII fallback for legacy
+      res.setHeader('Content-Disposition', `attachment; filename="${safeAsciiFilename}"; filename*=UTF-8''${safeUtf8Filename}`);
       res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream');
       
       // Pipe the stream to response

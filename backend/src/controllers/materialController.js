@@ -152,7 +152,9 @@ const download = async (req, res, next) => {
     await material.increment('download_count');
 
     const filePath = path.join(__dirname, '../../', material.file_url);
-    res.download(filePath);
+    const ext = path.extname(filePath) || (material.file_type ? `.${material.file_type.toLowerCase()}` : '.pdf');
+    const cleanTitle = (material.title || 'document').replace(/[\\/:*?"<>|]/g, ' ').trim();
+    res.download(filePath, `${cleanTitle}${ext}`);
   } catch (error) {
     next(error);
   }

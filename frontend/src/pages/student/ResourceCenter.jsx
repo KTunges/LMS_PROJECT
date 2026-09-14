@@ -88,12 +88,19 @@ const ResourceCenter = () => {
       const blob = new Blob([res.data], { type: res.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
       
-      let filename = `${mat.title || 'document'}.${mat.file_type ? mat.file_type.toLowerCase() : 'pdf'}`;
+      const ext = mat.file_type ? `.${mat.file_type.toLowerCase()}` : '.pdf';
+      const safeTitle = (mat.title || 'document').replace(/[\\/:*?"<>|]/g, ' ').trim();
+      let filename = `${safeTitle}${ext}`;
+      
       const contentDisposition = res.headers['content-disposition'];
-      if (contentDisposition && contentDisposition.includes('attachment')) {
-        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
-        if (matches != null && matches[1]) {
-          filename = matches[1].replace(/['"]/g, '');
+      if (contentDisposition) {
+        const utf8Match = /filename\*=UTF-8''([^;\n]*)/i.exec(contentDisposition);
+        if (utf8Match && utf8Match[1]) {
+          try {
+            filename = decodeURIComponent(utf8Match[1]);
+          } catch (e) {
+            // keep default safeTitle
+          }
         }
       }
 
@@ -225,6 +232,8 @@ const ResourceCenter = () => {
                 return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
               };
               const type = mat.file_type ? mat.file_type.toUpperCase() : 'PDF';
+              const academicAuthor = mat.description?.match(/\[Tác giả: (.*?)\]/)?.[1];
+              const displayAuthor = academicAuthor || mat.author?.full_name || 'Giảng viên';
               return (
               <div key={mat.id} className="mat-card glass-card">
               <div className="mat-card__icon" style={{ background: `${getFileColor(type)}15`, color: getFileColor(type) }}>
@@ -232,8 +241,8 @@ const ResourceCenter = () => {
                 <span className="mat-type-label" style={{ color: getFileColor(type) }}>{type}</span>
               </div>
               <div className="mat-card__body">
-                <h3 className="mat-title">{mat.title}</h3>
-                <p className="mat-author">{mat.author?.full_name || 'Giảng viên'}</p>
+                <h3 className="mat-title" title={mat.title}>{mat.title}</h3>
+                <p className="mat-author" title={displayAuthor}>{displayAuthor}</p>
                 <div className="mat-meta">
                   <span className="mat-subject">{mat.category?.name || 'Tài liệu chung'}</span>
                   <span className="mat-size">{formatSize(mat.file_size)}</span>
