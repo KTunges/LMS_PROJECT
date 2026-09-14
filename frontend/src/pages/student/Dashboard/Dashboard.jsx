@@ -154,15 +154,15 @@ const Dashboard = () => {
             </div>
             <div className="featured-courses">
               {featuredCourses.map(course => (
-                <div key={course.id} className="course-premium-card" onClick={() => navigate(`/student/course/${course.id}`)}>
+                <div key={course.id} className="course-premium-card" onClick={() => navigate(`/student/catalog`)}>
                   <div className="cpc-image">
-                    <img src={course.thumbnail_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop'} alt={course.name} />
-                    <span className="cpc-tag">{course.level || 'Beginner'}</span>
+                    <img src={course.image || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop'} alt={course.title} />
+                    <span className="cpc-tag">{course.level || 'Cơ bản'}</span>
                   </div>
                   <div className="cpc-content">
-                    <h3 className="cpc-title">{course.name}</h3>
+                    <h3 className="cpc-title">{course.title}</h3>
                     <div className="cpc-teacher">
-                      <FiBookOpen /> {course.lessons?.length || 10} bài học
+                      <FiBookOpen /> {course.duration || '4 tuần'}
                     </div>
                     <div className="cpc-footer">
                       <span className="cpc-price">{!course.price || Number(course.price) === 0 ? 'Miễn phí' : `${Number(course.price).toLocaleString()}đ`}</span>
@@ -270,7 +270,15 @@ const Dashboard = () => {
             </div>
             <div className="suggested-materials">
               {materials.map((mat, idx) => (
-                <div key={idx} className="material-item">
+                <div 
+                  key={idx} 
+                  className="material-item" 
+                  onClick={() => {
+                    if (mat.file_url) window.open(mat.file_url, '_blank');
+                    else navigate('/student/resource-center');
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className={`material-icon ${mat.file_url?.endsWith('pdf') ? 'pdf' : 'video'}`}>
                     {mat.file_url?.endsWith('pdf') ? <FiFileText /> : <FiPlayCircle />}
                   </div>

@@ -19,7 +19,7 @@ const AdminFinance = () => {
         setTransactions(res.data.data);
         const total = res.data.data
           .filter(t => t.status === 'completed')
-          .reduce((sum, t) => sum + Number(t.amount), 0);
+          .reduce((sum, t) => sum + Number(t.platform_amount || t.amount || 0), 0);
         setTotalRevenue(total);
       }
     } catch (err) {
@@ -50,11 +50,37 @@ const AdminFinance = () => {
     transactions.forEach(t => {
       if (t.status === 'completed') {
         const dateStr = format(new Date(t.created_at), 'dd/MM');
-        dataMap[dateStr] = (dataMap[dateStr] || 0) + Number(t.amount);
+        dataMap[dateStr] = (dataMap[dateStr] || 0) + Number(t.platform_amount || t.amount || 0);
       }
     });
     return Object.keys(dataMap).map(key => ({ date: key, revenue: dataMap[key] })).reverse(); // Reverse if dates come latest first
   }, [transactions]);
+
+  const handleApprove = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn duyệt giao dịch này? (Hệ thống sẽ ghi danh khóa học và chia hoa hồng)')) return;
+    try {
+      const res = await api.put(`/admin/finance/${id}/approve`);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        fetchTransactions();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi duyệt giao dịch');
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn từ chối giao dịch này?')) return;
+    try {
+      const res = await api.put(`/admin/finance/${id}/reject`);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        fetchTransactions();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi từ chối giao dịch');
+    }
+  };
 
   if (isLoading) {
     return <div style={{ color: '#1e293b', fontWeight: '500' }}>Đang tải dữ liệu...</div>;
@@ -95,7 +121,7 @@ const AdminFinance = () => {
       
       <div className="admin-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 className="admin-card-title" style={{ margin: 0 }}><FiDollarSign /> Lịch sử Giao dịch VNPAY</h2>
+          <h2 className="admin-card-title" style={{ margin: 0 }}><FiDollarSign /> Lịch sử Giao dịch</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
             <div className="admin-input-wrapper" style={{ width: '250px' }}>
               <FiSearch className="admin-input-icon" style={{ left: '12px', fontSize: '1rem' }} />
@@ -127,12 +153,14 @@ const AdminFinance = () => {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Mã GD (VNPAY)</th>
+              <th>Mã GD</th>
               <th>Người mua</th>
               <th>Khóa học</th>
-              <th>Số tiền (VNĐ)</th>
+              <th>Tổng tiền</th>
+              <th>Nền tảng (30%)</th>
+              <th>Giảng viên (70%)</th>
               <th>Trạng thái</th>
-              <th>Thời gian</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -140,24 +168,48 @@ const AdminFinance = () => {
               <tr key={t.id}>
                 <td style={{ color: '#64748b', fontWeight: 600 }}>{t.payment_method === 'vnpay' ? t.transaction_id || `#${t.id}` : `#${t.id}`}</td>
                 <td>
-                  <div style={{ fontWeight: 600, color: '#1e293b' }}>{t.user?.full_name || 'Không rõ'}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{t.user?.email}</div>
+                  <div style={{ fontWeight: 600, color: '#1e293b' }}>{t.student?.full_name || t.user?.full_name || 'Không rõ'}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{t.student?.email || t.user?.email}</div>
                 </td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1e293b' }}>
                     <FiBook color="#d4af37" /> <span style={{ fontWeight: 500 }}>{t.course?.name || 'Không rõ'}</span>
                   </div>
                 </td>
+                <td style={{ fontWeight: 600, color: '#1e293b' }}>
+                  {Number(t.amount || 0).toLocaleString()}đ
+                </td>
                 <td style={{ fontWeight: 700, color: t.status === 'completed' ? '#16a34a' : '#64748b' }}>
-                  {t.status === 'completed' ? '+' : ''}{Number(t.amount || 0).toLocaleString()}đ
+                  {t.status === 'completed' ? '+' : ''}{Number(t.platform_amount || 0).toLocaleString()}đ
+                </td>
+                <td style={{ fontWeight: 600, color: '#3b82f6' }}>
+                  {Number(t.teacher_amount || 0).toLocaleString()}đ
                 </td>
                 <td>
                   <span className={`admin-badge-status ${t.status === 'completed' ? 'published' : t.status === 'failed' ? 'rejected' : 'draft'}`}>
                     {t.status === 'completed' ? 'Thành công' : t.status === 'failed' ? 'Thất bại' : 'Chờ xử lý'}
                   </span>
+                  <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '4px' }}>
+                    {new Date(t.created_at).toLocaleString('vi-VN')}
+                  </div>
                 </td>
-                <td style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                  {new Date(t.created_at).toLocaleString('vi-VN')}
+                <td>
+                  {t.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button 
+                        onClick={() => handleApprove(t.id)}
+                        style={{ padding: '4px 8px', fontSize: '0.8rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        Duyệt
+                      </button>
+                      <button 
+                        onClick={() => handleReject(t.id)}
+                        style={{ padding: '4px 8px', fontSize: '0.8rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        Từ chối
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

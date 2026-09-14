@@ -1,6 +1,91 @@
 const crypto = require('crypto');
 const axios = require('axios');
-const { Transaction, Course, Class, Enrollment, Grade, Notification, User } = require('../models');
+const { Transaction, Course, Class, Enrollment, Grade, Notification, User, Setting } = require('../models');
+
+// Helper: Lấy tỷ lệ hoa hồng từ Settings
+async function getCommissionRate() {
+  try {
+    const setting = await Setting.findOne({ where: { key: 'teacherCommissionRate' } });
+    if (setting && setting.value) {
+      const rate = Number(setting.value);
+      if (rate >= 0 && rate <= 100) return rate;
+    }
+  } catch (e) { /* fallback */ }
+  return 70; // Mặc định 70%
+}
+
+// Helper: Tính phân chia tiền
+function calculateSplit(amount, commissionRate) {
+  const teacherAmount = Math.round(amount * commissionRate / 100);
+  const platformAmount = amount - teacherAmount;
+  return { teacherAmount, platformAmount, commissionRate };
+}
+
+// Helper: Hoàn tất giao dịch (chia tiền + ghi danh + thông báo)
+async function completeTransaction(transaction, transId) {
+  const rate = await getCommissionRate();
+  const amount = Number(transaction.amount || 0);
+  const { teacherAmount, platformAmount } = calculateSplit(amount, rate);
+
+  // Cập nhật transaction
+  transaction.status = 'completed';
+  transaction.teacher_amount = teacherAmount;
+  transaction.platform_amount = platformAmount;
+  transaction.commission_rate = rate;
+  if (transId) transaction.trans_id = String(transId);
+  await transaction.save();
+
+  // Ghi danh học viên vào lớp học
+  const classObj = await Class.findOne({ where: { course_id: transaction.course_id } });
+  if (classObj) {
+    const [enrollment, created] = await Enrollment.findOrCreate({
+      where: { student_id: transaction.student_id, class_id: classObj.id },
+      defaults: {
+        student_id: transaction.student_id,
+        class_id: classObj.id,
+        enrollment_date: new Date(),
+        status: 'enrolled'
+      }
+    });
+
+    if (created) {
+      await Grade.create({
+        enrollment_id: enrollment.id,
+        process_score: 0,
+        midterm_score: 0,
+        final_score: 0,
+        total_score: 0,
+        note: 'Thanh toán thành công'
+      });
+    }
+  }
+
+  // Reload course & student info for notifications
+  const course = await Course.findByPk(transaction.course_id);
+  const student = await User.findByPk(transaction.student_id);
+  const courseName = course?.name || 'Khóa học';
+  const studentName = student?.full_name || student?.email || 'Học viên';
+
+  // Thông báo cho học viên
+  await Notification.create({
+    user_id: transaction.student_id,
+    title: 'Thanh toán khóa học thành công',
+    content: `Bạn đã thanh toán thành công khóa học "${courseName}" (${amount.toLocaleString('vi-VN')}đ).`,
+    is_read: false
+  });
+
+  // Thông báo cho giảng viên (hiển thị số tiền GV THỰC SỰ nhận được)
+  if (transaction.teacher_id) {
+    await Notification.create({
+      user_id: transaction.teacher_id,
+      title: 'Doanh thu mới từ khóa học',
+      content: `Học viên ${studentName} vừa mua khóa học "${courseName}". Bạn nhận được +${teacherAmount.toLocaleString('vi-VN')}đ (${rate}% hoa hồng từ ${amount.toLocaleString('vi-VN')}đ).`,
+      is_read: false
+    });
+  }
+
+  return { teacherAmount, platformAmount, rate };
+}
 
 // POST /api/payment/momo/create
 exports.createMomoPayment = async (req, res, next) => {
@@ -80,7 +165,10 @@ exports.createMomoPayment = async (req, res, next) => {
       payment_method: 'momo',
       order_id: orderId,
       extra_data: extraData,
-      status: 'pending'
+      status: 'pending',
+      teacher_amount: 0,
+      platform_amount: 0,
+      commission_rate: 0
     });
 
     const requestBody = {
@@ -154,6 +242,8 @@ exports.verifyMomoPayment = async (req, res, next) => {
         data: {
           orderId: transaction.order_id,
           amount: transaction.amount,
+          teacherAmount: transaction.teacher_amount,
+          platformAmount: transaction.platform_amount,
           course: transaction.course,
           status: 'completed'
         }
@@ -162,53 +252,7 @@ exports.verifyMomoPayment = async (req, res, next) => {
 
     // Kiểm tra resultCode từ MoMo (0 = Thành công)
     if (String(resultCode) === '0') {
-      transaction.status = 'completed';
-      if (transId) transaction.trans_id = String(transId);
-      await transaction.save();
-
-      // Ghi danh học viên vào lớp học
-      const classObj = await Class.findOne({ where: { course_id: transaction.course_id } });
-      if (classObj) {
-        const [enrollment, created] = await Enrollment.findOrCreate({
-          where: { student_id: transaction.student_id, class_id: classObj.id },
-          defaults: {
-            student_id: transaction.student_id,
-            class_id: classObj.id,
-            enrollment_date: new Date(),
-            status: 'enrolled'
-          }
-        });
-
-        if (created) {
-          await Grade.create({
-            enrollment_id: enrollment.id,
-            process_score: 0,
-            midterm_score: 0,
-            final_score: 0,
-            total_score: 0,
-            note: 'Thanh toán thành công qua MoMo'
-          });
-        }
-      }
-
-      // Thông báo cho học viên
-      await Notification.create({
-        user_id: transaction.student_id,
-        title: 'Thanh toán khóa học thành công',
-        content: `Bạn đã thanh toán thành công khóa học "${transaction.course?.name || 'Khóa học'}" (${Number(transaction.amount).toLocaleString('vi-VN')}đ) qua Ví MoMo.`,
-        is_read: false
-      });
-
-      // Thông báo và cộng doanh thu cho giảng viên
-      if (transaction.teacher_id) {
-        const studentName = transaction.student?.full_name || transaction.student?.email || 'Học viên';
-        await Notification.create({
-          user_id: transaction.teacher_id,
-          title: 'Doanh thu mới từ khóa học',
-          content: `Học viên ${studentName} vừa đăng ký khóa học "${transaction.course?.name || 'Khóa học'}". Doanh thu của bạn được cộng +${Number(transaction.amount).toLocaleString('vi-VN')}đ qua Ví MoMo.`,
-          is_read: false
-        });
-      }
+      const splitResult = await completeTransaction(transaction, transId);
 
       return res.json({
         success: true,
@@ -216,6 +260,9 @@ exports.verifyMomoPayment = async (req, res, next) => {
         data: {
           orderId: transaction.order_id,
           amount: transaction.amount,
+          teacherAmount: splitResult.teacherAmount,
+          platformAmount: splitResult.platformAmount,
+          commissionRate: splitResult.rate,
           course: transaction.course,
           status: 'completed'
         }
@@ -246,32 +293,7 @@ exports.handleMomoIpn = async (req, res) => {
       const transaction = await Transaction.findOne({ where: { order_id: orderId } });
       if (transaction && transaction.status === 'pending') {
         if (String(resultCode) === '0') {
-          transaction.status = 'completed';
-          if (transId) transaction.trans_id = String(transId);
-          await transaction.save();
-
-          const classObj = await Class.findOne({ where: { course_id: transaction.course_id } });
-          if (classObj) {
-            const [enrollment, created] = await Enrollment.findOrCreate({
-              where: { student_id: transaction.student_id, class_id: classObj.id },
-              defaults: {
-                student_id: transaction.student_id,
-                class_id: classObj.id,
-                enrollment_date: new Date(),
-                status: 'enrolled'
-              }
-            });
-            if (created) {
-              await Grade.create({
-                enrollment_id: enrollment.id,
-                process_score: 0,
-                midterm_score: 0,
-                final_score: 0,
-                total_score: 0,
-                note: 'Thanh toán MoMo IPN'
-              });
-            }
-          }
+          await completeTransaction(transaction, transId);
         } else {
           transaction.status = 'failed';
           await transaction.save();
@@ -320,7 +342,11 @@ exports.processAtmPayment = async (req, res, next) => {
     const teacherId = classObj.teacher_id;
     const amount = Math.round(Number(course.price) || 0);
     const orderId = `ATM_NCB_${Date.now()}`;
-    const transId = `${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+    const transIdVal = `${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+
+    // Lấy tỷ lệ hoa hồng
+    const rate = await getCommissionRate();
+    const { teacherAmount, platformAmount } = calculateSplit(amount, rate);
 
     // Tạo bản ghi Transaction hoàn tất
     const transaction = await Transaction.create({
@@ -330,8 +356,11 @@ exports.processAtmPayment = async (req, res, next) => {
       amount,
       payment_method: `Thẻ ATM (${bankCode || 'NCB'})`,
       order_id: orderId,
-      trans_id: transId,
-      status: 'completed'
+      trans_id: transIdVal,
+      status: 'completed',
+      teacher_amount: teacherAmount,
+      platform_amount: platformAmount,
+      commission_rate: rate
     });
 
     // Ghi danh học viên
@@ -352,7 +381,7 @@ exports.processAtmPayment = async (req, res, next) => {
         midterm_score: 0,
         final_score: 0,
         total_score: 0,
-        note: 'Thanh toán qua Thẻ ATM NCB'
+        note: 'Thanh toán qua Thẻ ATM'
       });
     }
 
@@ -362,17 +391,17 @@ exports.processAtmPayment = async (req, res, next) => {
     await Notification.create({
       user_id: studentId,
       title: 'Thanh toán khóa học thành công',
-      content: `Bạn đã thanh toán thành công khóa học "${course.name}" (${Number(amount).toLocaleString('vi-VN')}đ) qua Thẻ ATM Ngân hàng ${bankCode || 'NCB'}.`,
+      content: `Bạn đã thanh toán thành công khóa học "${course.name}" (${amount.toLocaleString('vi-VN')}đ) qua Thẻ ATM ${bankCode || 'NCB'}.`,
       is_read: false
     });
 
-    // Thông báo cho giảng viên
+    // Thông báo cho giảng viên (hiển thị số tiền GV thực nhận)
     if (teacherId) {
       const studentName = student?.full_name || student?.email || 'Học viên';
       await Notification.create({
         user_id: teacherId,
         title: 'Doanh thu mới từ khóa học',
-        content: `Học viên ${studentName} vừa đăng ký khóa học "${course.name}". Doanh thu của bạn được cộng +${Number(amount).toLocaleString('vi-VN')}đ qua Thẻ ATM Ngân hàng ${bankCode || 'NCB'}.`,
+        content: `Học viên ${studentName} vừa mua khóa học "${course.name}". Bạn nhận được +${teacherAmount.toLocaleString('vi-VN')}đ (${rate}% hoa hồng từ ${amount.toLocaleString('vi-VN')}đ).`,
         is_read: false
       });
     }
@@ -382,8 +411,11 @@ exports.processAtmPayment = async (req, res, next) => {
       message: 'Thanh toán thẻ ATM thành công!',
       data: {
         orderId,
-        transId,
+        transId: transIdVal,
         amount,
+        teacherAmount,
+        platformAmount,
+        commissionRate: rate,
         course,
         bankCode: bankCode || 'NCB',
         status: 'completed'
@@ -394,3 +426,6 @@ exports.processAtmPayment = async (req, res, next) => {
     next(error);
   }
 };
+
+// Export helper for admin approve
+exports.completeTransaction = completeTransaction;

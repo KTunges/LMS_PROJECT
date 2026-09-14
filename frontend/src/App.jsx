@@ -131,7 +131,7 @@ function App() {
               path="/student/live/:sessionId"
               element={
                 <ProtectedRoute roles={['student']}>
-                  <StudentLiveClassroom />
+                  <LiveClassroom />
                 </ProtectedRoute>
               }
             />

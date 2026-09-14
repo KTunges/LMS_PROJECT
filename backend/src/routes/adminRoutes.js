@@ -14,5 +14,7 @@ router.get('/finance', adminController.getTransactions);
 router.get('/settings', adminController.getSettings);
 router.put('/settings', adminController.updateSettings);
 router.put('/users/:id/verify', adminController.verifyUser);
+router.put('/finance/:id/approve', adminController.approveTransaction);
+router.put('/finance/:id/reject', adminController.rejectTransaction);
 
 module.exports = router;

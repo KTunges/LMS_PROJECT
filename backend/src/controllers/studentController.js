@@ -337,7 +337,10 @@ exports.getCatalog = async (req, res, next) => {
     
     // Get all courses
     const courses = await Course.findAll({
-      include: [{ model: Category, as: 'category' }]
+      include: [
+        { model: Category, as: 'category' },
+        { model: User, as: 'teacher' }
+      ]
     });
 
     // Get current student's enrollments to know what they are learning
@@ -351,7 +354,7 @@ exports.getCatalog = async (req, res, next) => {
     const formattedCatalog = courses.map(c => ({
       id: c.id,
       title: c.name,
-      instructor: 'Giảng viên chuyên môn',
+      instructor: c.teacher ? c.teacher.full_name : 'Giảng viên chuyên môn',
       rating: 4.8, // Mocked rating for now
       students: Math.floor(Math.random() * 500) + 50,
       duration: c.duration || '4 tuần',

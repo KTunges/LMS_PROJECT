@@ -54,7 +54,7 @@ const LiveClassroom = () => {
           layout: 'Auto',
           showLayoutButton: true,
           onLeaveRoom: () => {
-            navigate(isTeacher ? '/portal-giang-vien' : '/student/dashboard');
+            navigate(isTeacher ? '/portal-giang-vien' : '/student');
           }
         });
       } catch (err) {

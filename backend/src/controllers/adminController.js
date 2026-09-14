@@ -96,8 +96,9 @@ exports.getTransactions = async (req, res, next) => {
   try {
     const transactions = await Transaction.findAll({
       include: [
-        { model: User, as: 'user', attributes: ['full_name', 'email'] },
-        { model: Course, as: 'course', attributes: ['title', 'price'] }
+        { model: User, as: 'student', attributes: ['full_name', 'email'] },
+        { model: User, as: 'teacher', attributes: ['full_name', 'email'] },
+        { model: Course, as: 'course', attributes: ['name', 'price'] }
       ],
       order: [['created_at', 'DESC']]
     });
@@ -166,6 +167,59 @@ exports.verifyUser = async (req, res, next) => {
     await user.save();
 
     res.json({ success: true, message: 'Đã xác thực tài khoản thành công' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/admin/finance/:id/approve
+exports.approveTransaction = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const transaction = await Transaction.findByPk(id, {
+      include: [
+        { model: User, as: 'student' },
+        { model: Course, as: 'course' }
+      ]
+    });
+    
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Giao dịch không tồn tại' });
+    }
+    
+    if (transaction.status === 'completed') {
+      return res.status(400).json({ success: false, message: 'Giao dịch đã được duyệt trước đó' });
+    }
+
+    // Call the helper from paymentController
+    const { completeTransaction } = require('./paymentController');
+    const transId = req.body.transId || `MANUAL_${Date.now()}`;
+    await completeTransaction(transaction, transId);
+
+    res.json({ success: true, message: 'Đã duyệt giao dịch thành công' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/admin/finance/:id/reject
+exports.rejectTransaction = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const transaction = await Transaction.findByPk(id);
+    
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Giao dịch không tồn tại' });
+    }
+
+    if (transaction.status === 'completed') {
+      return res.status(400).json({ success: false, message: 'Không thể từ chối giao dịch đã hoàn tất' });
+    }
+
+    transaction.status = 'failed';
+    await transaction.save();
+
+    res.json({ success: true, message: 'Đã từ chối giao dịch' });
   } catch (error) {
     next(error);
   }

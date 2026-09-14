@@ -92,7 +92,7 @@ const AdminSettings = () => {
 
           <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>Cổng thanh toán (VNPAY)</div>
+              <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>Cổng thanh toán (MoMo)</div>
               <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Cho phép học viên thanh toán khóa học.</div>
             </div>
             <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>

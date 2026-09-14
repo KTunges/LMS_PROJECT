@@ -29,7 +29,7 @@ exports.getDashboardStats = async (req, res, next) => {
         created_at: { [Op.gte]: startOfMonth }
       }
     });
-    const monthlyRevenue = monthlyCompletedTrx.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    const monthlyRevenue = monthlyCompletedTrx.reduce((sum, t) => sum + Number(t.teacher_amount || t.amount || 0), 0);
 
     // Recent real sales
     const recentTrx = await Transaction.findAll({
@@ -53,7 +53,7 @@ exports.getDashboardStats = async (req, res, next) => {
         id: t.id,
         course: t.course?.name || 'Khóa học',
         student: t.student?.full_name || t.student?.email || 'Học viên',
-        amount: Number(t.amount || 0),
+        amount: Number(t.teacher_amount || t.amount || 0),
         time: timeStr
       };
     });
@@ -96,28 +96,37 @@ exports.getRevenue = async (req, res, next) => {
     let monthlyRevenue = 0;
 
     transactions.forEach(t => {
-      const amt = Number(t.amount || 0);
+      // Dùng teacher_amount (phần GV thực nhận) thay vì amount (tổng tiền)
+      const teacherAmt = Number(t.teacher_amount || 0);
+      const totalAmt = Number(t.amount || 0);
       if (t.status === 'completed') {
-        lifetimeEarnings += amt;
+        // Nếu teacher_amount > 0 thì dùng, không thì fallback về amount (cho GD cũ chưa migrate)
+        lifetimeEarnings += teacherAmt > 0 ? teacherAmt : totalAmt;
         if (new Date(t.created_at) >= startOfMonth) {
-          monthlyRevenue += amt;
+          monthlyRevenue += teacherAmt > 0 ? teacherAmt : totalAmt;
         }
       } else if (t.status === 'pending') {
-        pendingClearance += amt;
+        pendingClearance += totalAmt;
       }
     });
 
-    const balance = lifetimeEarnings; // Số dư khả dụng
+    const balance = lifetimeEarnings; // Số dư khả dụng = tổng teacher_amount completed
 
-    const formattedTransactions = transactions.map(t => ({
-      id: t.order_id || `TRX-${t.id}`,
-      course: t.course?.name || 'Khóa học',
-      student: t.student?.full_name || t.student?.email || 'Học viên',
-      amount: Number(t.amount || 0),
-      date: new Date(t.created_at).toLocaleDateString('vi-VN'),
-      status: t.status,
-      paymentMethod: t.payment_method === 'momo' ? 'Ví MoMo' : (t.payment_method || 'Thanh toán trực tuyến')
-    }));
+    const formattedTransactions = transactions.map(t => {
+      const teacherAmt = Number(t.teacher_amount || 0);
+      const totalAmt = Number(t.amount || 0);
+      return {
+        id: t.order_id || `TRX-${String(t.id).padStart(3, '0')}`,
+        course: t.course?.name || 'Khóa học',
+        student: t.student?.full_name || t.student?.email || 'Học viên',
+        amount: teacherAmt > 0 ? teacherAmt : totalAmt,
+        totalAmount: totalAmt,
+        commissionRate: Number(t.commission_rate || 70),
+        date: new Date(t.created_at).toLocaleDateString('vi-VN'),
+        status: t.status,
+        paymentMethod: t.payment_method === 'momo' ? 'Ví MoMo' : (t.payment_method || 'Thanh toán trực tuyến')
+      };
+    });
 
     res.json({
       success: true,
@@ -162,7 +171,7 @@ exports.getMyClasses = async (req, res, next) => {
         id: c.id, // we use class id as course identifier for the teacher scope
         name: c.course.name,
         code: c.course.code,
-        price: c.course.price || 499000,
+        price: Number(c.course.price) || 0,
         status: c.status === 'active' ? 'published' : 'draft',
         studentsCount: studentCountMap[c.id] || 0,
         rating: 4.8
@@ -586,52 +595,6 @@ exports.deleteMaterial = async (req, res, next) => {
   }
 };
 
-// GET /api/teacher/revenue
-exports.getRevenue = async (req, res, next) => {
-  try {
-    const teacherId = req.user.id;
-    const { Transaction, Course, User } = require('../models');
-
-    const transactions = await Transaction.findAll({
-      include: [
-        { model: Course, as: 'course', attributes: ['id', 'name'] },
-        { model: User, as: 'student', attributes: ['id', 'full_name'] }
-      ],
-      order: [['created_at', 'DESC']]
-    });
-
-    // Filter transactions for courses taught by this teacher
-    const { Class } = require('../models');
-    const teacherClasses = await Class.findAll({ where: { teacher_id: teacherId }, attributes: ['course_id'] });
-    const teacherCourseIds = teacherClasses.map(c => c.course_id);
-
-    const filtered = transactions.filter(t => teacherCourseIds.includes(t.course_id));
-    
-    const completedTotal = filtered.filter(t => t.status === 'completed').reduce((sum, t) => sum + (t.amount || 0), 0);
-    const pendingTotal = filtered.filter(t => t.status === 'pending').reduce((sum, t) => sum + (t.amount || 0), 0);
-
-    const formattedTrx = filtered.map(t => ({
-      id: 'TRX-' + String(t.id).padStart(3, '0'),
-      course: t.course?.name || 'Khóa học',
-      student: t.student?.full_name || 'Học viên',
-      amount: t.amount || 0,
-      date: new Date(t.created_at || t.createdAt).toLocaleDateString('vi-VN'),
-      status: t.status || 'pending'
-    }));
-
-    res.json({
-      success: true,
-      data: {
-        balance: completedTotal,
-        pendingClearance: pendingTotal,
-        lifetimeEarnings: completedTotal + pendingTotal,
-        transactions: formattedTrx,
-      }
-    });
-  } catch (err) {
-    next(err);
-  }
-};
 
 exports.broadcastEmail = async (req, res, next) => {
   try {

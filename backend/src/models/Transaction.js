@@ -50,6 +50,24 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),
     defaultValue: 'pending',
   },
+  teacher_amount: {
+    type: DataTypes.DECIMAL(12, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Số tiền giảng viên nhận (hoa hồng)',
+  },
+  platform_amount: {
+    type: DataTypes.DECIMAL(12, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Số tiền nền tảng giữ lại',
+  },
+  commission_rate: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 70,
+    comment: 'Tỷ lệ hoa hồng GV tại thời điểm giao dịch (%)',
+  },
 }, {
   tableName: 'transactions',
   timestamps: true,
