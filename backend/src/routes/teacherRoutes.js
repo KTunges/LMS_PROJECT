@@ -29,4 +29,9 @@ router.get('/lessons/:lessonId/questions', teacherController.getInteractiveQuest
 router.post('/lessons/:lessonId/questions', teacherController.addInteractiveQuestion);
 router.delete('/questions/:questionId', teacherController.deleteInteractiveQuestion);
 
+// Students & QA
+router.get('/students', teacherController.getStudents);
+router.get('/qa', teacherController.getQA);
+router.post('/qa/:id/reply', teacherController.replyQA);
+
 module.exports = router;

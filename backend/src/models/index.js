@@ -27,6 +27,7 @@ const TestCase = require('./TestCase');
 const LiveSession = require('./LiveSession');
 const Transaction = require('./Transaction');
 const ChatMessage = require('./ChatMessage');
+const CourseQA = require('./CourseQA');
 
 // ---- Associations ----
 
@@ -170,6 +171,20 @@ ChatMessage.belongsTo(LiveSession, { foreignKey: 'session_id', as: 'session' });
 User.hasMany(ChatMessage, { foreignKey: 'user_id', as: 'chat_messages' });
 ChatMessage.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// ---- Course QA ----
+
+Course.hasMany(CourseQA, { foreignKey: 'course_id', as: 'qas' });
+CourseQA.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
+
+User.hasMany(CourseQA, { foreignKey: 'student_id', as: 'asked_questions' });
+CourseQA.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+
+User.hasMany(CourseQA, { foreignKey: 'teacher_id', as: 'teacher_questions' });
+CourseQA.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
+
+Lesson.hasMany(CourseQA, { foreignKey: 'lesson_id', as: 'lesson_qas' });
+CourseQA.belongsTo(Lesson, { foreignKey: 'lesson_id', as: 'lesson' });
+
 module.exports = {
   sequelize,
   User,
@@ -200,4 +215,5 @@ module.exports = {
   LiveSession,
   Transaction,
   ChatMessage,
+  CourseQA,
 };

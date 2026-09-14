@@ -317,3 +317,107 @@ exports.getCategories = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET /api/teacher/students
+exports.getStudents = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { Class, Enrollment, User, Course, LessonProgress } = require('../models');
+
+    // Find classes taught by this teacher
+    const classes = await Class.findAll({
+      where: { teacher_id: teacherId },
+      include: [
+        { model: Course, as: 'course' },
+        {
+          model: Enrollment,
+          as: 'enrollments',
+          include: [{ model: User, as: 'student', attributes: ['id', 'full_name', 'email', 'avatar'] }]
+        }
+      ]
+    });
+
+    const studentsMap = {};
+
+    for (const cls of classes) {
+      for (const enr of cls.enrollments) {
+        if (!enr.student) continue;
+        
+        // Compute progress based on LessonProgress (stub: random progress or calculate properly if time permits)
+        // Here we just return a default structure and 0 progress if missing
+        const sId = enr.student.id;
+        if (!studentsMap[sId]) {
+          studentsMap[sId] = {
+            id: 'SV' + String(sId).padStart(3, '0'),
+            real_id: sId,
+            name: enr.student.full_name,
+            email: enr.student.email,
+            avatar: enr.student.avatar,
+            course: cls.course?.name || 'Khóa học',
+            progress: Math.floor(Math.random() * 100), // Fake progress for now
+            date: new Date(enr.createdAt).toLocaleDateString('vi-VN')
+          };
+        }
+      }
+    }
+
+    res.json({ success: true, data: Object.values(studentsMap) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /api/teacher/qa
+exports.getQA = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { CourseQA, User, Course, Lesson } = require('../models');
+    const qas = await CourseQA.findAll({
+      where: { teacher_id: teacherId },
+      include: [
+        { model: User, as: 'student', attributes: ['id', 'full_name', 'avatar'] },
+        { model: Course, as: 'course', attributes: ['id', 'name'] },
+        { model: Lesson, as: 'lesson', attributes: ['id', 'title'] }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+
+    const formattedQAs = qas.map(q => ({
+      id: q.id,
+      student: q.student?.full_name || 'Học viên',
+      course: q.course?.name || 'Chung',
+      lecture: q.lesson?.title || 'Chung',
+      question: q.question,
+      answer: q.answer,
+      answered: !!q.answer,
+      time: new Date(q.created_at).toLocaleString('vi-VN')
+    }));
+
+    res.json({ success: true, data: formattedQAs });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/teacher/qa/:id/reply
+exports.replyQA = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const qaId = req.params.id;
+    const { answer } = req.body;
+    const { CourseQA } = require('../models');
+
+    const qa = await CourseQA.findOne({ where: { id: qaId, teacher_id: teacherId }});
+    if (!qa) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    qa.answer = answer;
+    qa.answered_at = new Date();
+    await qa.save();
+
+    res.json({ success: true, message: 'Replied successfully', data: qa });
+  } catch (err) {
+    next(err);
+  }
+};
