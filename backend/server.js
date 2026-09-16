@@ -25,7 +25,7 @@ const startServer = async () => {
     // Make io accessible in routes if needed
     app.set('io', io);
 
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
       console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { FiMessageSquare, FiSend, FiX, FiCpu } from 'react-icons/fi';
 import { aiService } from '../../../services';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './AIChat.css';
 
 const AIChat = ({ contextTitle = '', contextText = '' }) => {
@@ -65,7 +67,13 @@ const AIChat = ({ contextTitle = '', contextText = '' }) => {
           <div className="ai-chat-body">
             {messages.map((msg, i) => (
               <div key={i} className={`ai-message ${msg.role === 'user' ? 'user-msg' : 'model-msg'}`}>
-                {msg.content}
+                {msg.role === 'model' ? (
+                  <div className="markdown-content">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  msg.content
+                )}
               </div>
             ))}
             {isTyping && (

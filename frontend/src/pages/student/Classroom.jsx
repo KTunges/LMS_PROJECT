@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FiArrowLeft, FiCheckCircle, FiPlayCircle, FiFileText, FiAward, FiExternalLink, FiEye } from 'react-icons/fi';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { classService, studentService, aiService } from '../../services';
 import CustomVideoPlayer from '../../components/common/VideoPlayer/CustomVideoPlayer';
 import CourseReviews from '../../components/common/CourseReviews/CourseReviews';
@@ -211,17 +213,6 @@ const Classroom = () => {
                 <h2>{activeLesson.title}</h2>
               </div>
               <p>{activeLesson.duration}</p>
-              
-              {summary && (
-                <div style={{ marginTop: '16px', padding: '16px', background: 'var(--theme-glass-bg, #f8fafc)', border: '1px solid var(--theme-glass-border, #e2e8f0)', borderRadius: '8px' }}>
-                  <h4 style={{ color: 'var(--theme-primary, #4f46e5)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    ✨ Tóm tắt từ AI
-                  </h4>
-                  <div style={{ fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-                    {summary}
-                  </div>
-                </div>
-              )}
             </div>
             <div className="lesson-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <button 
@@ -264,6 +255,17 @@ const Classroom = () => {
               )}
             </div>
           </div>
+
+          {summary && (
+            <div style={{ margin: '0 24px 24px 24px', padding: '24px', background: 'var(--theme-glass-bg, #f8fafc)', border: '1px solid var(--theme-glass-border, #e2e8f0)', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+              <h4 style={{ color: 'var(--theme-primary, #4f46e5)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}>
+                ✨ Tóm tắt từ AI
+              </h4>
+              <div className="markdown-content" style={{ fontSize: '1rem', lineHeight: '1.7', color: 'var(--theme-text, #1e293b)' }}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{summary}</ReactMarkdown>
+              </div>
+            </div>
+          )}
 
           {/* Đánh giá khóa học */}
           {courseId && <CourseReviews courseId={courseId} />}
