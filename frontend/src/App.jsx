@@ -16,6 +16,7 @@ import TeacherStudents from './pages/teacher/TeacherStudents';
 import ManageCourse from './pages/teacher/ManageCourse';
 import AuthPage from './pages/auth/AuthPage';
 import TeacherLogin from './pages/auth/TeacherLogin';
+import TeacherRegister from './pages/auth/TeacherRegister';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/student/Profile';
 import Schedule from './pages/student/Schedule';
@@ -70,8 +71,9 @@ function App() {
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
-            {/* Teacher Login Route */}
+            {/* Teacher Login & Register Routes */}
             <Route path="/portal-giang-vien/login" element={<TeacherLogin />} />
+            <Route path="/portal-giang-vien/register" element={<TeacherRegister />} />
 
             {/* Teacher routes */}
             <Route

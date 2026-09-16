@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { register, verifyOtp, completeRegistration, login, googleLogin, facebookLogin, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar } = require('../controllers/authController');
+const { register, registerTeacher, verifyOtp, completeRegistration, login, googleLogin, facebookLogin, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+
+/**
+ * @swagger
+ * /api/auth/register-teacher:
+ *   post:
+ *     summary: Đăng ký tài khoản Đối tác Giảng viên
+ *     tags: [Xác thực]
+ */
+router.post('/register-teacher', registerTeacher);
 
 /**
  * @swagger

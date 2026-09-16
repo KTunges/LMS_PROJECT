@@ -523,4 +523,76 @@ const uploadAvatar = async (req, res, next) => {
   }
 };
 
-module.exports = { register, verifyOtp, completeRegistration, login, googleLogin, facebookLogin, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar };
+// @desc    Register Teacher / Partner
+// @route   POST /api/auth/register-teacher
+const registerTeacher = async (req, res, next) => {
+  try {
+    const { full_name, email, password, phone, specialty } = req.body;
+
+    if (!full_name || !email || !password) {
+      return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ họ tên, email và mật khẩu' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Mật khẩu phải có ít nhất 6 ký tự' });
+    }
+
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email này đã được đăng ký tài khoản trên hệ thống' });
+    }
+
+    // Sinh mã giảng viên ngẫu nhiên (ví dụ GV1234)
+    const teacherCode = `GV${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const user = await User.create({
+      full_name: full_name.trim(),
+      email: email.trim().toLowerCase(),
+      password, // hooks beforeCreate sẽ tự động hash mật khẩu
+      role: 'teacher',
+      phone: phone ? phone.trim() : null,
+      address: specialty ? specialty.trim() : null,
+      code: teacherCode,
+      is_verified: true,
+    });
+
+    const token = generateToken(user);
+
+    // Gửi email chào mừng giảng viên đối tác (nếu có cấu hình email)
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Chào mừng bạn trở thành Đối tác Giảng viên LMS',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <h2 style="color: #4f46e5; text-align: center;">Chào mừng Giảng viên Đối tác!</h2>
+            <p>Kính gửi Thầy/Cô <strong>${user.full_name}</strong>,</p>
+            <p>Cảm ơn Thầy/Cô đã đăng ký trở thành Đối tác Giảng viên của hệ thống LMS.</p>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 5px 0;"><strong>Mã Giảng viên:</strong> ${teacherCode}</p>
+              <p style="margin: 5px 0;"><strong>Email đăng nhập:</strong> ${user.email}</p>
+              <p style="margin: 5px 0;"><strong>Lĩnh vực chuyên môn:</strong> ${specialty || 'Chưa cập nhật'}</p>
+            </div>
+            <p>Thầy/Cô có thể đăng nhập vào Cổng Quản lý Giảng viên để bắt đầu xây dựng bài giảng và tương tác cùng học viên.</p>
+            <div style="text-align: center; margin-top: 25px;">
+              <a href="http://localhost:5173/portal-giang-vien/login" style="background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Truy cập Cổng Giảng viên</a>
+            </div>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.warn('Không thể gửi email chào mừng giảng viên:', emailErr.message);
+    }
+
+    res.status(201).json({
+      message: 'Đăng ký trở thành Đối tác Giảng viên thành công!',
+      token,
+      require_pin_setup: !user.pin_code,
+      user: user.toJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { register, registerTeacher, verifyOtp, completeRegistration, login, googleLogin, facebookLogin, setupPin, forgotPassword, resetPassword, getProfile, updateProfile, changePassword, uploadAvatar };

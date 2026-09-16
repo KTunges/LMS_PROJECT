@@ -82,6 +82,21 @@ export const AuthProvider = ({ children }) => {
     return { require_pin_setup, user: userData };
   };
 
+  const registerTeacher = async (teacherData) => {
+    const response = await authService.registerTeacher(teacherData);
+    const { token, user: userData, require_pin_setup } = response.data;
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('requirePinSetup', require_pin_setup ? 'true' : 'false');
+
+    setUser(userData);
+    setRequirePinSetup(require_pin_setup);
+    socketService.connect(token, userData.id);
+
+    return { require_pin_setup, user: userData };
+  };
+
   const googleLogin = async (googleToken) => {
     const response = await authService.googleLogin(googleToken);
     const { token, user: userData, require_pin_setup } = response.data;
@@ -130,6 +145,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    registerTeacher,
     verifyOtp,
     completeRegistration,
     googleLogin,

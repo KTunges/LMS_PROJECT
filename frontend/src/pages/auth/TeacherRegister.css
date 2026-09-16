@@ -1,0 +1,470 @@
+.teacher-reg-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8fafc;
+}
+
+/* Left Form Column */
+.teacher-reg-left {
+  flex: 1.1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 24px;
+  background: #ffffff;
+  overflow-y: auto;
+}
+
+.teacher-reg-content {
+  width: 100%;
+  max-width: 520px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Brand Section */
+.teacher-reg-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.teacher-reg-logo-box {
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+}
+
+.teacher-reg-brand-name {
+  display: block;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.teacher-reg-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  background: #eef2ff;
+  color: #4f46e5;
+  border-radius: 20px;
+  margin-top: 2px;
+}
+
+/* Typography */
+.teacher-reg-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.teacher-reg-subtitle {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* Form Styling */
+.teacher-reg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.teacher-reg-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.teacher-reg-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-reg-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.req-star {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.teacher-reg-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.teacher-reg-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 17px;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.teacher-reg-input-wrapper input,
+.teacher-reg-select {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.teacher-reg-input-wrapper input:focus,
+.teacher-reg-select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3.5px rgba(79, 70, 229, 0.12);
+}
+
+.teacher-reg-input-wrapper input:focus + .teacher-reg-icon,
+.teacher-reg-input-wrapper:focus-within .teacher-reg-icon {
+  color: #4f46e5;
+}
+
+.teacher-reg-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 38px;
+}
+
+/* Password eye button */
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.2s;
+}
+
+.toggle-password-btn:hover {
+  color: #475569;
+}
+
+/* Terms Checkbox */
+.teacher-reg-terms {
+  margin-top: 4px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  cursor: pointer;
+  font-size: 13px;
+  color: #64748b;
+  user-select: none;
+  line-height: 1.5;
+  gap: 10px;
+}
+
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 5px;
+  background-color: #fff;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+  border-color: #4f46e5;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.checkmark:after {
+  content: "";
+  display: none;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.terms-text a {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.terms-text a:hover {
+  text-decoration: underline;
+}
+
+/* Submit Button */
+.teacher-reg-btn {
+  margin-top: 8px;
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25);
+  transition: all 0.2s ease;
+}
+
+.teacher-reg-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.35);
+}
+
+.teacher-reg-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.teacher-reg-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.teacher-reg-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Footer Link */
+.teacher-reg-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.teacher-reg-footer .login-link {
+  color: #4f46e5;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.teacher-reg-footer .login-link:hover {
+  text-decoration: underline;
+}
+
+/* Right Hero Banner */
+.teacher-reg-right {
+  flex: 1.1;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.8) 100%),
+              url('https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=1600');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+  position: relative;
+}
+
+.teacher-reg-overlay {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 44px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  max-width: 540px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: rgba(99, 102, 241, 0.25);
+  border: 1px solid rgba(129, 140, 248, 0.4);
+  color: #a5b4fc;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 20px;
+  margin-bottom: 18px;
+}
+
+.hero-title {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 14px;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.hero-desc {
+  color: #cbd5e1;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+/* Benefit Cards Grid */
+.benefit-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefit-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.benefit-card:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.benefit-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.benefit-icon-wrapper.income {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.benefit-icon-wrapper.audience {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.benefit-icon-wrapper.ai {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
+
+.benefit-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 4px 0;
+}
+
+.benefit-info p {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .teacher-reg-right {
+    display: none;
+  }
+  
+  .teacher-reg-left {
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .teacher-reg-row {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  
+  .teacher-reg-title {
+    font-size: 24px;
+  }
+}

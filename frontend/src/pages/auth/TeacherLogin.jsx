@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FiMail, FiLock, FiLogIn, FiBriefcase } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
@@ -106,7 +106,7 @@ const TeacherLogin = () => {
           </form>
 
           <div className="teacher-login-footer">
-            Bạn chưa có tài khoản Giảng viên? <a href="#">Đăng ký trở thành Đối tác</a>
+            Bạn chưa có tài khoản Giảng viên? <Link to="/portal-giang-vien/register">Đăng ký trở thành Đối tác</Link>
           </div>
         </div>
       </div>
