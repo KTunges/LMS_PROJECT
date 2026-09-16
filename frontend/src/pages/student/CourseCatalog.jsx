@@ -4,6 +4,7 @@ import { FiSearch, FiStar, FiClock, FiUsers, FiCheckCircle, FiX } from 'react-ic
 import { toast } from 'react-toastify';
 import './CourseCatalog.css';
 import { studentService, paymentService } from '../../services';
+import { SkeletonCard } from '../../components/common/SkeletonLoaders';
 
 const CourseCatalog = () => {
   const navigate = useNavigate();
@@ -163,7 +164,7 @@ const CourseCatalog = () => {
 
       <div className="catalog-grid">
         {isLoading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1' }}>Đang tải danh mục khóa học...</div>
+          Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)
         ) : filteredCourses.map(course => (
           <div key={course.id} className="catalog-card glass-card">
             <div className={`price-badge ${course.price === 0 ? 'free' : 'paid'}`}>

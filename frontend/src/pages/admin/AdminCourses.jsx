@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FiCheck, FiX, FiEye, FiSearch, FiFilter, FiBookOpen } from 'react-icons/fi';
 import api from '../../services/api';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import { toast } from 'react-toastify';
 
 const AdminCourses = () => {
@@ -50,10 +51,6 @@ const AdminCourses = () => {
     });
   }, [courses, searchTerm, statusFilter]);
 
-  if (isLoading) {
-    return <div style={{ color: '#1e293b', fontWeight: '500' }}>Đang tải dữ liệu...</div>;
-  }
-
   return (
     <div>
       <h1 style={{ marginBottom: '24px', fontSize: '1.8rem', color: '#1e293b', fontWeight: 800 }}>Quản lý Khóa học</h1>
@@ -89,8 +86,11 @@ const AdminCourses = () => {
           </div>
         </div>
 
-        <table className="admin-table">
-          <thead>
+        {isLoading ? (
+          <SkeletonTable rows={5} cols={6} />
+        ) : (
+          <table className="admin-table">
+            <thead>
             <tr>
               <th>ID</th>
               <th>Tên khóa học</th>
@@ -145,6 +145,7 @@ const AdminCourses = () => {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

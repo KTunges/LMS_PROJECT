@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUsers, FiClock, FiMoreVertical, FiPlus, FiEdit3, FiVideo, FiBarChart2 } from 'react-icons/fi';
 import { teacherService } from '../../services';
+import { SkeletonCard } from '../../components/common/SkeletonLoaders';
 import './Teacher.css';
 
 const TeacherClasses = () => {
@@ -38,8 +39,6 @@ const TeacherClasses = () => {
     fetchCourses();
   }, []);
 
-  if (isLoading) return <div className="teacher-page"><div style={{padding: 40}}>Đang tải danh sách khóa học...</div></div>;
-
   return (
     <div className="teacher-page">
       <div className="teacher-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -53,8 +52,11 @@ const TeacherClasses = () => {
       </div>
 
       <div className="classes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-        {courses.map(course => (
-          <div key={course.id} className="class-card glass-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', overflow: 'hidden', transition: 'all 0.3s ease' }}
+        {isLoading ? (
+          Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)
+        ) : (
+          courses.map(course => (
+            <div key={course.id} className="class-card glass-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', overflow: 'hidden', transition: 'all 0.3s ease' }}
                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'var(--theme-accent)'; }}
                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--theme-glass-border)'; }}
           >
@@ -96,9 +98,10 @@ const TeacherClasses = () => {
               </button>
             </div>
           </div>
-        ))}
+        ))
+        )}
 
-        {courses.length === 0 && (
+        {!isLoading && courses.length === 0 && (
           <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center', background: 'var(--theme-glass-bg)', borderRadius: '12px', border: '1px dashed var(--theme-glass-border)' }}>
             <FiVideo size={48} color="var(--text-secondary)" style={{ marginBottom: '16px' }} />
             <h3 style={{ marginBottom: '8px', color: 'var(--text-main)' }}>Bạn chưa có khóa học nào</h3>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FiUsers, FiMessageCircle, FiSearch, FiMail, FiTrendingUp, FiAward, FiCheck, FiCornerDownRight } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 import { teacherService } from '../../services/teacherService';
 import './TeacherStudents.css';
 
@@ -101,9 +102,7 @@ const TeacherStudents = () => {
     }
   };
 
-  if (isLoading) {
-    return <div className="ts-page" style={{ padding: '2rem', textAlign: 'center' }}>Đang tải dữ liệu...</div>;
-  }
+
 
   return (
     <div className="ts-page">
@@ -185,7 +184,9 @@ const TeacherStudents = () => {
             />
           </div>
 
-          {filteredStudents.length > 0 ? (
+          {isLoading ? (
+            <SkeletonTable rows={4} cols={5} />
+          ) : filteredStudents.length > 0 ? (
             <table className="ts-table">
               <thead>
                 <tr>
@@ -234,8 +235,10 @@ const TeacherStudents = () => {
 
       {/* Q&A */}
       {activeTab === 'qa' && (
-        <div className="ts-qa-list">
-          {qaList.length > 0 ? (
+        <div className="ts-content-card">
+          {isLoading ? (
+            <SkeletonTable rows={4} cols={1} />
+          ) : qaList.length > 0 ? (
             qaList.map((q) => (
               <div key={q.id} className={`ts-qa-card ${q.answered ? 'ts-qa-card--answered' : 'ts-qa-card--unanswered'}`}>
                 <div className="ts-qa-header">

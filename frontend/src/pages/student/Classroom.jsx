@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { FiArrowLeft, FiCheckCircle, FiPlayCircle, FiFileText, FiAward, FiExternalLink, FiEye } from 'react-icons/fi';
-import { classService, studentService } from '../../services';
+import { classService, studentService, aiService } from '../../services';
 import CustomVideoPlayer from '../../components/common/VideoPlayer/CustomVideoPlayer';
+import CourseReviews from '../../components/common/CourseReviews/CourseReviews';
+import AIChat from '../../components/common/AIChat/AIChat';
 import './Classroom.css';
 
 const Classroom = () => {
@@ -14,6 +17,11 @@ const Classroom = () => {
   const [activeLesson, setActiveLesson] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentVideoProgress, setCurrentVideoProgress] = useState(0);
+  const [courseId, setCourseId] = useState(null);
+  
+  // AI States
+  const [summary, setSummary] = useState(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -25,6 +33,9 @@ const Classroom = () => {
           setLessons(res.data.data.lessons);
           if (res.data.data.lessons.length > 0) {
             setActiveLesson(res.data.data.lessons[0]);
+          }
+          if (res.data.data.course_id) {
+            setCourseId(res.data.data.course_id);
           }
         }
       } catch (err) {
@@ -48,6 +59,28 @@ const Classroom = () => {
   const handleLessonClick = (lesson) => {
     setActiveLesson(lesson);
     setCurrentVideoProgress(0);
+    setSummary(null); // Reset summary when changing lesson
+  };
+
+  const handleSummarize = async () => {
+    if (!activeLesson) return;
+    setIsSummarizing(true);
+    try {
+      // In a real app, this would send the actual transcript or text content of the lesson
+      // For this demo, we'll just send the title and assume the AI knows or we mock it
+      const textToSummarize = activeLesson.title + " (Đây là bài học trong khóa học " + courseName + ")";
+      const res = await aiService.summarize(textToSummarize);
+      if (res.data?.success) {
+        setSummary(res.data.data.summary);
+      } else {
+        toast.error(res.data?.message || 'AI không thể tóm tắt bài học này');
+      }
+    } catch (error) {
+      console.error("Lỗi tóm tắt:", error);
+      toast.error('Lỗi khi kết nối với AI Tóm tắt');
+    } finally {
+      setIsSummarizing(false);
+    }
   };
 
   const markAsCompleted = async () => {
@@ -174,20 +207,56 @@ const Classroom = () => {
 
           <div className="lesson-footer">
             <div className="lesson-info">
-              <h2>{activeLesson.title}</h2>
+              <div>
+                <h2>{activeLesson.title}</h2>
+              </div>
               <p>{activeLesson.duration}</p>
+              
+              {summary && (
+                <div style={{ marginTop: '16px', padding: '16px', background: 'var(--theme-glass-bg, #f8fafc)', border: '1px solid var(--theme-glass-border, #e2e8f0)', borderRadius: '8px' }}>
+                  <h4 style={{ color: 'var(--theme-primary, #4f46e5)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    ✨ Tóm tắt từ AI
+                  </h4>
+                  <div style={{ fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                    {summary}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="lesson-actions">
+            <div className="lesson-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <button 
+                onClick={handleSummarize} 
+                disabled={isSummarizing}
+                style={{ 
+                  padding: '12px 24px', 
+                  borderRadius: '8px', 
+                  background: 'linear-gradient(135deg, var(--theme-primary, #4f46e5), var(--theme-accent, #ec4899))', 
+                  color: 'white', 
+                  border: 'none', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap',
+                  height: '48px',
+                  flexShrink: 0
+                }}
+              >
+                ✨ {isSummarizing ? 'Đang tóm tắt...' : 'Tóm tắt bài học (AI)'}
+              </button>
               {activeLesson.type === 'video' ? (
-                <div className={`video-status-badge ${activeLesson.completed ? 'completed' : 'learning'}`}>
+                <div className={`video-status-badge ${activeLesson.completed ? 'completed' : 'learning'}`} style={{ height: '48px', padding: '0 24px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                   <FiCheckCircle size={18} />
-                  {activeLesson.completed ? 'Đã học xong' : 'Đang học (Xem hết video để hoàn thành)'}
+                  {activeLesson.completed ? 'Đã học xong' : 'Đang học'}
                 </div>
               ) : (
                 <button 
                   className={`btn-complete ${activeLesson.completed ? 'completed' : ''}`}
                   onClick={markAsCompleted}
                   disabled={activeLesson.completed}
+                  style={{ height: '48px', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
                   <FiCheckCircle size={18} />
                   {activeLesson.completed ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}
@@ -195,6 +264,9 @@ const Classroom = () => {
               )}
             </div>
           </div>
+
+          {/* Đánh giá khóa học */}
+          {courseId && <CourseReviews courseId={courseId} />}
         </div>
 
         {/* RIGHT: Playlist Sidebar */}
@@ -244,6 +316,13 @@ const Classroom = () => {
           </div>
         </div>
       </div>
+      {/* AI Chatbot */}
+      {activeLesson && (
+        <AIChat 
+          contextTitle={activeLesson.title} 
+          contextText={`Khóa học: ${courseName}`} 
+        />
+      )}
     </div>
   );
 };

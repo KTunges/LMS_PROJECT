@@ -35,6 +35,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import LiveClassroom from './pages/teacher/LiveClassroom/LiveClassroom';
 import StudentLiveClassroom from './pages/student/LiveClassroom/StudentLiveClassroom';
 import MomoReturn from './pages/student/MomoReturn';
+import LandingPage from './pages/public/LandingPage';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -142,7 +143,7 @@ function App() {
             {/* Public Login page */}
             <Route path="/login" element={<AuthPage />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

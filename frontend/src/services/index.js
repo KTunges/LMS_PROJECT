@@ -5,6 +5,7 @@ export { teacherService } from './teacherService';
 export { materialService } from './materialService';
 export { categoryService } from './categoryService';
 export { userService } from './userService';
+export { aiService } from './aiService';
 export { courseService, classService, lessonService, quizService, curriculumService } from './courseService';
 export { liveService } from './liveService';
 export { paymentService } from './paymentService';

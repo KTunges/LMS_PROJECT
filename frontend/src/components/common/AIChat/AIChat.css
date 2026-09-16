@@ -1,0 +1,196 @@
+.ai-chat-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+}
+
+.ai-chat-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--theme-primary, #4f46e5), var(--theme-accent, #ec4899));
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+  transition: transform 0.3s ease;
+}
+
+.ai-chat-btn:hover {
+  transform: scale(1.1);
+}
+
+.ai-chat-btn svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.pulse-glow {
+  animation: pulse-glow-anim 2s infinite;
+}
+
+@keyframes pulse-glow-anim {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+.ai-chat-window {
+  width: 350px;
+  height: 500px;
+  background: var(--theme-card-bg, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--theme-glass-border);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ai-chat-header {
+  background: linear-gradient(135deg, var(--theme-primary, #4f46e5), var(--theme-accent, #ec4899));
+  padding: 16px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ai-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.ai-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.ai-close-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.ai-close-btn svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.ai-chat-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--theme-bg-main, #f8fafc);
+}
+
+.ai-message {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.user-msg {
+  align-self: flex-end;
+  background: var(--theme-primary, #4f46e5);
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+
+.model-msg {
+  align-self: flex-start;
+  background: white;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 2px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.ai-chat-footer {
+  padding: 12px;
+  background: var(--theme-card-bg, #ffffff);
+  border-top: 1px solid var(--theme-glass-border);
+  display: flex;
+  gap: 8px;
+}
+
+.ai-chat-footer input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 20px;
+  outline: none;
+  background: var(--theme-bg-main, #f1f5f9);
+  color: var(--theme-text-main, #1e293b);
+}
+
+.ai-chat-footer input:focus {
+  border-color: var(--theme-primary, #4f46e5);
+}
+
+.ai-chat-footer button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--theme-primary, #4f46e5);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.ai-chat-footer button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.ai-chat-footer button:hover:not(:disabled) {
+  background: var(--theme-accent, #ec4899);
+}
+
+/* Typing Indicator */
+.typing-indicator span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #94a3b8;
+  border-radius: 50%;
+  margin: 0 2px;
+  animation: typing 1.4s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}

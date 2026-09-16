@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
 
 const AdminFinance = () => {
   const [transactions, setTransactions] = useState([]);
@@ -82,10 +83,6 @@ const AdminFinance = () => {
     }
   };
 
-  if (isLoading) {
-    return <div style={{ color: '#1e293b', fontWeight: '500' }}>Đang tải dữ liệu...</div>;
-  }
-
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -150,8 +147,11 @@ const AdminFinance = () => {
           </div>
         </div>
 
-        <table className="admin-table">
-          <thead>
+        {isLoading ? (
+          <SkeletonTable rows={5} cols={6} />
+        ) : (
+          <table className="admin-table">
+            <thead>
             <tr>
               <th>Mã GD</th>
               <th>Người mua</th>
@@ -222,6 +222,7 @@ const AdminFinance = () => {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

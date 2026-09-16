@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import { studentService } from '../../../services';
 import { useAuth } from '../../../contexts/AuthContext';
+import { SkeletonProfile } from '../../../components/common/SkeletonLoaders';
 import './Dashboard.css';
 import './DashboardExtensions.css';
 
@@ -79,7 +80,14 @@ const Dashboard = () => {
   }).slice(0, 4);
 
   if (isLoading) {
-    return <div style={{ padding: '40px', textAlign: 'center' }}>Đang tải bảng điều khiển...</div>;
+    return (
+      <div className="dashboard-page-premium">
+        <SkeletonProfile />
+        <div style={{ marginTop: '24px' }}>
+           <SkeletonProfile />
+        </div>
+      </div>
+    );
   }
 
   const currentLearning = activeCourses.length > 0 ? activeCourses[0] : null;

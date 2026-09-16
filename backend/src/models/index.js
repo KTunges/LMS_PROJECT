@@ -29,6 +29,7 @@ const Transaction = require('./Transaction');
 const ChatMessage = require('./ChatMessage');
 const CourseQA = require('./CourseQA');
 const Setting = require('./Setting');
+const Review = require('./Review');
 
 // ---- Associations ----
 
@@ -192,6 +193,14 @@ CourseQA.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
 Lesson.hasMany(CourseQA, { foreignKey: 'lesson_id', as: 'lesson_qas' });
 CourseQA.belongsTo(Lesson, { foreignKey: 'lesson_id', as: 'lesson' });
 
+// ---- Review ----
+
+User.hasMany(Review, { foreignKey: 'student_id', as: 'reviews' });
+Review.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+
+Course.hasMany(Review, { foreignKey: 'course_id', as: 'reviews' });
+Review.belongsTo(Course, { foreignKey: 'course_id', as: 'course' });
+
 module.exports = {
   sequelize,
   User,
@@ -224,4 +233,5 @@ module.exports = {
   ChatMessage,
   CourseQA,
   Setting,
+  Review,
 };

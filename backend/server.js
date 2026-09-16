@@ -15,7 +15,7 @@ const startServer = async () => {
 
     // Sync models (in development only)
     if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
+      await sequelize.sync({ alter: false });
       console.log('✅ Đồng bộ models thành công');
     }
 

@@ -3,6 +3,7 @@ import { FiX, FiPlus, FiTrash2, FiPlay, FiPause, FiHelpCircle } from 'react-icon
 import ReactPlayer from 'react-player';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { aiService } from '../../services';
 
 const InteractiveQuestionModal = ({ lesson, onClose }) => {
   const [questions, setQuestions] = useState([]);
@@ -17,6 +18,11 @@ const InteractiveQuestionModal = ({ lesson, onClose }) => {
     video_timestamp: 0
   });
   const [isAdding, setIsAdding] = useState(false);
+
+  // AI Generator States
+  const [showAIForm, setShowAIForm] = useState(false);
+  const [aiContextText, setAiContextText] = useState('');
+  const [isAIGenerating, setIsAIGenerating] = useState(false);
 
   const playerRef = useRef(null);
 
@@ -96,6 +102,41 @@ const InteractiveQuestionModal = ({ lesson, onClose }) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = Math.floor(seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
+  };
+
+  const handleGenerateAI = async () => {
+    if (!aiContextText.trim()) {
+      toast.warning('Vui lòng nhập nội dung văn bản để AI tạo câu hỏi!');
+      return;
+    }
+    try {
+      setIsAIGenerating(true);
+      const res = await aiService.generateQuiz(aiContextText, 5);
+      if (res.data?.success && res.data.data.length > 0) {
+        let successCount = 0;
+        for (const q of res.data.data) {
+          const payload = {
+            content: q.question,
+            video_timestamp: Math.floor(playedSeconds) || 0,
+            options: q.options,
+            correct_answer: q.correctAnswer
+          };
+          const saveRes = await api.post(`/teacher/lessons/${lesson.id}/questions`, payload);
+          if (saveRes.data?.success) successCount++;
+        }
+        toast.success(`AI đã tạo và lưu thành công ${successCount} câu hỏi!`);
+        setAiContextText('');
+        setShowAIForm(false);
+        fetchQuestions();
+      } else {
+        toast.error('AI không thể tạo câu hỏi từ văn bản này.');
+      }
+    } catch (error) {
+      toast.error('Lỗi khi gọi AI tạo câu hỏi');
+      console.error(error);
+    } finally {
+      setIsAIGenerating(false);
+    }
   };
 
   return (
@@ -220,9 +261,40 @@ const InteractiveQuestionModal = ({ lesson, onClose }) => {
                   <button onClick={handleSaveQuestion} style={{ flex: 1, padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Lưu Câu hỏi</button>
                 </div>
               </div>
+            ) : showAIForm ? (
+              <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: 'var(--theme-primary, #4f46e5)' }}>✨ Tự động tạo câu hỏi bằng AI</h3>
+                <p style={{ fontSize: '13px', color: 'var(--theme-text-muted, #64748b)', marginBottom: '16px' }}>
+                  Dán nội dung bài học hoặc đoạn văn bản vào đây. AI sẽ tự động phân tích và sinh ra 5 câu hỏi trắc nghiệm lưu vào bài học này.
+                </p>
+                <textarea 
+                  placeholder="Nhập nội dung văn bản..."
+                  value={aiContextText}
+                  onChange={(e) => setAiContextText(e.target.value)}
+                  style={{ flex: 1, minHeight: '200px', padding: '12px', borderRadius: '8px', border: '1px solid var(--theme-border-color, #cbd5e1)', background: 'var(--theme-card-bg)', color: 'var(--theme-text-main)', fontSize: '14px', resize: 'vertical' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+                  <button onClick={() => setShowAIForm(false)} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--theme-border-color, #cbd5e1)', background: 'transparent', cursor: 'pointer', fontWeight: 600, color: 'var(--theme-text-main)' }}>Hủy</button>
+                  <button onClick={handleGenerateAI} disabled={isAIGenerating} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: 'var(--theme-primary, #4f46e5)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                    {isAIGenerating ? 'Đang tạo...' : 'Bắt đầu tạo'}
+                  </button>
+                </div>
+              </div>
             ) : (
               <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-                <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Danh sách câu hỏi ({questions.length})</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px' }}>Danh sách câu hỏi ({questions.length})</h3>
+                  <button 
+                    onClick={() => setShowAIForm(true)}
+                    style={{
+                      background: 'linear-gradient(135deg, var(--theme-primary, #4f46e5), var(--theme-accent, #ec4899))', color: '#fff', border: 'none', 
+                      padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                      fontWeight: 600, fontSize: '12px'
+                    }}
+                  >
+                    ✨ Sinh bằng AI
+                  </button>
+                </div>
                 {loading ? <p>Đang tải...</p> : (
                   questions.length === 0 ? (
                     <p style={{ color: 'var(--theme-text-muted)', fontSize: '14px', fontStyle: 'italic' }}>Chưa có câu hỏi nào. Hãy phát video và thêm câu hỏi.</p>

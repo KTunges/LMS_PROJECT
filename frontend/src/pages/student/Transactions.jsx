@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FiDownload, FiCheckCircle, FiClock, FiXCircle, FiCreditCard } from 'react-icons/fi';
 import { studentService } from '../../services';
+import { SkeletonTable } from '../../components/common/SkeletonLoaders';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import './Transactions.css';
 
 const Transactions = () => {
@@ -41,6 +44,44 @@ const Transactions = () => {
     }
   };
 
+  const downloadInvoice = (txn) => {
+    const doc = new jsPDF();
+    
+    // Add font for Vietnamese characters (basic approach: ascii fallback for standard fonts if not using custom VNF font)
+    // For simplicity, we use standard font but remove vietnamese accents or use basic mapping if needed, 
+    // but jsPDF basic fonts don't support full utf-8 out of the box without custom fonts.
+    // To ensure no crash, we'll write the text plainly.
+    
+    doc.setFontSize(22);
+    doc.setTextColor(212, 160, 23); // Gold color
+    doc.text('LMS EDUCATION', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text('HOA DON THANH TOAN', 105, 30, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text(`Ma giao dich: TXN-${txn.id}`, 20, 50);
+    doc.text(`Ngay: ${new Date(txn.date).toLocaleDateString('vi-VN')}`, 20, 60);
+    doc.text(`Phuong thuc: ${txn.paymentMethod || 'N/A'}`, 20, 70);
+    doc.text(`Trang thai: Thanh cong`, 20, 80);
+
+    doc.autoTable({
+      startY: 90,
+      head: [['Khóa học (Course)', 'Số tiền (Amount)']],
+      body: [
+        [txn.description || 'Khóa học', `${Number(txn.amount).toLocaleString()} VND`]
+      ],
+      headStyles: { fillColor: [212, 160, 23] }
+    });
+
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('Cam on ban da su dung dich vu cua LMS Education!', 105, doc.lastAutoTable.finalY + 20, { align: 'center' });
+
+    doc.save(`HoaDon_TXN_${txn.id}.pdf`);
+  };
+
   return (
     <div className="transactions-page fade-in">
       <div className="transactions-header">
@@ -62,7 +103,7 @@ const Transactions = () => {
         </div>
 
         {isLoading ? (
-          <div style={{ padding: '40px', textAlign: 'center' }}>Đang tải lịch sử giao dịch...</div>
+          <SkeletonTable rows={4} cols={6} />
         ) : filteredTxns.length === 0 ? (
           <div className="empty-transactions">
             <FiCreditCard size={48} color="#cbd5e1" />
@@ -96,7 +137,7 @@ const Transactions = () => {
                     <td>{getStatusBadge(txn.status)}</td>
                     <td>
                       {txn.status === 'completed' && (
-                        <button className="btn-icon" title="Tải biên lai">
+                        <button className="btn-icon" title="Tải biên lai" onClick={() => downloadInvoice(txn)}>
                           <FiDownload /> Biên lai
                         </button>
                       )}

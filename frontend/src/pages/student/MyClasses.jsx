@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiClock, FiUsers, FiMoreVertical, FiPlayCircle, FiCheckCircle } from 'react-icons/fi';
 import { studentService } from '../../services';
+import { SkeletonCard } from '../../components/common/SkeletonLoaders';
 import './MyClasses.css';
 
 const MyClasses = () => {
@@ -31,12 +32,6 @@ const MyClasses = () => {
 
   const displayClasses = activeTab === 'current' ? currentClasses : completedClasses;
 
-  if (isLoading) {
-    return <div className="myclasses-page" style={{padding: 40}}>Đang tải danh sách khóa học...</div>;
-  }
-
-
-
   return (
     <div className="myclasses-page">
       <div className="myclasses-header">
@@ -61,65 +56,71 @@ const MyClasses = () => {
         </button>
       </div>
 
-      <div className="classes-grid">
-        {displayClasses.map((cls) => (
-          <div 
-            key={cls.id} 
-            className="class-card glass-card"
-            onClick={() => navigate(`/student/classroom/${cls.id}`)}
-          >
-            <div className="class-card__cover" style={{ backgroundImage: `url(${cls.bgImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600'})` }}>
-              <div className="class-card__overlay" style={{ background: cls.color || 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}></div>
-              <div className="class-card__menu" onClick={(e) => e.stopPropagation()}>
-                <FiMoreVertical />
-              </div>
-              <div className="class-card__course-code">{cls.course_code || cls.courseCode}</div>
-              <h3 className="class-card__name">{cls.course_name || cls.name}</h3>
-              <p className="class-card__teacher">{cls.teacher_name || cls.teacher}</p>
-            </div>
-            
-            <div className="class-card__content">
-              <div className="class-card__stats">
-                <span className="stat-item">
-                  <FiClock /> Tự do (Self-paced)
-                </span>
-                <span className="stat-item">
-                  <FiUsers /> {cls.studentsCount || Math.floor(Math.random() * 500 + 50)} HV
-                </span>
+      <div className="myclasses-grid">
+        {isLoading ? (
+          Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)
+        ) : displayClasses.length > 0 ? (
+          displayClasses.map((cls) => (
+            <div 
+              key={cls.id} 
+              className="class-card glass-card"
+              onClick={() => navigate(`/student/classroom/${cls.id}`)}
+            >
+              <div className="class-card__cover" style={{ backgroundImage: `url(${cls.bgImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600'})` }}>
+                <div className="class-card__overlay" style={{ background: cls.color || 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+                <div className="class-card__menu" onClick={(e) => e.stopPropagation()}>
+                  <FiMoreVertical />
+                </div>
+                <div className="class-card__course-code">{cls.course_code || cls.courseCode}</div>
+                <h3 className="class-card__name">{cls.course_name || cls.name}</h3>
+                <p className="class-card__teacher">{cls.teacher_name || cls.teacher}</p>
               </div>
               
-              <div className="class-card__progress">
-                <div className="progress-header">
-                  <span>Tiến độ học tập</span>
-                  <span className="progress-text">{cls.progress}%</span>
+              <div className="class-card__content">
+                <div className="class-card__stats">
+                  <span className="stat-item">
+                    <FiClock /> Tự do (Self-paced)
+                  </span>
+                  <span className="stat-item">
+                    <FiUsers /> {cls.studentsCount || Math.floor(Math.random() * 500 + 50)} HV
+                  </span>
                 </div>
-                <div className="progress-bar-container">
-                  <div 
-                    className="progress-bar-fill" 
-                    style={{ 
-                      width: `${cls.progress}%`,
-                      background: cls.progress === 100 ? '#10b981' : 'var(--info)'
-                    }}
-                  ></div>
+                
+                <div className="class-card__progress">
+                  <div className="progress-header">
+                    <span>Tiến độ học tập</span>
+                    <span className="progress-text">{cls.progress}%</span>
+                  </div>
+                  <div className="progress-bar-container">
+                    <div 
+                      className="progress-bar-fill" 
+                      style={{ 
+                        width: `${cls.progress}%`,
+                        background: cls.progress === 100 ? '#10b981' : 'var(--info)'
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="class-card__footer" style={{marginTop: '16px'}}>
-              <button 
-                className="btn btn-primary" 
-                style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}
-                onClick={(e) => { e.stopPropagation(); navigate(`/student/classroom/${cls.id}`); }}
-              >
-                <FiPlayCircle /> {cls.progress === 100 ? 'Học lại' : cls.progress > 0 ? 'Tiếp tục học' : 'Bắt đầu học'}
-              </button>
+              <div className="class-card__footer" style={{marginTop: '16px'}}>
+                <button 
+                  className="btn btn-primary" 
+                  style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/student/classroom/${cls.id}`); }}
+                >
+                  <FiPlayCircle /> {cls.progress === 100 ? 'Học lại' : cls.progress > 0 ? 'Tiếp tục học' : 'Bắt đầu học'}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-
-        {displayClasses.length === 0 && (
-          <div className="empty-state">
-            <p>Chưa có khóa học nào trong danh sách này.</p>
+          ))
+        ) : (
+          <div className="no-classes-message">
+            <h3>Bạn chưa có khóa học nào ở mục này</h3>
+            <p>Hãy khám phá thêm các khóa học mới tại trang Danh mục.</p>
+            <button className="btn-explore" onClick={() => navigate('/student/catalog')}>
+              Khám phá ngay
+            </button>
           </div>
         )}
       </div>
